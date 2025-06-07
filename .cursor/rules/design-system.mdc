@@ -5,176 +5,129 @@ alwaysApply: true
 ---
 # Design System & UI Standards
 
-## PandaCSS Configuration
+Remember: Always use the `styled` factory function with recipes for component creation. This provides better TypeScript support, cleaner APIs, and more maintainable code while following PandaCSS best practices.
 
-Reference the main configuration: [panda.config.ts](mdc:panda.config.ts)
+## Component Styling Hierarchy
 
-### Design Token Usage
+### 1. First Preference: styled-system/jsx Components
+Use built-in JSX components for simple layouts and containers:
+
 ```typescript
-// ✅ CORRECT - Use design tokens
-const buttonStyles = css({
-  bg: 'blue.600',
-  color: 'white',
-  px: 4,
-  py: 2,
-  borderRadius: 'md',
-  fontSize: 'sm'
-})
+import { Box, Flex, Grid, Stack, HStack, VStack } from '@/styled-system/jsx'
 
-// ❌ WRONG - Don't hardcode values  
-const buttonStyles = css({
-  backgroundColor: '#2563eb',
-  color: '#ffffff',
-  padding: '8px 16px',
-  borderRadius: '6px'
-})
+// ✅ PREFERRED - Use JSX components for simple layouts
+const ChatContainer = () => (
+  <Box bg="white" p={6} borderRadius="lg" shadow="md">
+    <VStack gap={4}>
+      <Box fontSize="xl" fontWeight="bold">Chat Header</Box>
+      <Flex justify="between" align="center" w="full">
+        <Box>Left content</Box>
+        <Box>Right content</Box>
+      </Flex>
+    </VStack>
+  </Box>
+)
+
+// ✅ Grid layouts made simple
+const AgentGrid = () => (
+  <Grid columns={3} gap={6} p={4}>
+    <Box bg="purple.50" p={4}>Brand Agent</Box>
+    <Box bg="blue.50" p={4}>Product Agent</Box>
+    <Box bg="green.50" p={4}>Image Agent</Box>
+  </Grid>
+)
+
+// ✅ Responsive layouts
+const ResponsiveLayout = () => (
+  <Stack 
+    direction={{ base: 'column', md: 'row' }}
+    gap={6}
+    p={4}
+  >
+    <Box flex={1}>Content 1</Box>
+    <Box flex={1}>Content 2</Box>
+  </Stack>
+)
 ```
 
-## Component Architecture
-
-### Base UI Components
-All base components should be in `components/ui/` with consistent interfaces:
-
+### Available JSX Components
 ```typescript
-// components/ui/button.tsx
-interface ButtonProps extends ButtonHTMLAttributes<HTMLButtonElement> {
-  variant?: 'primary' | 'secondary' | 'outline' | 'ghost'
-  size?: 'sm' | 'md' | 'lg'
-  children: ReactNode
-}
+// Layout Components
+import { 
+  Box,        // General container (replaces <div>)
+  Flex,       // Flexbox container
+  Grid,       // CSS Grid container
+  Stack,      // Vertical or horizontal stack
+  HStack,     // Horizontal stack
+  VStack,     // Vertical stack
+  Center,     // Centers content
+  Square,     // Square container
+  Circle,     // Circular container
+  AspectRatio // Aspect ratio container
+} from '@/styled-system/jsx'
 
-// components/ui/input.tsx  
-interface InputProps extends InputHTMLAttributes<HTMLInputElement> {
-  label?: string
-  error?: string
-  helpText?: string
-}
+// Usage Examples
+<Box />           // Instead of <div className={css({...})}>
+<Flex />          // Instead of <div className={css({ display: 'flex' })}>
+<Grid />          // Instead of <div className={css({ display: 'grid' })}>
+<Center />        // Instead of <div className={css({ display: 'flex', alignItems: 'center', justifyContent: 'center' })}>
 ```
 
-### AI Component Patterns
+### 2. Second Preference: Styled Components with Recipes
+Use styled components ONLY when you need variants and reusability:
+
 ```typescript
-// components/ai/agent-chat.tsx
-interface AgentChatProps {
-  agentType: 'brand' | 'product' | 'image' | 'marketing' | 'export'
-  onDataGenerated?: (data: any) => void
-  initialContext?: any
-}
+import { styled } from '@/styled-system/jsx'
+import { buttonRecipe } from '@/styled-system/recipes'
 
-// components/ai/object-generator.tsx
-interface ObjectGeneratorProps<T> {
-  schema: z.ZodSchema<T>
-  api: string
-  prompt: string
-  onComplete?: (object: T) => void
-}
-```
+// ✅ CORRECT - Use styled() for components with variants
+const Button = styled('button', buttonRecipe)
 
-## Color System
+// Usage with variants
+<Button variant="primary" size="lg">Click me</Button>
+<Button variant="secondary" size="sm">Cancel</Button>
 
-### Brand Colors
-```typescript
-const colors = {
-  primary: 'blue.600',    // Main brand color
-  secondary: 'gray.600',  // Secondary actions
-  accent: 'purple.500',   // Highlights and CTAs
-  success: 'green.500',   // Success states
-  warning: 'yellow.500',  // Warning states  
-  error: 'red.500',       // Error states
-  neutral: 'gray.500'     // Neutral text
-}
-```
-
-### Usage Examples
-```typescript
-// Agent-specific color coding
-const agentColors = {
-  brand: 'purple.600',      // Brand Inventor
-  product: 'blue.600',      // Product Designer  
-  image: 'green.600',       // Image Generator
-  marketing: 'pink.600',    // Marketing Designer
-  export: 'orange.600'      // Catalog Generator
-}
-```
-
-## Typography Scale
-
-### Font Hierarchy
-```typescript
-const typography = {
-  // Headings
-  h1: { fontSize: '2xl', fontWeight: 'bold', lineHeight: 'tight' },
-  h2: { fontSize: 'xl', fontWeight: 'semibold', lineHeight: 'tight' },
-  h3: { fontSize: 'lg', fontWeight: 'medium', lineHeight: 'normal' },
-  
-  // Body text
-  body: { fontSize: 'md', lineHeight: 'normal' },
-  small: { fontSize: 'sm', lineHeight: 'normal' },
-  tiny: { fontSize: 'xs', lineHeight: 'tight' }
-}
-```
-
-## Spacing System
-
-### Consistent Spacing
-```typescript
-// ✅ Use spacing scale
-const cardStyles = css({
-  p: 6,        // padding: 1.5rem  
-  mb: 4,       // margin-bottom: 1rem
-  gap: 3,      // gap: 0.75rem
-  mt: 8        // margin-top: 2rem
-})
-
-// Common spacing patterns
-const spacing = {
-  xs: 1,     // 0.25rem - 4px
-  sm: 2,     // 0.5rem - 8px  
-  md: 4,     // 1rem - 16px
-  lg: 6,     // 1.5rem - 24px
-  xl: 8,     // 2rem - 32px
-  xxl: 12    // 3rem - 48px
-}
-```
-
-## Component States
-
-### Interactive States
-```typescript
-const interactiveStyles = css({
-  cursor: 'pointer',
-  transition: 'all 0.2s',
-  
-  _hover: {
-    transform: 'translateY(-1px)',
-    shadow: 'md'
-  },
-  
-  _active: {
-    transform: 'translateY(0)',
+// ✅ Custom styled component with variants
+const Card = styled('div', {
+  base: {
+    bg: 'white',
+    borderRadius: 'lg',
+    p: 6,
     shadow: 'sm'
   },
-  
-  _disabled: {
-    opacity: 0.5,
-    cursor: 'not-allowed',
-    _hover: {
-      transform: 'none',
-      shadow: 'none'
+  variants: {
+    variant: {
+      default: { border: '1px solid', borderColor: 'gray.200' },
+      highlighted: { border: '2px solid', borderColor: 'blue.500' },
+      error: { border: '2px solid', borderColor: 'red.500' }
+    },
+    size: {
+      sm: { p: 4 },
+      md: { p: 6 },
+      lg: { p: 8 }
     }
-  },
-  
-  _focus: {
-    outline: 'none',
-    ring: '2px',
-    ringColor: 'blue.500',
-    ringOffset: '2px'
   }
 })
 ```
 
-### Loading States
+### 3. Last Resort: css() Function
+Use the css() function ONLY for one-off styles or complex animations:
+
 ```typescript
-const loadingStyles = css({
+import { css } from '@/styled-system/css'
+
+// ❌ AVOID - Don't use css() for simple layouts
+const badContainer = css({
+  display: 'flex',
+  padding: '24px',
+  background: 'white'
+})
+
+// ✅ USE INSTEAD - JSX component
+<Flex p={6} bg="white">
+
+// ✅ ACCEPTABLE - Complex one-off styles
+const complexAnimation = css({
   position: 'relative',
   overflow: 'hidden',
   
@@ -191,202 +144,390 @@ const loadingStyles = css({
 })
 ```
 
+## Design Token Usage
+
+### Always Use Design Tokens
+```typescript
+// ✅ CORRECT - Use design tokens with JSX components
+<Box 
+  bg="blue.600"
+  color="white"
+  px={4}
+  py={2}
+  borderRadius="md"
+  fontSize="sm"
+>
+  Button content
+</Box>
+
+// ❌ WRONG - Don't hardcode values
+<div style={{
+  backgroundColor: '#2563eb',
+  color: '#ffffff',
+  padding: '8px 16px',
+  borderRadius: '6px'
+}}>
+  Button content
+</div>
+```
+
+## Component Architecture
+
+### Base UI Components
+All base components should use JSX components first, styled components with recipes second:
+
+```typescript
+// components/ui/button.tsx
+import { styled } from '@/styled-system/jsx'
+
+interface ButtonProps {
+  variant?: 'primary' | 'secondary' | 'outline' | 'ghost'
+  size?: 'sm' | 'md' | 'lg'
+  children: ReactNode
+}
+
+// ✅ Use styled component with recipe for variants
+const Button = styled('button', {
+  base: {
+    cursor: 'pointer',
+    transition: 'all 0.2s',
+    fontWeight: 'medium',
+    borderRadius: 'md',
+    _focus: { ring: '2px', ringColor: 'blue.500' }
+  },
+  variants: {
+    variant: {
+      primary: { bg: 'blue.600', color: 'white', _hover: { bg: 'blue.700' } },
+      secondary: { bg: 'gray.100', color: 'gray.900', _hover: { bg: 'gray.200' } },
+      outline: { border: '1px solid', borderColor: 'gray.300', _hover: { bg: 'gray.50' } },
+      ghost: { _hover: { bg: 'gray.100' } }
+    },
+    size: {
+      sm: { px: 3, py: 2, fontSize: 'sm' },
+      md: { px: 4, py: 2, fontSize: 'md' },
+      lg: { px: 6, py: 3, fontSize: 'lg' }
+    }
+  }
+})
+
+// components/ui/input.tsx
+import { Box } from '@/styled-system/jsx'
+
+interface InputProps extends InputHTMLAttributes<HTMLInputElement> {
+  label?: string
+  error?: string
+  helpText?: string
+}
+
+const Input = ({ label, error, helpText, ...props }: InputProps) => (
+  <Box>
+    {label && <Box as="label" fontSize="sm" fontWeight="medium" mb={2}>{label}</Box>}
+    <Box 
+      as="input"
+      w="full"
+      px={3}
+      py={2}
+      border="1px solid"
+      borderColor={error ? 'red.300' : 'gray.300'}
+      borderRadius="md"
+      _focus={{ 
+        outline: 'none',
+        ring: '2px',
+        ringColor: error ? 'red.500' : 'blue.500'
+      }}
+      {...props}
+    />
+    {error && <Box color="red.500" fontSize="sm" mt={1}>{error}</Box>}
+    {helpText && <Box color="gray.500" fontSize="sm" mt={1}>{helpText}</Box>}
+  </Box>
+)
+```
+
+### AI Component Patterns
+```typescript
+// components/ai/agent-chat.tsx
+import { VStack, Box, Flex } from '@/styled-system/jsx'
+
+interface AgentChatProps {
+  agentType: 'brand' | 'product' | 'image' | 'marketing' | 'export'
+  onDataGenerated?: (data: any) => void
+  initialContext?: any
+}
+
+const AgentChat = ({ agentType, onDataGenerated }: AgentChatProps) => (
+  <VStack gap={4} h="full">
+    <Box bg={`${agentType}.50`} p={4} borderRadius="lg" w="full">
+      <Box fontSize="lg" fontWeight="bold" color={`${agentType}.700`}>
+        {agentType} Agent
+      </Box>
+    </Box>
+    
+    <Box flex={1} w="full" overflow="hidden">
+      <VStack gap={3} h="full">
+        {/* Chat messages */}
+      </VStack>
+    </Box>
+    
+    <Box w="full">
+      {/* Input area */}
+    </Box>
+  </VStack>
+)
+```
+
+## Color System
+
+### Agent-Specific Color Coding
+```typescript
+// Use with JSX components
+const agentColors = {
+  brand: 'purple',      // purple.600, purple.50, etc.
+  product: 'blue',      // blue.600, blue.50, etc.
+  image: 'green',       // green.600, green.50, etc.
+  marketing: 'pink',    // pink.600, pink.50, etc.
+  export: 'orange'      // orange.600, orange.50, etc.
+}
+
+// Usage
+<Box bg={`${agentType}.50`} borderColor={`${agentType}.200`}>
+  <Box color={`${agentType}.700`}>Agent Content</Box>
+</Box>
+```
+
 ## Layout Patterns
 
-### Dashboard Layout
+### Dashboard Layout with JSX Components
 ```typescript
-const dashboardLayout = css({
-  minH: 'screen',
-  bg: 'gray.50',
-  display: 'flex'
-})
+import { Box, Flex, VStack } from '@/styled-system/jsx'
 
-const sidebar = css({
-  w: '280px',
-  bg: 'white',
-  borderRight: '1px solid',
-  borderColor: 'gray.200',
-  p: 6,
-  position: 'fixed',
-  h: 'full',
-  overflowY: 'auto'
-})
-
-const content = css({
-  ml: '280px',
-  flex: 1,
-  p: 6
-})
+const DashboardLayout = ({ children }: { children: ReactNode }) => (
+  <Flex minH="screen" bg="gray.50">
+    {/* Sidebar */}
+    <Box 
+      w="280px"
+      bg="white"
+      borderRight="1px solid"
+      borderColor="gray.200"
+      p={6}
+      position="fixed"
+      h="full"
+      overflowY="auto"
+    >
+      <VStack gap={4} align="stretch">
+        {/* Sidebar content */}
+      </VStack>
+    </Box>
+    
+    {/* Main content */}
+    <Box ml="280px" flex={1} p={6}>
+      {children}
+    </Box>
+  </Flex>
+)
 ```
 
 ### Agent Interface Layout
 ```typescript
-const agentInterface = css({
-  display: 'grid',
-  gridTemplateColumns: '1fr 1fr',
-  gap: 6,
-  h: 'full'
-})
+import { Grid, VStack, Box } from '@/styled-system/jsx'
 
-const chatPanel = css({
+const AgentInterface = () => (
+  <Grid columns={2} gap={6} h="full">
+    {/* Chat Panel */}
+    <VStack 
+      gap={0}
+      border="1px solid"
+      borderColor="gray.200"
+      borderRadius="lg"
+      overflow="hidden"
+    >
+      <Box bg="gray.50" p={4} w="full" borderBottom="1px solid" borderColor="gray.200">
+        Chat Header
+      </Box>
+      <Box flex={1} p={4} overflow="auto">
+        Chat Content
+      </Box>
+    </VStack>
+    
+    {/* Output Panel */}
+    <Box 
+      bg="white"
+      border="1px solid"
+      borderColor="gray.200"
+      borderRadius="lg"
+      p={6}
+      overflowY="auto"
+    >
+      Output Content
+    </Box>
+  </Grid>
+)
+```
+
+## Responsive Design with JSX Components
+
+```typescript
+import { Stack, Box, Grid } from '@/styled-system/jsx'
+
+// Responsive stacking
+const ResponsiveComponent = () => (
+  <Stack 
+    direction={{ base: 'column', md: 'row' }}
+    gap={{ base: 4, md: 6 }}
+    p={{ base: 4, md: 6, lg: 8 }}
+  >
+    <Box flex={1}>Content 1</Box>
+    <Box flex={1}>Content 2</Box>
+  </Stack>
+)
+
+// Responsive grid
+const ResponsiveGrid = () => (
+  <Grid 
+    columns={{ base: 1, md: 2, lg: 3 }}
+    gap={{ base: 4, md: 6 }}
+    p={4}
+  >
+    <Box bg="purple.50" p={4}>Brand Agent</Box>
+    <Box bg="blue.50" p={4}>Product Agent</Box>
+    <Box bg="green.50" p={4}>Image Agent</Box>
+  </Grid>
+)
+```
+
+## Migration Guidelines
+
+### Converting Existing Components
+
+```typitten
+// ❌ OLD WAY - Using css()
+const oldContainer = css({
   display: 'flex',
   flexDirection: 'column',
-  border: '1px solid',
-  borderColor: 'gray.200',
-  borderRadius: 'lg',
-  overflow: 'hidden'
+  gap: '1rem',
+  padding: '1.5rem',
+  backgroundColor: 'white',
+  borderRadius: '0.5rem'
 })
 
-const outputPanel = css({
-  bg: 'white',
-  border: '1px solid',
-  borderColor: 'gray.200', 
-  borderRadius: 'lg',
-  p: 6,
-  overflowY: 'auto'
-})
+return <div className={oldContainer}>Content</div>
+
+// ✅ NEW WAY - Using JSX components
+return (
+  <VStack gap={4} p={6} bg="white" borderRadius="lg">
+    Content
+  </VStack>
+)
 ```
 
-## Accessibility Standards
+### When to Use Each Approach
 
-### ARIA Requirements
 ```typescript
+// ✅ Use JSX components for: Simple layouts, containers, spacing
+<Box>, <Flex>, <Grid>, <Stack>, <VStack>, <HStack>
+
+// ✅ Use styled() for: Reusable components with variants
+styled('button', buttonRecipe)
+styled('div', cardRecipe)
+
+// ✅ Use css() for: Complex animations, one-off styles, pseudo-elements
+css({ _before: { ... }, animation: '...', transform: '...' })
+```
+
+## Component States
+
+### Interactive States with JSX Components
+```typescript
+import { Box } from '@/styled-system/jsx'
+
+const InteractiveCard = () => (
+  <Box
+    cursor="pointer"
+    transition="all 0.2s"
+    _hover={{
+      transform: 'translateY(-1px)',
+      shadow: 'md'
+    }}
+    _active={{
+      transform: 'translateY(0)',
+      shadow: 'sm'
+    }}
+    _focus={{
+      outline: 'none',
+      ring: '2px',
+      ringColor: 'blue.500',
+      ringOffset: '2px'
+    }}
+  >
+    Interactive content
+  </Box>
+)
+```
+
+## Accessibility with JSX Components
+
+```typescript
+import { Box, VStack } from '@/styled-system/jsx'
+
 // ✅ Always include accessibility attributes
-<button
-  aria-label="Generate brand identity"
-  tabIndex={0}
-  onClick={handleGenerate}
-  onKeyDown={handleKeyDown}
->
-  Generate
-</button>
+const AccessibleComponent = () => (
+  <Box
+    as="button"
+    aria-label="Generate brand identity"
+    tabIndex={0}
+    role="button"
+    _focus={{
+      outline: 'none',
+      ring: '2px',
+      ringColor: 'blue.500',
+      ringOffset: '2px'
+    }}
+  >
+    Generate
+  </Box>
+)
 
 // ✅ Form accessibility
-<input
-  aria-describedby={error ? "error-text" : "help-text"}
-  aria-invalid={!!error}
-  id="brand-name"
-/>
-{error && <div id="error-text" role="alert">{error}</div>}
-{helpText && <div id="help-text">{helpText}</div>}
+const AccessibleForm = ({ error, helpText }: FormProps) => (
+  <VStack gap={2} align="stretch">
+    <Box as="label" htmlFor="brand-name" fontSize="sm" fontWeight="medium">
+      Brand Name
+    </Box>
+    <Box
+      as="input"
+      id="brand-name"
+      aria-describedby={error ? "error-text" : "help-text"}
+      aria-invalid={!!error}
+      border="1px solid"
+      borderColor={error ? 'red.300' : 'gray.300'}
+      p={3}
+      borderRadius="md"
+    />
+    {error && (
+      <Box id="error-text" role="alert" color="red.500" fontSize="sm">
+        {error}
+      </Box>
+    )}
+    {helpText && (
+      <Box id="help-text" color="gray.500" fontSize="sm">
+        {helpText}
+      </Box>
+    )}
+  </VStack>
+)
 ```
 
-### Focus Management
-```typescript
-const focusableStyles = css({
-  _focus: {
-    outline: 'none',
-    ring: '2px',
-    ringColor: 'blue.500',
-    ringOffset: '2px'
-  },
-  
-  _focusVisible: {
-    ring: '2px',
-    ringColor: 'blue.500'
-  }
-})
-```
+## Component Checklist
 
-## Animation Guidelines
+### Updated Checklist for JSX Components
+- [ ] **JSX Components First**: Use Box, Flex, Grid, Stack instead of div + css()
+- [ ] **Styled Components for Variants**: Only use styled() when you need variants
+- [ ] **css() as Last Resort**: Only for complex animations or one-off styles
+- [ ] **Design Tokens**: All spacing, colors, typography use tokens
+- [ ] **TypeScript Interfaces**: All props properly typed
+- [ ] **Accessibility**: ARIA attributes and keyboard navigation
+- [ ] **Responsive Design**: Responsive props on JSX components
+- [ ] **Error States**: Handled with conditional props
+- [ ] **Loading States**: Visual feedback during operations
+- [ ] **Focus Management**: Proper focus indicators
 
-### Micro-interactions
-```typescript
-const animations = {
-  // Smooth transitions
-  transition: 'all 0.2s ease-in-out',
-  
-  // Hover effects
-  hover: {
-    transform: 'translateY(-2px)',
-    shadow: 'lg'
-  },
-  
-  // Loading states
-  pulse: {
-    animation: 'pulse 2s infinite'
-  },
-  
-  // Entrance animations
-  fadeIn: {
-    animation: 'fadeIn 0.3s ease-out'
-  }
-}
-```
-
-### Performance Considerations
-- Use `transform` instead of position changes
-- Prefer `opacity` over `visibility`
-- Use `will-change` for heavy animations
-- Minimize layout thrashing
-
-## Responsive Design
-
-### Breakpoint Usage
-```typescript
-const responsiveStyles = css({
-  // Mobile first approach
-  fontSize: 'sm',
-  p: 4,
-  
-  // Tablet
-  md: {
-    fontSize: 'md',
-    p: 6
-  },
-  
-  // Desktop
-  lg: {
-    fontSize: 'lg',
-    p: 8
-  }
-})
-```
-
-### Grid Systems
-```typescript
-const gridLayouts = {
-  // Mobile: Stack vertically
-  mobile: css({
-    display: 'flex',
-    flexDirection: 'column',
-    gap: 4
-  }),
-  
-  // Tablet: 2 columns
-  tablet: css({
-    md: {
-      display: 'grid',
-      gridTemplateColumns: '1fr 1fr',
-      gap: 6
-    }
-  }),
-  
-  // Desktop: 3 columns
-  desktop: css({
-    lg: {
-      gridTemplateColumns: '1fr 1fr 1fr'
-    }
-  })
-}
-```
-
-## Component Testing
-
-### Visual Testing
-- Test all interactive states (hover, focus, disabled)
-- Verify responsive behavior across breakpoints
-- Check accessibility with screen readers
-- Validate color contrast ratios
-
-### Component Checklist
-- [ ] TypeScript interfaces defined
-- [ ] PandaCSS tokens used (no hardcoded values)
-- [ ] Accessibility attributes included
-- [ ] Responsive design implemented
-- [ ] Error states handled
-- [ ] Loading states included
-- [ ] Focus management working
-- [ ] Keyboard navigation functional
-
-Remember: Consistency is key. Every component should follow these patterns to create a cohesive user experience across all AI agents.
+Remember: Use the styled-system/jsx components as your primary styling approach. They provide better performance, smaller bundle size, and more maintainable code than manual css() usage.
