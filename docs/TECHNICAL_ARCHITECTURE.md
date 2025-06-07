@@ -13,7 +13,7 @@ The architecture follows a client-side AI SDK UI approach where React hooks mana
 ```mermaid
 graph TB
     subgraph "Frontend Layer (Browser)"
-        UI[React Components<br/>TypeScript + PandaCSS]
+        UI[React Components<br/>TypeScript + Plain HTML]
         
         subgraph "AI SDK UI Hooks"
             UC[useChat<br/>Real-time Chat]
@@ -124,11 +124,10 @@ graph TB
 ## Technology Stack
 - **Framework**: Next.js 15 with App Router
 - **Language**: TypeScript 5.8+
-- **Styling**: PandaCSS with design tokens
-- **Components**: Radix UI primitives + custom components
+- **UI Elements**: Plain HTML elements only (div, p, h1, h2, form, input, button, etc.)
+- **Components**: Basic TypeScript functions returning JSX with HTML elements
 - **State Management**: React Server Components + local state
-- **Animations**: Motion (Framer Motion successor)
-- **Icons**: Lucide React
+- **Icons**: Basic text-based indicators
 
 ### Backend
 - **Runtime**: Node.js 18+ with Next.js API routes
@@ -209,6 +208,22 @@ const BrandInventorAgent = () => {
     api: '/api/agents/brand',
     onFinish: (message) => saveBrandData(message.content)
   })
+  
+  return (
+    <div>
+      <form onSubmit={handleSubmit}>
+        <input value={input} onChange={handleInputChange} />
+        <button type="submit" disabled={isLoading}>
+          {isLoading ? 'Generating...' : 'Generate Brand'}
+        </button>
+      </form>
+      <div>
+        {messages.map(message => (
+          <p key={message.id}>{message.content}</p>
+        ))}
+      </div>
+    </div>
+  )
 }
 
 // Product Agent using useObject hook  
@@ -217,6 +232,24 @@ const ProductDesignerAgent = () => {
     api: '/api/agents/products',
     schema: ProductCatalogSchema
   })
+  
+  return (
+    <div>
+      <button onClick={submit} disabled={isLoading}>
+        {isLoading ? 'Generating...' : 'Generate Products'}
+      </button>
+      {object && (
+        <div>
+          <h2>Generated Products</h2>
+          <ul>
+            {object.products.map(product => (
+              <li key={product.id}>{product.name}</li>
+            ))}
+          </ul>
+        </div>
+      )}
+    </div>
+  )
 }
 ```
 
@@ -225,30 +258,35 @@ const ProductDesignerAgent = () => {
 - **API**: `/api/agents/brand` - GPT-4.1 with brand strategy prompts
 - **Streaming**: Real-time chat updates with structured data generation
 - **Storage**: Automatic persistence via hook callbacks
+- **UI**: Basic HTML forms and div elements for display
 
 ### Product Designer Agent (useObject + useChat)
 - **Hook**: `useObject` for product generation + `useChat` for refinement
 - **API**: `/api/agents/products` - GPT-4.1 with product generation prompts
 - **Streaming**: Live product catalog streaming with Zod validation
 - **Storage**: Real-time product data updates
+- **UI**: Plain HTML lists and forms for product management
 
 ### Image Generator Agent (useCompletion + Custom Hook)
 - **Hook**: `useCompletion` for prompt generation + custom hook for image generation
 - **API**: `/api/agents/images` - GPT-4.1 for prompts, GPT-Image-1 for generation
 - **Streaming**: Progressive image prompt refinement
 - **Storage**: Image metadata and file management
+- **UI**: Basic HTML img elements and forms
 
 ### Marketing Designer Agent (useObject + useChat)
 - **Hook**: `useObject` for design system generation + `useChat` for refinement
 - **API**: `/api/agents/marketing` - GPT-4.1 with design system prompts
 - **Streaming**: Live design system updates with color/typography streaming
 - **Storage**: Design system persistence and asset management
+- **UI**: Plain HTML display for design elements
 
 ### Catalog Generator Agent (useCompletion + Custom Logic)
 - **Hook**: `useCompletion` for export configuration + custom export logic
 - **API**: `/api/agents/export` - Data transformation and platform formatting
 - **Processing**: Client-side export generation with progress updates
 - **Storage**: Export file generation and download management
+- **UI**: Basic HTML forms and download links
 
 ## API Design (AI SDK UI Compatible)
 
@@ -465,4 +503,4 @@ pnpm start
 - Export file validation
 - Performance benchmarks
 
-This technical architecture provides a solid foundation for building a scalable, maintainable, and performant application that can grow from a local tool to a comprehensive SaaS platform. 
+This technical architecture provides a solid foundation for building a scalable, maintainable, and performant application using plain HTML elements that can grow from a local tool to a comprehensive SaaS platform. 

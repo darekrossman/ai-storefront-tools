@@ -39,10 +39,10 @@ A multi-agent AI system that generates:
 - Brand story and narrative development
 
 **User Interactions**:
-- Conversational interface for iterative refinement
+- Basic HTML form interface for iterative refinement
 - Brand concept templates and starting points
-- Real-time preview of brand elements
-- Export brand guidelines as PDF
+- Simple text-based preview of brand elements
+- Export brand guidelines as plain text
 
 **Data Structure**:
 ```typescript
@@ -76,10 +76,10 @@ interface Brand {
 - Cross-selling and upselling recommendations
 
 **User Interactions**:
-- Product category selection and filtering
-- Individual product editing and refinement
-- Bulk operations for similar products
-- Product relationship mapping
+- Basic HTML forms for product category selection and filtering
+- Simple HTML lists for individual product editing and refinement
+- Plain HTML tables for bulk operations for similar products
+- Basic HTML display for product relationship mapping
 - Integration with brand data for consistency
 
 **Data Structure**:
@@ -117,11 +117,11 @@ interface Product {
 - Mood board creation and style transfer
 
 **User Interactions**:
-- Multimodal chat interface accepting text and image inputs
-- Style gallery and template selection
-- Drag-and-drop image editing interface
-- Bulk generation with style consistency
-- A/B testing different visual approaches
+- Basic HTML form interface accepting text inputs
+- Simple HTML select elements for style gallery and template selection
+- Plain HTML interface for image editing
+- Basic HTML forms for bulk generation with style consistency
+- Simple HTML display for different visual approaches
 
 **Data Structure**:
 ```typescript
@@ -156,11 +156,11 @@ interface ProductImage {
 - Campaign concept development
 
 **User Interactions**:
-- Design system builder interface
-- Template customization tools
-- Asset preview and approval workflow
-- Brand consistency checking
-- Export options for various formats
+- Basic HTML forms for design system configuration
+- Simple HTML lists for template customization
+- Plain HTML display for asset preview and approval workflow
+- Basic HTML forms for brand consistency checking
+- Simple HTML links for export options in various formats
 
 **Data Structure**:
 ```typescript
@@ -219,10 +219,9 @@ interface CatalogExport {
 ### Frontend Stack
 - **Framework**: Next.js 15 with App Router
 - **Language**: TypeScript
-- **Styling**: PandaCSS with Radix UI components
+- **UI Elements**: Plain HTML elements only (div, p, h1, h2, form, input, button, etc.)
 - **State Management**: React Server Components + useState/useReducer
-- **Animations**: Motion (Framer Motion successor)
-- **Icons**: Lucide React
+- **Icons**: Basic text-based indicators
 
 ### Frontend Services
 - **AI Integration**: Vercel AI SDK UI with React hooks (`useChat`, `useCompletion`, `useObject`)
@@ -279,13 +278,12 @@ Homepage
     └── Download History
 ```
 
-### Design System Requirements
-- Mobile-first responsive design
-- Dark/light mode support
-- Accessibility compliance (WCAG 2.1 AA)
-- Consistent component library
-- Loading states and error handling
-- Progressive disclosure of complex features
+### Functional Requirements
+- Mobile-first responsive using plain HTML structure
+- Accessibility compliance (WCAG 2.1 AA) using semantic HTML
+- Simple HTML component patterns
+- Basic loading states and error handling with plain text
+- Progressive disclosure using basic HTML show/hide patterns
 
 ## Implementation Phases
 
@@ -294,16 +292,16 @@ Homepage
 
 **Deliverables**:
 - [ ] Project structure and routing setup
-- [ ] Component library with PandaCSS
+- [ ] Basic HTML component library
 - [ ] Basic AI integration and chat interface
 - [ ] Local data storage system
 - [ ] Brand Inventor MVP with basic brand generation
 
 **Tasks**:
 1. Set up routing for all 5 main pages
-2. Create shared UI component library
+2. Create basic HTML UI component library
 3. Implement data storage utilities
-4. Build conversation interface component
+4. Build simple HTML form interface component
 5. Create Brand Inventor agent with basic prompts
 6. Implement brand data persistence
 
@@ -312,17 +310,17 @@ Homepage
 
 **Deliverables**:
 - [ ] Product Designer agent with product generation
-- [ ] Product catalog management interface
+- [ ] Product catalog management interface using plain HTML
 - [ ] Basic image generation functionality
 - [ ] Cross-agent data sharing
 - [ ] Product-brand alignment features
 
 **Tasks**:
-1. Build Product Designer conversation interface
+1. Build Product Designer interface with basic HTML forms
 2. Implement product generation prompts and logic
-3. Create product catalog UI with CRUD operations
+3. Create product catalog UI with CRUD operations using HTML tables/lists
 4. Integrate OpenAI GPT-Image-1 for image generation
-5. Build image gallery and management interface
+5. Build image gallery and management interface with basic HTML
 6. Implement data relationships between brands and products
 
 ### Phase 3: Visual Assets (Weeks 6-7)
@@ -330,33 +328,33 @@ Homepage
 
 **Deliverables**:
 - [ ] Multi-model image generation
-- [ ] Advanced image editing interface
+- [ ] Basic image editing interface using HTML forms
 - [ ] Style consistency features
 - [ ] Batch processing capabilities
-- [ ] Multimodal chat interface
+- [ ] Basic chat interface accepting text inputs
 
 **Tasks**:
 1. Integrate multiple image generation providers
-2. Build advanced image editing UI
+2. Build basic image editing UI with HTML forms
 3. Implement style templates and consistency checking
-4. Create batch processing workflows
-5. Add multimodal chat capabilities
+4. Create batch processing workflows with HTML forms
+5. Add basic chat capabilities with HTML forms
 
 ### Phase 4: Marketing & Design (Weeks 8-9)
 **Goal**: Implement Marketing Designer agent
 
 **Deliverables**:
-- [ ] Design system generator
-- [ ] Marketing asset creation
-- [ ] Brand guideline generation
-- [ ] Template system
-- [ ] Asset export functionality
+- [ ] Design system generator with plain HTML display
+- [ ] Marketing asset creation with basic HTML forms
+- [ ] Brand guideline generation with plain text output
+- [ ] Template system using basic HTML structure
+- [ ] Asset export functionality with simple HTML links
 
 **Tasks**:
-1. Build Marketing Designer conversation interface
+1. Build Marketing Designer interface with HTML forms
 2. Implement color palette and typography generation
-3. Create design asset templates
-4. Build brand guideline generator
+3. Create design asset templates with basic HTML
+4. Build brand guideline generator with plain text output
 5. Implement asset export and download features
 
 ### Phase 5: Catalog Export (Weeks 10-11)
@@ -365,12 +363,12 @@ Homepage
 **Deliverables**:
 - [ ] Multi-platform export support
 - [ ] Data validation and compliance
-- [ ] Export configuration interface
-- [ ] Preview and testing tools
-- [ ] Download and sharing features
+- [ ] Export configuration interface using HTML forms
+- [ ] Preview and testing tools with basic HTML display
+- [ ] Download and sharing features with simple HTML links
 
 **Tasks**:
-1. Build export configuration interface
+1. Build export configuration interface with HTML forms
 2. Implement Shopify CSV export
 3. Add WooCommerce and other platform support
 4. Create data validation system
@@ -382,14 +380,14 @@ Homepage
 **Deliverables**:
 - [ ] Performance optimizations
 - [ ] Error handling and recovery
-- [ ] User onboarding and tutorials
+- [ ] User onboarding and tutorials with plain HTML
 - [ ] Documentation and help system
 - [ ] Testing and quality assurance
 
 **Tasks**:
 1. Optimize performance and loading times
 2. Implement comprehensive error handling
-3. Create user onboarding flow
+3. Create user onboarding flow with basic HTML
 4. Build help documentation
 5. Conduct thorough testing and bug fixes
 
@@ -443,4 +441,4 @@ Homepage
 
 Storefront Tools addresses a clear market need by providing an end-to-end solution for generating realistic ecommerce catalogs. The phased approach ensures rapid MVP delivery while building toward a comprehensive platform that can scale with user needs and market demands.
 
-The combination of AI agents, modern web technologies, and export flexibility positions the product to serve developers, designers, and ecommerce professionals across various use cases and industries.
+The combination of AI agents, modern web technologies using plain HTML elements for rapid development, and export flexibility positions the product to serve developers, designers, and ecommerce professionals across various use cases and industries.

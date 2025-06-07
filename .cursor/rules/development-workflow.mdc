@@ -12,7 +12,6 @@ alwaysApply: true
 ✅ CORRECT:
 ├── brand-inventor/page.tsx          - kebab-case for directories
 ├── AgentChat.tsx                    - PascalCase for React components
-├── agent-chat.module.css            - kebab-case for CSS modules
 ├── use-chat-history.ts              - kebab-case for custom hooks
 ├── brand-schema.ts                  - kebab-case for utilities
 ├── types.ts                         - lowercase for type definitions
@@ -21,7 +20,6 @@ alwaysApply: true
 ❌ INCORRECT:
 ├── Brand_Inventor/                  - No underscores
 ├── agentChat.tsx                    - Use PascalCase for components
-├── AgentChat.css                    - Use kebab-case for styles
 ├── useChatHistory.ts                - Use kebab-case for hooks
 ```
 
@@ -38,7 +36,7 @@ app/
 │   │   └── products/route.ts
 │   └── storage/
 components/
-├── ui/                             - Generic UI components
+├── ui/                             - Basic HTML components
 ├── agents/                         - Agent-specific components
 │   ├── brand/
 │   │   ├── BrandChat.tsx          - Component per agent
@@ -66,7 +64,6 @@ import { useState } from 'react'
 import { useChat } from '@ai-sdk/react'
 import { Button } from '@/components/ui/button'
 import { BrandSchema } from '@/lib/schemas'
-import { css } from '@/styled-system/css'
 
 // 2. Types and interfaces
 interface BrandChatProps {
@@ -87,22 +84,33 @@ export const BrandChat = ({ onBrandGenerated, initialContext }: BrandChatProps) 
     // Implementation
   }
 
-  // 6. Styles (if not extracted)
-  const chatStyles = css({
-    display: 'flex',
-    flexDirection: 'column',
-    gap: 4
-  })
-
-  // 7. Render
+  // 6. Render - Plain HTML only
   return (
-    <div className={chatStyles}>
-      {/* Component JSX */}
+    <div>
+      <h1>Brand Chat</h1>
+      <form onSubmit={handleSubmit}>
+        <input 
+          type="text"
+          value={input}
+          onChange={handleInputChange}
+          placeholder="Describe your brand concept..."
+        />
+        <button type="submit" disabled={isLoading}>
+          {isLoading ? 'Generating...' : 'Generate Brand'}
+        </button>
+      </form>
+      <div>
+        {messages.map(message => (
+          <div key={message.id}>
+            <p><strong>{message.role}:</strong> {message.content}</p>
+          </div>
+        ))}
+      </div>
     </div>
   )
 }
 
-// 8. Default export (if needed)
+// 7. Default export (if needed)
 export default BrandChat
 ```
 
@@ -272,6 +280,100 @@ const handleSubmit = async () => {
 }
 ```
 
+## HTML Component Patterns
+
+### Basic UI Components
+```typescript
+// components/ui/button.tsx - Plain HTML button
+interface ButtonProps {
+  children: React.ReactNode
+  onClick?: () => void
+  type?: 'button' | 'submit' | 'reset'
+  disabled?: boolean
+}
+
+export const Button = ({ children, onClick, type = 'button', disabled }: ButtonProps) => {
+  return (
+    <button type={type} onClick={onClick} disabled={disabled}>
+      {children}
+    </button>
+  )
+}
+
+// components/ui/input.tsx - Plain HTML input
+interface InputProps {
+  value: string
+  onChange: (e: React.ChangeEvent<HTMLInputElement>) => void
+  placeholder?: string
+  type?: string
+  disabled?: boolean
+}
+
+export const Input = ({ value, onChange, placeholder, type = 'text', disabled }: InputProps) => {
+  return (
+    <input
+      type={type}
+      value={value}
+      onChange={onChange}
+      placeholder={placeholder}
+      disabled={disabled}
+    />
+  )
+}
+
+// components/ui/loading.tsx - Simple text loading indicator
+export const Loading = ({ message = 'Loading...' }: { message?: string }) => {
+  return <p>{message}</p>
+}
+
+// components/ui/error.tsx - Plain text error display
+interface ErrorProps {
+  error: Error | string
+}
+
+export const ErrorDisplay = ({ error }: ErrorProps) => {
+  const message = typeof error === 'string' ? error : error.message
+  return <p>Error: {message}</p>
+}
+```
+
+### Layout Components
+```typescript
+// components/shared/page-layout.tsx - Basic HTML layout
+interface PageLayoutProps {
+  title: string
+  children: React.ReactNode
+}
+
+export const PageLayout = ({ title, children }: PageLayoutProps) => {
+  return (
+    <div>
+      <header>
+        <h1>{title}</h1>
+      </header>
+      <main>
+        {children}
+      </main>
+    </div>
+  )
+}
+
+// components/shared/navigation.tsx - Basic HTML navigation
+export const Navigation = () => {
+  return (
+    <nav>
+      <ul>
+        <li><a href="/brand-inventor">Brand Inventor</a></li>
+        <li><a href="/product-designer">Product Designer</a></li>
+        <li><a href="/image-generator">Image Generator</a></li>
+        <li><a href="/marketing-designer">Marketing Designer</a></li>
+        <li><a href="/catalog-generator">Catalog Generator</a></li>
+      </ul>
+    </nav>
+  )
+}
+```
+
 ## Testing Standards
 
 ### Component Testing Structure
@@ -308,10 +410,9 @@ describe('BrandChat', () => {
 # Format: type(scope): description
 
 # Types:
-feat(brand): add brand generation interface
+feat(brand): add brand generation interface with plain HTML
 fix(api): resolve streaming response issue  
 docs(readme): update installation instructions
-style(components): fix PandaCSS token usage
 refactor(storage): simplify session management
 test(agents): add unit tests for brand agent
 chore(deps): update AI SDK to latest version
@@ -361,25 +462,10 @@ Brief description of changes
 - [ ] Self-review completed
 - [ ] Documentation updated
 - [ ] No breaking changes (or documented)
+- [ ] Only plain HTML elements used
 ```
 
 ## Code Quality
-
-### ESLint & Prettier Configuration
-```json
-// .eslintrc.json
-{
-  "extends": [
-    "next/core-web-vitals",
-    "@typescript-eslint/recommended"
-  ],
-  "rules": {
-    "prefer-const": "error",
-    "no-unused-vars": "error",
-    "@typescript-eslint/no-explicit-any": "warn"
-  }
-}
-```
 
 ### Development Scripts
 ```json
@@ -412,4 +498,20 @@ Brief description of changes
 - Monitor AI API response times
 - Track error rates and user interactions
 
-Remember: Consistency in naming, structure, and patterns makes the codebase maintainable and scalable. Every file should follow these conventions.
+## Development Guidelines
+
+### HTML-First Approach
+- Always use semantic HTML elements for structure
+- No CSS classes or styling of any kind
+- Focus purely on functionality and data flow
+- Use ARIA attributes for accessibility
+- Implement keyboard navigation with HTML patterns
+
+### Component Structure
+- Keep components simple and focused on functionality
+- Use TypeScript for all props and state management
+- Implement proper error boundaries
+- Handle loading states with simple text indicators
+- Use plain HTML forms for user input
+
+Remember: Consistency in naming, structure, and patterns makes the codebase maintainable and scalable. Every file should follow these conventions with a focus on pure functionality using plain HTML elements only.

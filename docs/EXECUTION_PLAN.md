@@ -18,30 +18,33 @@ The project has a **comprehensive foundation** (2,900+ lines of production code)
 - No `app/(dashboard)/` pages beyond Hello World
 - AI SDK UI hooks not implemented (but schemas ready)
 
-## Implementation Plan: UI-First Approach
+## Implementation Plan: Functionality-First Approach
 
 ### Phase 1: Core UI Infrastructure (Days 1-3)
 
-#### 1.1 Component Library Foundation
-Using existing schemas and design system rules:
+#### 1.1 Basic HTML Component Foundation
+Using existing schemas and purely functional approach:
 
-**Create Base UI Components** 
+**Create Base HTML Components** 
 ```typescript
-// components/ui/button.tsx - Using PandaCSS styled system
-import { styled } from '@/styled-system/jsx'
-import { ButtonRecipe } from '@/styled-system/recipes'
+// components/ui/button.tsx - Plain HTML button element
+export const Button = ({ children, onClick, type = "button", disabled }: ButtonProps) => {
+  return (
+    <button type={type} onClick={onClick} disabled={disabled}>
+      {children}
+    </button>
+  )
+}
 
-export const Button = styled('button', ButtonRecipe)
-
-// components/ui/input.tsx - Form inputs with validation
-// components/ui/loading.tsx - Loading states
-// components/ui/error.tsx - Error display
+// components/ui/input.tsx - Plain HTML input with basic validation
+// components/ui/loading.tsx - Simple loading text indicator
+// components/ui/error.tsx - Plain text error display
 ```
 
 **Create AI SDK Wrapper Components**
 ```typescript
-// components/ai/agent-chat.tsx - useChat wrapper with existing AgentContext types
-// components/ai/object-generator.tsx - useObject wrapper with existing schemas
+// components/ai/agent-chat.tsx - useChat wrapper with plain HTML form and div elements
+// components/ai/object-generator.tsx - useObject wrapper with basic HTML structure
 // components/ai/completion-generator.tsx - useCompletion wrapper
 ```
 
@@ -65,24 +68,24 @@ export async function POST(request: Request) {
 
 #### 1.3 Dashboard Structure
 ```typescript
-// app/(dashboard)/layout.tsx - Navigation using UI_CONFIG from constants
-// app/(dashboard)/brand-inventor/page.tsx - First agent implementation
+// app/(dashboard)/layout.tsx - Plain HTML navigation using basic nav element
+// app/(dashboard)/brand-inventor/page.tsx - First agent implementation with basic HTML
 ```
 
 ### Phase 2: Brand Agent MVP (Days 4-5)
 
 **Brand Agent Implementation**
-- Build chat interface using existing `BrandSchema` and `AI_AGENTS.brand` config
+- Build chat interface using existing `BrandSchema` and `AI_AGENTS.brand` config with plain HTML form elements
 - Connect to `StorageManager` for brand data persistence  
 - Use existing `BrandPersonality`, `TargetMarket` types
-- Implement brand preview using existing visual identity types
+- Implement brand preview using basic HTML div elements and plain text display
 
 ### Phase 3: Remaining Agents (Days 6-10)
 
-**Product Agent** (using `ProductCatalogSchema`, `Product` types)
-**Image Agent** (using `ProductImage` types, GPT-Image-1 config) 
-**Marketing Agent** (using `MarketingSystemSchema`, `DesignSystem` types)
-**Export Agent** (using `ExportConfig` types, `EXPORT_PLATFORMS` config)
+**Product Agent** (using `ProductCatalogSchema`, `Product` types with basic HTML lists and divs)
+**Image Agent** (using `ProductImage` types, GPT-Image-1 config with plain HTML img elements) 
+**Marketing Agent** (using `MarketingSystemSchema`, `DesignSystem` types with basic HTML structure)
+**Export Agent** (using `ExportConfig` types, `EXPORT_PLATFORMS` config with plain HTML download links)
 
 ## Key Implementation Notes
 
@@ -93,10 +96,11 @@ export async function POST(request: Request) {
 - All TypeScript interfaces for type safety
 - Business rules and validation in `BUSINESS_RULES` constant
 
-### ✅ **Design System Ready**
-- PandaCSS tokens configured in `panda.config.ts`
-- Design system rules defined in `.cursor/rules/design-system.mdc`
-- Component patterns documented for JSX components + styled system
+### ✅ **Minimal HTML Approach Ready**
+- No styling framework requirements
+- Plain HTML elements only (div, p, h1, h2, form, input, button, etc.)
+- Focus purely on functionality and data flow
+- Basic semantic HTML structure for accessibility
 
 ### ✅ **AI SDK Integration Ready**
 - OpenAI provider installed (`@ai-sdk/openai`)
@@ -108,17 +112,18 @@ export async function POST(request: Request) {
 
 - [ ] Brand Agent generates structured brand data using existing `BrandSchema`
 - [ ] Data persists using existing `StorageManager` 
-- [ ] Chat interface works with real AI responses
-- [ ] Navigation between agent pages functions
-- [ ] All components use PandaCSS design tokens
+- [ ] Chat interface works with real AI responses using plain HTML forms
+- [ ] Navigation between agent pages functions with basic HTML links
+- [ ] All components use only plain HTML elements
 - [ ] TypeScript builds without errors using existing types
 
 ## Why This Approach Works
 
 1. **Leverages Existing Architecture**: 2,900+ lines of foundation code ready
-2. **Focuses on Missing Pieces**: Only UI implementation needed
+2. **Focuses on Missing Pieces**: Only functional UI implementation needed
 3. **Uses Proven Patterns**: AI SDK UI + file storage + TypeScript  
 4. **Realistic Timeline**: Foundation shortcuts 60%+ of development work
 5. **Type Safety**: Complete interfaces prevent integration issues
+6. **Pure Functionality**: No styling overhead allows rapid functional development
 
-The project's foundation is actually **more comprehensive than most production apps**. We just need to build the UI layer to expose this functionality. 
+The project's foundation is actually **more comprehensive than most production apps**. We just need to build the minimal functional UI layer to expose this functionality. 

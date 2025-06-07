@@ -17,57 +17,6 @@ import type {
 } from './types'
 
 // ==============================================
-// STYLING UTILITIES
-// ==============================================
-
-/**
- * Combine CSS classes for PandaCSS
- * Simple class name combiner without external dependencies
- */
-export function cn(...classes: (string | undefined | null | false)[]): string {
-  return classes.filter(Boolean).join(' ')
-}
-
-/**
- * Generate color variants from a base color
- */
-export function generateColorVariants(baseColor: string): Record<string, string> {
-  // This would typically use a color manipulation library
-  // For now, returning a basic structure
-  const hue = extractHue(baseColor)
-
-  return {
-    50: adjustLightness(baseColor, 95),
-    100: adjustLightness(baseColor, 90),
-    200: adjustLightness(baseColor, 80),
-    300: adjustLightness(baseColor, 70),
-    400: adjustLightness(baseColor, 60),
-    500: baseColor, // Base color
-    600: adjustLightness(baseColor, 40),
-    700: adjustLightness(baseColor, 30),
-    800: adjustLightness(baseColor, 20),
-    900: adjustLightness(baseColor, 10),
-    950: adjustLightness(baseColor, 5),
-  }
-}
-
-/**
- * Extract hue from hex color (simplified)
- */
-function extractHue(hexColor: string): number {
-  // Basic implementation - would use proper color library in production
-  return 200 // Default hue
-}
-
-/**
- * Adjust lightness of a color (simplified)
- */
-function adjustLightness(hexColor: string, lightness: number): string {
-  // Basic implementation - would use proper color library in production
-  return hexColor // For now, return original color
-}
-
-// ==============================================
 // STRING UTILITIES
 // ==============================================
 
