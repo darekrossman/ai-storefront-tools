@@ -1,0 +1,415 @@
+---
+description: 
+globs: 
+alwaysApply: true
+---
+# Development Workflow & Standards
+
+## File & Directory Naming
+
+### File Naming Conventions
+```
+✅ CORRECT:
+├── brand-inventor/page.tsx          - kebab-case for directories
+├── AgentChat.tsx                    - PascalCase for React components
+├── agent-chat.module.css            - kebab-case for CSS modules
+├── use-chat-history.ts              - kebab-case for custom hooks
+├── brand-schema.ts                  - kebab-case for utilities
+├── types.ts                         - lowercase for type definitions
+├── constants.ts                     - lowercase for constants
+
+❌ INCORRECT:
+├── Brand_Inventor/                  - No underscores
+├── agentChat.tsx                    - Use PascalCase for components
+├── AgentChat.css                    - Use kebab-case for styles
+├── useChatHistory.ts                - Use kebab-case for hooks
+```
+
+### Directory Structure Standards
+```
+app/
+├── (dashboard)/                     - Route groups in parentheses
+│   ├── brand-inventor/             - kebab-case pages
+│   ├── product-designer/
+│   └── layout.tsx                  - PascalCase components
+├── api/
+│   ├── agents/                     - RESTful resource naming
+│   │   ├── brand/route.ts          - Next.js 15 API route convention
+│   │   └── products/route.ts
+│   └── storage/
+components/
+├── ui/                             - Generic UI components
+├── agents/                         - Agent-specific components
+│   ├── brand/
+│   │   ├── BrandChat.tsx          - Component per agent
+│   │   ├── BrandForm.tsx
+│   │   └── index.ts               - Barrel exports
+├── shared/                         - Shared across agents
+└── ai/                             - AI SDK UI wrappers
+lib/
+├── types.ts                        - Global type definitions
+├── schemas.ts                      - Zod validation schemas
+├── utils.ts                        - Utility functions
+├── storage.ts                      - Data persistence layer
+└── constants.ts                    - Application constants
+```
+
+## Component Organization
+
+### Component File Structure
+```typescript
+// components/agents/brand/BrandChat.tsx
+'use client'
+
+// 1. Imports - External first, then internal
+import { useState } from 'react'
+import { useChat } from '@ai-sdk/react'
+import { Button } from '@/components/ui/button'
+import { BrandSchema } from '@/lib/schemas'
+import { css } from '@/styled-system/css'
+
+// 2. Types and interfaces
+interface BrandChatProps {
+  onBrandGenerated?: (brand: Brand) => void
+  initialContext?: Partial<Brand>
+}
+
+// 3. Component definition
+export const BrandChat = ({ onBrandGenerated, initialContext }: BrandChatProps) => {
+  // 4. Hooks and state
+  const [isGenerating, setIsGenerating] = useState(false)
+  const { messages, input, handleSubmit, isLoading } = useChat({
+    api: '/api/agents/brand'
+  })
+
+  // 5. Event handlers
+  const handleBrandSubmit = async (e: React.FormEvent) => {
+    // Implementation
+  }
+
+  // 6. Styles (if not extracted)
+  const chatStyles = css({
+    display: 'flex',
+    flexDirection: 'column',
+    gap: 4
+  })
+
+  // 7. Render
+  return (
+    <div className={chatStyles}>
+      {/* Component JSX */}
+    </div>
+  )
+}
+
+// 8. Default export (if needed)
+export default BrandChat
+```
+
+### Barrel Exports
+```typescript
+// components/agents/brand/index.ts
+export { BrandChat } from './BrandChat'
+export { BrandForm } from './BrandForm'
+export { BrandPreview } from './BrandPreview'
+export type { BrandChatProps, BrandFormProps } from './types'
+
+// Usage
+import { BrandChat, BrandForm } from '@/components/agents/brand'
+```
+
+## TypeScript Standards
+
+### Type Definitions
+```typescript
+// lib/types.ts - Global types
+export interface Brand {
+  id: string
+  name: string
+  // ... other fields
+}
+
+// components/agents/brand/types.ts - Component-specific types
+export interface BrandChatProps {
+  onBrandGenerated?: (brand: Brand) => void
+}
+
+// Utility types
+export type AgentType = 'brand' | 'product' | 'image' | 'marketing' | 'export'
+export type APIResponse<T> = {
+  success: boolean
+  data?: T
+  error?: string
+}
+```
+
+### Interface vs Type Guidelines
+```typescript
+// ✅ Use interface for object shapes that might be extended
+interface BaseBrand {
+  id: string
+  name: string
+}
+
+interface LuxuryBrand extends BaseBrand {
+  tier: 'luxury'
+  priceRange: 'high'
+}
+
+// ✅ Use type for unions, primitives, and computed types
+type AgentStatus = 'idle' | 'generating' | 'complete' | 'error'
+type BrandKeys = keyof Brand
+type PartialBrand = Partial<Brand>
+```
+
+## API Route Standards
+
+### Route File Organization
+```typescript
+// app/api/agents/brand/route.ts
+import { openai } from '@ai-sdk/openai'
+import { streamText, generateObject } from 'ai'
+import { NextRequest } from 'next/server'
+import { BrandSchema } from '@/lib/schemas'
+
+// Named exports for HTTP methods
+export async function POST(request: NextRequest) {
+  try {
+    const { messages, mode } = await request.json()
+    
+    if (mode === 'chat') {
+      // Handle chat mode with useChat
+      const result = streamText({
+        model: openai('gpt-4.1'),
+        messages,
+        system: 'You are a brand strategist...'
+      })
+      
+      return result.toDataStreamResponse()
+    }
+    
+    if (mode === 'object') {
+      // Handle object mode with useObject
+      const result = generateObject({
+        model: openai('gpt-4.1'),
+        schema: BrandSchema,
+        prompt: messages[messages.length - 1].content
+      })
+      
+      return result.toDataStreamResponse()
+    }
+    
+    return Response.json({ error: 'Invalid mode' }, { status: 400 })
+  } catch (error) {
+    return Response.json({ error: 'Internal server error' }, { status: 500 })
+  }
+}
+
+// Error handling pattern
+export async function GET() {
+  return Response.json({ error: 'Method not allowed' }, { status: 405 })
+}
+```
+
+## Data Management
+
+### Storage Patterns
+```typescript
+// lib/storage.ts
+export class StorageManager {
+  private sessionId: string
+
+  constructor(sessionId?: string) {
+    this.sessionId = sessionId || this.generateSessionId()
+  }
+
+  // Async/await pattern for all operations
+  async saveBrand(brand: Brand): Promise<void> {
+    try {
+      await this.writeJsonFile('brand.json', brand)
+    } catch (error) {
+      console.error('Failed to save brand:', error)
+      throw new Error('Storage operation failed')
+    }
+  }
+
+  // Type-safe retrieval
+  async getBrand(): Promise<Brand | null> {
+    return await this.readJsonFile<Brand>('brand.json')
+  }
+
+  // Generic utility methods
+  private async readJsonFile<T>(filename: string): Promise<T | null> {
+    // Implementation
+  }
+}
+```
+
+### Error Handling Patterns
+```typescript
+// Consistent error handling across the app
+export const handleAPIError = (error: unknown): string => {
+  if (error instanceof Error) {
+    return error.message
+  }
+  if (typeof error === 'string') {
+    return error
+  }
+  return 'An unexpected error occurred'
+}
+
+// Usage in components
+const handleSubmit = async () => {
+  try {
+    setIsLoading(true)
+    await performOperation()
+  } catch (error) {
+    const message = handleAPIError(error)
+    setError(message)
+  } finally {
+    setIsLoading(false)
+  }
+}
+```
+
+## Testing Standards
+
+### Component Testing Structure
+```typescript
+// __tests__/components/BrandChat.test.tsx
+import { render, screen, fireEvent, waitFor } from '@testing-library/react'
+import { BrandChat } from '@/components/agents/brand/BrandChat'
+
+describe('BrandChat', () => {
+  // Setup and teardown
+  beforeEach(() => {
+    // Test setup
+  })
+
+  // Test naming: should_expectedBehavior_when_stateUnderTest
+  it('should display chat interface when component loads', () => {
+    render(<BrandChat />)
+    expect(screen.getByRole('textbox')).toBeInTheDocument()
+  })
+
+  it('should call onBrandGenerated when brand is created', async () => {
+    const mockOnBrandGenerated = jest.fn()
+    render(<BrandChat onBrandGenerated={mockOnBrandGenerated} />)
+    
+    // Test implementation
+  })
+})
+```
+
+## Git Workflow
+
+### Commit Message Standards
+```bash
+# Format: type(scope): description
+
+# Types:
+feat(brand): add brand generation interface
+fix(api): resolve streaming response issue  
+docs(readme): update installation instructions
+style(components): fix PandaCSS token usage
+refactor(storage): simplify session management
+test(agents): add unit tests for brand agent
+chore(deps): update AI SDK to latest version
+
+# Breaking changes:
+feat(api)!: change brand schema structure
+```
+
+### Branch Naming
+```bash
+# Feature branches
+feature/brand-chat-interface
+feature/product-catalog-generation
+feature/image-generation-api
+
+# Bug fixes
+fix/chat-streaming-issue
+fix/storage-session-management
+
+# Documentation
+docs/api-documentation
+docs/component-guide
+
+# Refactoring
+refactor/agent-architecture
+refactor/storage-layer
+```
+
+### Pull Request Template
+```markdown
+## Description
+Brief description of changes
+
+## Type of Change
+- [ ] Bug fix
+- [ ] New feature  
+- [ ] Breaking change
+- [ ] Documentation update
+
+## Testing
+- [ ] Unit tests pass
+- [ ] Integration tests pass
+- [ ] Manual testing completed
+
+## Checklist
+- [ ] Code follows style guidelines
+- [ ] Self-review completed
+- [ ] Documentation updated
+- [ ] No breaking changes (or documented)
+```
+
+## Code Quality
+
+### ESLint & Prettier Configuration
+```json
+// .eslintrc.json
+{
+  "extends": [
+    "next/core-web-vitals",
+    "@typescript-eslint/recommended"
+  ],
+  "rules": {
+    "prefer-const": "error",
+    "no-unused-vars": "error",
+    "@typescript-eslint/no-explicit-any": "warn"
+  }
+}
+```
+
+### Development Scripts
+```json
+// package.json scripts
+{
+  "scripts": {
+    "dev": "next dev",
+    "build": "next build",
+    "start": "next start",
+    "lint": "next lint",
+    "type-check": "tsc --noEmit",
+    "test": "jest",
+    "test:watch": "jest --watch",
+    "test:coverage": "jest --coverage"
+  }
+}
+```
+
+## Performance Standards
+
+### Bundle Optimization
+- Use dynamic imports for large components
+- Implement proper tree shaking
+- Optimize image loading with Next.js Image
+- Use React.memo for expensive components
+
+### Monitoring
+- Monitor bundle size with `@next/bundle-analyzer`
+- Track performance with Core Web Vitals
+- Monitor AI API response times
+- Track error rates and user interactions
+
+Remember: Consistency in naming, structure, and patterns makes the codebase maintainable and scalable. Every file should follow these conventions.

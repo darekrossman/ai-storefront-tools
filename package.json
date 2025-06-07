@@ -1,0 +1,43 @@
+{
+  "name": "storefront-tools",
+  "version": "1.0.0",
+  "description": "",
+  "main": "index.js",
+  "scripts": {
+    "dev": "next dev --turbopack",
+    "build": "next build",
+    "start": "next start",
+    "lint": "biome check --fix --unsafe",
+    "prepare": "panda codegen",
+    "checktypes": "tsc --noEmit"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "packageManager": "pnpm@10.11.1",
+  "dependencies": {
+    "@ai-sdk/openai": "^1.3.22",
+    "@ai-sdk/react": "^1.2.12",
+    "@vercel/blob": "^1.1.1",
+    "ai": "^4.3.16",
+    "lucide-react": "^0.511.0",
+    "motion": "^12.15.0",
+    "next": "15.4.0-canary.62",
+    "radix-ui": "^1.4.2",
+    "react": "^19.1.0",
+    "react-dom": "^19.1.0",
+    "zod": "^3.25.28"
+  },
+  "devDependencies": {
+    "@biomejs/biome": "^1.9.4",
+    "@pandacss/dev": "^0.53.7",
+    "@pandacss/preset-panda": "^0.53.7",
+    "@pandacss/types": "^0.53.7",
+    "@types/node": "^22.15.21",
+    "@types/react": "^19.1.4",
+    "@types/react-dom": "^19.1.4",
+    "dotenv": "^16.5.0",
+    "tsx": "^4.19.4",
+    "typescript": "^5.8.3"
+  }
+}

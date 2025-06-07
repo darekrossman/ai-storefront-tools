@@ -1,0 +1,392 @@
+---
+description: 
+globs: 
+alwaysApply: true
+---
+# Design System & UI Standards
+
+## PandaCSS Configuration
+
+Reference the main configuration: [panda.config.ts](mdc:panda.config.ts)
+
+### Design Token Usage
+```typescript
+// ✅ CORRECT - Use design tokens
+const buttonStyles = css({
+  bg: 'blue.600',
+  color: 'white',
+  px: 4,
+  py: 2,
+  borderRadius: 'md',
+  fontSize: 'sm'
+})
+
+// ❌ WRONG - Don't hardcode values  
+const buttonStyles = css({
+  backgroundColor: '#2563eb',
+  color: '#ffffff',
+  padding: '8px 16px',
+  borderRadius: '6px'
+})
+```
+
+## Component Architecture
+
+### Base UI Components
+All base components should be in `components/ui/` with consistent interfaces:
+
+```typescript
+// components/ui/button.tsx
+interface ButtonProps extends ButtonHTMLAttributes<HTMLButtonElement> {
+  variant?: 'primary' | 'secondary' | 'outline' | 'ghost'
+  size?: 'sm' | 'md' | 'lg'
+  children: ReactNode
+}
+
+// components/ui/input.tsx  
+interface InputProps extends InputHTMLAttributes<HTMLInputElement> {
+  label?: string
+  error?: string
+  helpText?: string
+}
+```
+
+### AI Component Patterns
+```typescript
+// components/ai/agent-chat.tsx
+interface AgentChatProps {
+  agentType: 'brand' | 'product' | 'image' | 'marketing' | 'export'
+  onDataGenerated?: (data: any) => void
+  initialContext?: any
+}
+
+// components/ai/object-generator.tsx
+interface ObjectGeneratorProps<T> {
+  schema: z.ZodSchema<T>
+  api: string
+  prompt: string
+  onComplete?: (object: T) => void
+}
+```
+
+## Color System
+
+### Brand Colors
+```typescript
+const colors = {
+  primary: 'blue.600',    // Main brand color
+  secondary: 'gray.600',  // Secondary actions
+  accent: 'purple.500',   // Highlights and CTAs
+  success: 'green.500',   // Success states
+  warning: 'yellow.500',  // Warning states  
+  error: 'red.500',       // Error states
+  neutral: 'gray.500'     // Neutral text
+}
+```
+
+### Usage Examples
+```typescript
+// Agent-specific color coding
+const agentColors = {
+  brand: 'purple.600',      // Brand Inventor
+  product: 'blue.600',      // Product Designer  
+  image: 'green.600',       // Image Generator
+  marketing: 'pink.600',    // Marketing Designer
+  export: 'orange.600'      // Catalog Generator
+}
+```
+
+## Typography Scale
+
+### Font Hierarchy
+```typescript
+const typography = {
+  // Headings
+  h1: { fontSize: '2xl', fontWeight: 'bold', lineHeight: 'tight' },
+  h2: { fontSize: 'xl', fontWeight: 'semibold', lineHeight: 'tight' },
+  h3: { fontSize: 'lg', fontWeight: 'medium', lineHeight: 'normal' },
+  
+  // Body text
+  body: { fontSize: 'md', lineHeight: 'normal' },
+  small: { fontSize: 'sm', lineHeight: 'normal' },
+  tiny: { fontSize: 'xs', lineHeight: 'tight' }
+}
+```
+
+## Spacing System
+
+### Consistent Spacing
+```typescript
+// ✅ Use spacing scale
+const cardStyles = css({
+  p: 6,        // padding: 1.5rem  
+  mb: 4,       // margin-bottom: 1rem
+  gap: 3,      // gap: 0.75rem
+  mt: 8        // margin-top: 2rem
+})
+
+// Common spacing patterns
+const spacing = {
+  xs: 1,     // 0.25rem - 4px
+  sm: 2,     // 0.5rem - 8px  
+  md: 4,     // 1rem - 16px
+  lg: 6,     // 1.5rem - 24px
+  xl: 8,     // 2rem - 32px
+  xxl: 12    // 3rem - 48px
+}
+```
+
+## Component States
+
+### Interactive States
+```typescript
+const interactiveStyles = css({
+  cursor: 'pointer',
+  transition: 'all 0.2s',
+  
+  _hover: {
+    transform: 'translateY(-1px)',
+    shadow: 'md'
+  },
+  
+  _active: {
+    transform: 'translateY(0)',
+    shadow: 'sm'
+  },
+  
+  _disabled: {
+    opacity: 0.5,
+    cursor: 'not-allowed',
+    _hover: {
+      transform: 'none',
+      shadow: 'none'
+    }
+  },
+  
+  _focus: {
+    outline: 'none',
+    ring: '2px',
+    ringColor: 'blue.500',
+    ringOffset: '2px'
+  }
+})
+```
+
+### Loading States
+```typescript
+const loadingStyles = css({
+  position: 'relative',
+  overflow: 'hidden',
+  
+  _before: {
+    content: '""',
+    position: 'absolute',
+    top: 0,
+    left: '-100%',
+    width: 'full',
+    height: 'full',
+    background: 'linear-gradient(90deg, transparent, rgba(255,255,255,0.2), transparent)',
+    animation: 'shimmer 1.5s infinite'
+  }
+})
+```
+
+## Layout Patterns
+
+### Dashboard Layout
+```typescript
+const dashboardLayout = css({
+  minH: 'screen',
+  bg: 'gray.50',
+  display: 'flex'
+})
+
+const sidebar = css({
+  w: '280px',
+  bg: 'white',
+  borderRight: '1px solid',
+  borderColor: 'gray.200',
+  p: 6,
+  position: 'fixed',
+  h: 'full',
+  overflowY: 'auto'
+})
+
+const content = css({
+  ml: '280px',
+  flex: 1,
+  p: 6
+})
+```
+
+### Agent Interface Layout
+```typescript
+const agentInterface = css({
+  display: 'grid',
+  gridTemplateColumns: '1fr 1fr',
+  gap: 6,
+  h: 'full'
+})
+
+const chatPanel = css({
+  display: 'flex',
+  flexDirection: 'column',
+  border: '1px solid',
+  borderColor: 'gray.200',
+  borderRadius: 'lg',
+  overflow: 'hidden'
+})
+
+const outputPanel = css({
+  bg: 'white',
+  border: '1px solid',
+  borderColor: 'gray.200', 
+  borderRadius: 'lg',
+  p: 6,
+  overflowY: 'auto'
+})
+```
+
+## Accessibility Standards
+
+### ARIA Requirements
+```typescript
+// ✅ Always include accessibility attributes
+<button
+  aria-label="Generate brand identity"
+  tabIndex={0}
+  onClick={handleGenerate}
+  onKeyDown={handleKeyDown}
+>
+  Generate
+</button>
+
+// ✅ Form accessibility
+<input
+  aria-describedby={error ? "error-text" : "help-text"}
+  aria-invalid={!!error}
+  id="brand-name"
+/>
+{error && <div id="error-text" role="alert">{error}</div>}
+{helpText && <div id="help-text">{helpText}</div>}
+```
+
+### Focus Management
+```typescript
+const focusableStyles = css({
+  _focus: {
+    outline: 'none',
+    ring: '2px',
+    ringColor: 'blue.500',
+    ringOffset: '2px'
+  },
+  
+  _focusVisible: {
+    ring: '2px',
+    ringColor: 'blue.500'
+  }
+})
+```
+
+## Animation Guidelines
+
+### Micro-interactions
+```typescript
+const animations = {
+  // Smooth transitions
+  transition: 'all 0.2s ease-in-out',
+  
+  // Hover effects
+  hover: {
+    transform: 'translateY(-2px)',
+    shadow: 'lg'
+  },
+  
+  // Loading states
+  pulse: {
+    animation: 'pulse 2s infinite'
+  },
+  
+  // Entrance animations
+  fadeIn: {
+    animation: 'fadeIn 0.3s ease-out'
+  }
+}
+```
+
+### Performance Considerations
+- Use `transform` instead of position changes
+- Prefer `opacity` over `visibility`
+- Use `will-change` for heavy animations
+- Minimize layout thrashing
+
+## Responsive Design
+
+### Breakpoint Usage
+```typescript
+const responsiveStyles = css({
+  // Mobile first approach
+  fontSize: 'sm',
+  p: 4,
+  
+  // Tablet
+  md: {
+    fontSize: 'md',
+    p: 6
+  },
+  
+  // Desktop
+  lg: {
+    fontSize: 'lg',
+    p: 8
+  }
+})
+```
+
+### Grid Systems
+```typescript
+const gridLayouts = {
+  // Mobile: Stack vertically
+  mobile: css({
+    display: 'flex',
+    flexDirection: 'column',
+    gap: 4
+  }),
+  
+  // Tablet: 2 columns
+  tablet: css({
+    md: {
+      display: 'grid',
+      gridTemplateColumns: '1fr 1fr',
+      gap: 6
+    }
+  }),
+  
+  // Desktop: 3 columns
+  desktop: css({
+    lg: {
+      gridTemplateColumns: '1fr 1fr 1fr'
+    }
+  })
+}
+```
+
+## Component Testing
+
+### Visual Testing
+- Test all interactive states (hover, focus, disabled)
+- Verify responsive behavior across breakpoints
+- Check accessibility with screen readers
+- Validate color contrast ratios
+
+### Component Checklist
+- [ ] TypeScript interfaces defined
+- [ ] PandaCSS tokens used (no hardcoded values)
+- [ ] Accessibility attributes included
+- [ ] Responsive design implemented
+- [ ] Error states handled
+- [ ] Loading states included
+- [ ] Focus management working
+- [ ] Keyboard navigation functional
+
+Remember: Consistency is key. Every component should follow these patterns to create a cohesive user experience across all AI agents.
