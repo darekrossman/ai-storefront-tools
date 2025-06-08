@@ -20,7 +20,7 @@ Storefront Tools is designed to help businesses create complete e-commerce store
 - **Database**: Supabase (PostgreSQL with RLS)
 - **Storage**: Supabase Storage (File upload and management)
 - **Authentication**: Supabase Auth
-- **Styling**: Panda CSS
+- **Styling**: PandaCSS (CSS-in-JS with pattern system)
 - **Type Safety**: TypeScript with auto-generated database types
 - **Validation**: Database constraints and custom validation logic
 - **Package Manager**: pnpm
@@ -38,6 +38,38 @@ Storefront Tools is designed to help businesses create complete e-commerce store
 
 - **`lib/schemas.ts` is EXCLUDED**: This file contains legacy Zod schemas kept for reference only. Do not use or reference these schemas in active development. The project has moved to database-generated types and custom validation approaches.
 - **Actions Location**: All server actions are located in the root `actions/` directory, not in `app/actions/` (which is deprecated).
+
+## 🎨 Styling System
+
+### PandaCSS Architecture
+
+The project uses **PandaCSS** for styling with a pattern-first approach:
+
+- **Configuration**: `panda.config.ts` defines the styling system setup
+- **Generated System**: `styled-system/` directory contains all generated styling utilities
+- **Pattern Components**: Pre-built layout components (Box, Stack, HStack, VStack, Flex, Grid)
+- **Design Tokens**: Centralized color, spacing, typography, and breakpoint tokens
+- **Type Safety**: Full TypeScript support for all style props and design tokens
+
+### Styling Hierarchy
+
+1. **First Priority**: Use predefined pattern components from `@/styled-system/jsx`
+   - Layout patterns: `Box`, `Stack`, `HStack`, `VStack`, `Flex`, `Grid`, `Container`
+   - Utility patterns: `Center`, `Circle`, `Square`, `Divider`, `AspectRatio`
+
+2. **Second Priority**: Use `styled` from `@/styled-system/jsx` for custom components
+   - Interactive elements: buttons, inputs, forms
+   - Custom component styling with style props
+
+### Generated Files Structure
+
+- **`styled-system/jsx/`**: JSX pattern components with full TypeScript support
+- **`styled-system/patterns/`**: Pattern function definitions for programmatic usage
+- **`styled-system/tokens/`**: All design tokens (colors, spacing, typography, etc.)
+- **`styled-system/types/`**: TypeScript definitions for style props and tokens
+- **`styled-system/css/`**: CSS utilities and helper classes
+
+The `styled-system` directory serves as the **source of truth** for all available styling tokens, props, and patterns in the project.
 
 ## 📊 Database Schema
 
@@ -174,14 +206,21 @@ storefront-tools/
 │   ├── constants.ts            # Business rules and constants
 │   ├── utils.ts                # Utility functions
 │   └── supabase-storage.ts     # Supabase Storage utilities
+├── styled-system/               # PandaCSS generated files (source of truth)
+│   ├── jsx/                    # JSX pattern components (Box, Stack, HStack, etc.)
+│   ├── patterns/               # Pattern function definitions
+│   ├── tokens/                 # Design tokens (colors, spacing, typography)
+│   ├── types/                  # TypeScript definitions for style props
+│   └── css/                    # CSS utilities and classes
 ├── supabase/                    # Database configuration
 │   ├── migrations/              # Database migrations
 │   └── schemas/                 # Declarative schema files
 ├── docs/                        # Documentation
 │   ├── SUPABASE_TYPES.md       # Type generation guide
 │   └── SUPABASE_STORAGE.md     # Storage implementation guide
-└── scripts/                     # Utility scripts
-    └── generate-types.sh       # Type generation script
+├── scripts/                     # Utility scripts
+│   └── generate-types.sh       # Type generation script
+└── panda.config.ts             # PandaCSS configuration
 ```
 
 ## 🔄 Type Generation System
@@ -280,6 +319,14 @@ Images can be filtered by product attributes:
 3. **Generate Variants**: Create all possible attribute combinations
 4. **Add Images**: Upload and organize product photography
 5. **Set Pricing**: Configure variant-specific pricing and inventory
+
+### Styling Development
+
+1. **Check Available Patterns**: Reference `styled-system/jsx/` for available components
+2. **Use Pattern Components**: Prioritize predefined patterns (Box, Stack, Flex, etc.)
+3. **Custom Styling**: Use `styled` from `@/styled-system/jsx` for custom components
+4. **Design Tokens**: Reference `styled-system/tokens/` for available design tokens
+5. **Type Safety**: Leverage generated TypeScript types for style props
 
 ### Schema Changes
 
@@ -454,12 +501,13 @@ export async function createProductVariant(data: CreateVariantData) {
 
 ### Cursor Rules Integration
 
-The project includes Cursor-specific rules for Supabase development:
+The project includes Cursor-specific rules for Supabase development and PandaCSS:
 - Database migration patterns and best practices
 - Schema modification workflows
 - RLS policy implementation guidelines
 - SQL style guide for consistent database code
 - Product system specific development patterns
+- **PandaCSS styling guidelines**: Pattern-first approach with predefined components and styled fallbacks
 
 ### Code Documentation
 
@@ -478,6 +526,13 @@ Required for Supabase integration:
 - `NEXT_PUBLIC_SUPABASE_ANON_KEY`
 - `SUPABASE_PROJECT_ID` (for remote type generation)
 
+### PandaCSS Configuration
+
+- **`panda.config.ts`**: Main configuration for PandaCSS system
+- **`postcss.config.cjs`**: PostCSS configuration with PandaCSS plugin
+- **`app/globals.css`**: CSS layer imports for PandaCSS
+- **Generated Output**: `styled-system/` directory (excluded from git)
+
 ### Package Scripts
 
 ```json
@@ -492,6 +547,14 @@ Required for Supabase integration:
 ```
 
 ## 🗂️ Key Design Decisions
+
+### Styling Architecture
+
+- **Pattern-First Approach**: Prioritize predefined PandaCSS patterns for consistency
+- **Component Hierarchy**: Use pattern components (Box, Stack) before custom styled elements
+- **Design System**: Centralized tokens and patterns in `styled-system/` directory
+- **Type Safety**: Full TypeScript integration for styling props and design tokens
+- **Source of Truth**: `styled-system/` directory contains all available styling utilities
 
 ### Product Data Model
 
