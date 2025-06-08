@@ -6,7 +6,7 @@
 
 // Base types
 export type AgentType = 'brand' | 'product' | 'image' | 'marketing' | 'export'
-export type ExportFormat = 'shopify-csv' | 'woocommerce-xml' | 'magento-csv' | 'json' | 'xml'
+export type ExportFormat = 'shopify-csv' | 'json' | 'xml'
 export type ImageGenerationStatus = 'pending' | 'generating' | 'completed' | 'failed'
 export type SessionStatus = 'active' | 'completed' | 'archived'
 
@@ -671,4 +671,7 @@ export type ProductCreationData = OptionalFields<
 >
 
 // Export helper types
-export type ExportableData = Pick<ProjectData, 'brand' | 'products' | 'images' | 'designSystem'>
+export type ExportableData = Pick<
+  ProjectData,
+  'brand' | 'products' | 'images' | 'designSystem'
+>

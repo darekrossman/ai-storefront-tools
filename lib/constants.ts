@@ -108,7 +108,8 @@ Always create prompts that will result in professional, commercial-grade product
   },
   marketing: {
     name: 'Marketing Designer',
-    description: 'Builds complete design systems with colors, typography, and component styles',
+    description:
+      'Builds complete design systems with colors, typography, and component styles',
     icon: 'Paintbrush',
     color: 'pink.600',
     api: '/api/agents/marketing',
@@ -127,7 +128,8 @@ Your design systems should be both beautiful and functional, providing clear gui
   },
   export: {
     name: 'Catalog Generator',
-    description: 'Generates platform-ready exports for Shopify, WooCommerce, and other platforms',
+    description:
+      'Generates platform-ready exports for Shopify, WooCommerce, and other platforms',
     icon: 'Download',
     color: 'orange.600',
     api: '/api/agents/export',
@@ -190,31 +192,8 @@ export const EXPORT_PLATFORMS = {
         'Variant Inventory Qty',
       ],
     },
-    documentation: 'https://help.shopify.com/en/manual/products/import-export/import-products',
-  },
-  'woocommerce-xml': {
-    name: 'WooCommerce',
-    description: 'Import products into WordPress WooCommerce stores',
-    format: 'XML',
-    icon: 'WordPress',
-    color: 'blue.600',
-    fields: {
-      required: ['name', 'description', 'short_description', 'sku', 'price', 'status'],
-      optional: ['weight', 'length', 'width', 'height', 'stock_quantity', 'images'],
-    },
-    documentation: 'https://woocommerce.com/document/product-csv-importer-exporter/',
-  },
-  'magento-csv': {
-    name: 'Magento',
-    description: 'Import products into Magento e-commerce platform',
-    format: 'CSV',
-    icon: 'Store',
-    color: 'orange.600',
-    fields: {
-      required: ['sku', 'name', 'description', 'short_description', 'price', 'qty', 'is_in_stock'],
-      optional: ['weight', 'categories', 'image', 'small_image', 'thumbnail'],
-    },
-    documentation: 'https://docs.magento.com/user-guide/system/data-import-product.html',
+    documentation:
+      'https://help.shopify.com/en/manual/products/import-export/import-products',
   },
   json: {
     name: 'Generic JSON',
