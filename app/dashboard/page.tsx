@@ -2,6 +2,7 @@ import { createClient } from '@/lib/supabase/server'
 import { getProjectsAction } from '@/actions/projects'
 import { Box, Flex, Stack, styled } from '@/styled-system/jsx'
 import Link from 'next/link'
+import ProjectList from '@/components/projects/project-list'
 
 export default async function DashboardPage() {
   const supabase = await createClient()
@@ -125,71 +126,7 @@ export default async function DashboardPage() {
           </Box>
         ) : (
           /* Projects Grid */
-          <Box
-            display="grid"
-            gridTemplateColumns={{
-              base: '1fr',
-              md: 'repeat(2, 1fr)',
-              lg: 'repeat(3, 1fr)',
-            }}
-            gap={6}
-          >
-            {projects.map((project) => (
-              <Box
-                key={project.id}
-                bg="white"
-                border="1px solid"
-                borderColor="gray.200"
-                borderRadius="lg"
-                p={6}
-                _hover={{
-                  borderColor: 'gray.300',
-                  shadow: 'sm',
-                }}
-                transition="all 0.2s"
-                cursor="pointer"
-              >
-                <Link href={`/dashboard/projects/${project.id}`}>
-                  <Stack gap={4}>
-                    {/* Project Header */}
-                    <Stack gap={2}>
-                      <styled.h3
-                        fontSize="lg"
-                        fontWeight="semibold"
-                        color="gray.900"
-                        lineHeight="tight"
-                      >
-                        {project.name}
-                      </styled.h3>
-                      {project.description && (
-                        <styled.p fontSize="sm" color="gray.600" lineHeight="relaxed">
-                          {project.description}
-                        </styled.p>
-                      )}
-                    </Stack>
-
-                    {/* Project Meta */}
-                    <Flex justify="space-between" align="center">
-                      <styled.span
-                        fontSize="xs"
-                        color="gray.500"
-                        fontWeight="medium"
-                        px={2}
-                        py={1}
-                        bg="gray.100"
-                        borderRadius="md"
-                      >
-                        {project.status || 'Active'}
-                      </styled.span>
-                      <styled.span fontSize="xs" color="gray.500">
-                        {new Date(project.created_at).toLocaleDateString()}
-                      </styled.span>
-                    </Flex>
-                  </Stack>
-                </Link>
-              </Box>
-            ))}
-          </Box>
+          <ProjectList projects={projects} />
         )}
       </Stack>
     </Box>
