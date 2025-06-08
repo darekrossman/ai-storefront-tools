@@ -10,23 +10,34 @@ import { z } from 'zod'
 // BASE SCHEMAS
 // ==============================================
 
-export const AgentTypeSchema = z.enum(['brand', 'product', 'image', 'marketing', 'export'])
-
-export const ExportFormatSchema = z.enum([
-  'shopify-csv',
-  'woocommerce-xml',
-  'magento-csv',
-  'json',
-  'xml',
+export const AgentTypeSchema = z.enum([
+  'brand',
+  'product',
+  'image',
+  'marketing',
+  'export',
 ])
 
-export const ImageGenerationStatusSchema = z.enum(['pending', 'generating', 'completed', 'failed'])
+export const ExportFormatSchema = z.enum(['shopify-csv'])
+
+export const ImageGenerationStatusSchema = z.enum([
+  'pending',
+  'generating',
+  'completed',
+  'failed',
+])
 
 export const SessionStatusSchema = z.enum(['active', 'completed', 'archived'])
 
 export const CurrencySchema = z.enum(['USD', 'EUR', 'GBP', 'CAD', 'AUD'])
 
-export const PricePointSchema = z.enum(['luxury', 'premium', 'mid-market', 'value', 'budget'])
+export const PricePointSchema = z.enum([
+  'luxury',
+  'premium',
+  'mid-market',
+  'value',
+  'budget',
+])
 
 export const ImageFormatSchema = z.enum(['jpg', 'png', 'webp', 'svg'])
 
@@ -49,16 +60,26 @@ export const UnitSchema = z.enum(['in', 'cm', 'ft', 'm'])
 
 export const BrandTargetMarketSchema = z.object({
   demographics: z.object({
-    ageRange: z.string().describe('Primary age range of target customers (e.g., "25-40 years")'),
-    income: z.string().describe('Income level of target market (e.g., "$50,000-$100,000")'),
-    education: z.string().describe('Education level (e.g., "College-educated professionals")'),
-    location: z.string().describe('Geographic location (e.g., "Urban areas in North America")'),
+    ageRange: z
+      .string()
+      .describe('Primary age range of target customers (e.g., "25-40 years")'),
+    income: z
+      .string()
+      .describe('Income level of target market (e.g., "$50,000-$100,000")'),
+    education: z
+      .string()
+      .describe('Education level (e.g., "College-educated professionals")'),
+    location: z
+      .string()
+      .describe('Geographic location (e.g., "Urban areas in North America")'),
   }),
   psychographics: z.object({
     lifestyle: z.string().describe('Lifestyle characteristics of target customers'),
     interests: z.array(z.string()).describe('Key interests and hobbies'),
     values: z.array(z.string()).describe('Core values that resonate with target market'),
-    personalityTraits: z.array(z.string()).describe('Personality traits of ideal customers'),
+    personalityTraits: z
+      .array(z.string())
+      .describe('Personality traits of ideal customers'),
   }),
   painPoints: z.array(z.string()).describe('Problems and challenges this brand solves'),
   needs: z.array(z.string()).describe('Unmet needs this brand addresses'),
@@ -71,7 +92,9 @@ export const BrandPersonalitySchema = z.object({
     .array(z.string())
     .describe('Brand personality traits (e.g., ["innovative", "trustworthy"])'),
   communicationStyle: z.string().describe('How the brand communicates'),
-  brandArchetype: z.string().describe('Brand archetype (e.g., "The Innovator", "The Caregiver")'),
+  brandArchetype: z
+    .string()
+    .describe('Brand archetype (e.g., "The Innovator", "The Caregiver")'),
 })
 
 export const BrandPositioningSchema = z.object({
@@ -235,7 +258,10 @@ export const ProductCatalogSchema = z
 // ==============================================
 
 export const ImageGenerationParametersSchema = z.object({
-  style: z.string().optional().describe('Visual style (e.g., "photorealistic", "minimalist")'),
+  style: z
+    .string()
+    .optional()
+    .describe('Visual style (e.g., "photorealistic", "minimalist")'),
   mood: z.string().optional().describe('Mood and atmosphere'),
   lighting: z.string().optional().describe('Lighting conditions'),
   angle: z.string().optional().describe('Camera angle or perspective'),
@@ -480,14 +506,17 @@ export const PaginatedResponseSchema = z.object({
 export const validateBrand = (data: unknown) => BrandSchema.parse(data)
 export const validateProduct = (data: unknown) => ProductSchema.parse(data)
 export const validateProductCatalog = (data: unknown) => ProductCatalogSchema.parse(data)
-export const validateMarketingSystem = (data: unknown) => MarketingSystemSchema.parse(data)
+export const validateMarketingSystem = (data: unknown) =>
+  MarketingSystemSchema.parse(data)
 export const validateExportConfig = (data: unknown) => ExportConfigSchema.parse(data)
 
 // Safe parsing helpers that return results with errors
 export const safeParseBrand = (data: unknown) => BrandSchema.safeParse(data)
 export const safeParseProduct = (data: unknown) => ProductSchema.safeParse(data)
-export const safeParseProductCatalog = (data: unknown) => ProductCatalogSchema.safeParse(data)
-export const safeParseMarketingSystem = (data: unknown) => MarketingSystemSchema.safeParse(data)
+export const safeParseProductCatalog = (data: unknown) =>
+  ProductCatalogSchema.safeParse(data)
+export const safeParseMarketingSystem = (data: unknown) =>
+  MarketingSystemSchema.safeParse(data)
 export const safeParseExportConfig = (data: unknown) => ExportConfigSchema.safeParse(data)
 
 // ==============================================
