@@ -70,16 +70,16 @@
   - Success/error handling
 
 ### **Step 5: Create Project CRUD Pages**
-- [ ] **New Project Page** (`app/dashboard/projects/new/page.tsx`)
+- [x] **New Project Page** (`app/dashboard/projects/new/page.tsx`)
   - Simple page with create project form
   - Redirect to dashboard on success
 
-- [ ] **Project Details Page** (`app/dashboard/projects/[id]/page.tsx`)
+- [x] **Project Details Page** (`app/dashboard/projects/[id]/page.tsx`)
   - Display individual project information
   - Edit and delete buttons
   - Uses existing `getProjectAction`
 
-- [ ] **Edit Project Page** (`app/dashboard/projects/[id]/edit/page.tsx`)
+- [x] **Edit Project Page** (`app/dashboard/projects/[id]/edit/page.tsx`)
   - Edit form for existing projects
   - Pre-populated with current data
   - Uses existing `updateProjectAction`

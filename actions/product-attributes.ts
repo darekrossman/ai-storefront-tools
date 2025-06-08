@@ -499,9 +499,9 @@ export async function getAttributeCombinations(
  */
 export async function generateVariantCombinations(
   attributes: Record<string, string[]>,
-): Promise<Array<Record<string, string>>> {
+): Promise<Record<string, string>[]> {
   const keys = Object.keys(attributes)
-  const combinations: Array<Record<string, string>> = []
+  const combinations: Record<string, string>[] = []
 
   function generateCombination(
     currentCombination: Record<string, string>,
