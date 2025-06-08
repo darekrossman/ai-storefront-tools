@@ -1,0 +1,169 @@
+---
+description: Creating, editing, or styling any user interface components or elements. 
+globs: 
+alwaysApply: false
+---
+# UI Patterns and HTML Semantics
+
+## Link and Button Usage Rules
+
+### ❌ Never Do This
+- **Never nest interactive elements**: Do not wrap `<button>` elements with `<Link>` components
+- **Never nest Link components**: Do not wrap `<Link>` components with `<button>` or `<a>` elements
+- **Avoid double interactivity**: Do not create nested clickable/interactive elements
+
+### ✅ Correct Patterns
+
+#### For Navigation Links
+```jsx
+// Good: Link component styled as button
+<Link href="/dashboard/projects/new">
+  <styled.div
+    px={6}
+    py={3}
+    bg="blue.600"
+    color="white"
+    borderRadius="lg"
+    cursor="pointer"
+    _hover={{ bg: "blue.700" }}
+  >
+    Create New Project
+  </styled.div>
+</Link>
+
+// Good: Link with button-like styling
+<styled.a
+  as={Link}
+  href="/dashboard/projects/new"
+  px={6}
+  py={3}
+  bg="blue.600"
+  color="white"
+  borderRadius="lg"
+  cursor="pointer"
+  _hover={{ bg: "blue.700" }}
+  textDecoration="none"
+  display="inline-block"
+>
+  Create New Project
+</styled.a>
+```
+
+#### For Form Actions
+```jsx
+// Good: Button for form actions
+<styled.button
+  type="submit"
+  px={6}
+  py={3}
+  bg="blue.600"
+  color="white"
+  borderRadius="lg"
+  cursor="pointer"
+  _hover={{ bg: "blue.700" }}
+>
+  Submit Form
+</styled.button>
+
+// Good: Button with onClick handler
+<styled.button
+  onClick={() => router.push('/dashboard/projects/new')}
+  px={6}
+  py={3}
+  bg="blue.600"
+  color="white"
+  borderRadius="lg"
+  cursor="pointer"
+  _hover={{ bg: "blue.700" }}
+>
+  Navigate
+</styled.button>
+```
+
+#### For Card Navigation
+```jsx
+// Good: Entire card as link
+<Link href={`/dashboard/projects/${project.id}`}>
+  <styled.div
+    bg="white"
+    border="1px solid"
+    borderColor="gray.200"
+    borderRadius="lg"
+    p={6}
+    cursor="pointer"
+    _hover={{ borderColor: "gray.300", shadow: "sm" }}
+  >
+    <h3>{project.name}</h3>
+    <p>{project.description}</p>
+  </styled.div>
+</Link>
+
+// Good: Card with separate action buttons
+<styled.div bg="white" border="1px solid" borderColor="gray.200">
+  <h3>{project.name}</h3>
+  <p>{project.description}</p>
+  <Flex gap={2}>
+    <Link href={`/dashboard/projects/${project.id}`}>
+      <styled.span color="blue.600" _hover={{ color: "blue.700" }}>
+        View
+      </styled.span>
+    </Link>
+    <styled.button onClick={handleEdit}>Edit</styled.button>
+  </Flex>
+</styled.div>
+```
+
+## HTML Semantics Rules
+
+### Interactive Elements
+- Use `<button>` for actions (forms, modals, toggles)
+- Use `<Link>` or `<a>` for navigation between pages
+- Use `<input type="submit">` or `<button type="submit">` for form submission
+- Never nest interactive elements (buttons inside links, etc.)
+
+### Accessibility
+- Ensure proper ARIA labels for interactive elements
+- Maintain keyboard navigation support
+- Use semantic HTML elements (`<nav>`, `<main>`, `<section>`, etc.)
+
+### PandaCSS Styling
+- Use `styled.a` with `as={Link}` for styled navigation links
+- Use `styled.button` for action buttons
+- Use `styled.div` or other non-interactive elements for containers
+- Apply consistent design tokens for colors, spacing, and typography
+
+## Common Anti-Patterns to Avoid
+
+```jsx
+// ❌ Bad: Nested interactive elements
+<Link href="/dashboard">
+  <button>Go to Dashboard</button>
+</Link>
+
+// ❌ Bad: Button wrapping Link
+<button>
+  <Link href="/dashboard">Dashboard</Link>
+</button>
+
+// ❌ Bad: Nested anchor tags (Link wrapping styled.a)
+<Link href="/dashboard">
+  <styled.a>Dashboard</styled.a>
+</Link>
+
+// ❌ Bad: Multiple interactive elements in same container
+<div onClick={handleClick}>
+  <button onClick={handleEdit}>Edit</button>
+  <Link href="/view">View</Link>
+</div>
+
+// ✅ Good: Correct alternatives
+<Link href="/dashboard">
+  <styled.span>Dashboard</styled.span>
+</Link>
+
+<Link href="/dashboard">
+  <styled.div display="inline-block">Dashboard</styled.div>
+</Link>
+```
+
+These patterns ensure proper HTML semantics, accessibility, and maintainable code while working with Next.js Link components and PandaCSS styling.

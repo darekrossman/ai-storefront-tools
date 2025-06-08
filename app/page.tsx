@@ -1,142 +1,147 @@
-'use client'
-
-import { MemoizedMarkdown } from '@/components/memoized-mardown'
-import { BrandSchema } from '@/lib/schemas'
+import { redirect } from 'next/navigation'
+import { createClient } from '@/lib/supabase/server'
 import { Box, Flex, Stack, styled } from '@/styled-system/jsx'
-import { useChat } from '@ai-sdk/react'
-import { useEffect, useRef, useState } from 'react'
-import { z } from 'zod'
+import Link from 'next/link'
+import GuestHeader from '@/components/navigation/guest-header'
 
-const BrandOptionSchema = z.object({
-  name: z.string().describe('The brand name'),
-  description: z.string().describe('A brief description of the brand concept'),
-  tagline: z.string().optional().describe('A catchy tagline for the brand'),
-  targetAudience: z.string().describe('Primary target audience'),
-})
+export default async function Page() {
+  const supabase = await createClient()
+  const {
+    data: { user },
+  } = await supabase.auth.getUser()
 
-type BrandOption = z.infer<typeof BrandOptionSchema>
-
-export default function Page() {
-  const { messages, input, setInput, append, addToolResult } = useChat({
-    api: '/api/agents/brand',
-    maxSteps: 10,
-
-    async onToolCall({ toolCall }) {
-      console.log(toolCall)
-    },
-  })
-
-  const messagesEndRef = useRef<HTMLDivElement>(null)
-  const scrollContainerRef = useRef<HTMLDivElement>(null)
-  const [isUserScrolledUp, setIsUserScrolledUp] = useState(false)
-
-  // Auto-scroll to bottom when new messages arrive, unless user scrolled up
-  useEffect(() => {
-    if (!isUserScrolledUp && messagesEndRef.current) {
-      messagesEndRef.current.scrollIntoView({ behavior: 'smooth' })
-    }
-  }, [messages, isUserScrolledUp])
-
-  // Check if user is scrolled up from bottom
-  const handleScroll = () => {
-    if (scrollContainerRef.current) {
-      const { scrollTop, scrollHeight, clientHeight } = scrollContainerRef.current
-      const isNearBottom = scrollHeight - scrollTop - clientHeight < 50 // 50px threshold
-      setIsUserScrolledUp(!isNearBottom)
-    }
+  // Redirect authenticated users to dashboard
+  if (user) {
+    redirect('/dashboard')
   }
 
   return (
-    <Flex direction="column" height="100vh" width="100%">
-      {/* Messages container - scrollable */}
+    <Box minH="100vh" bg="gray.50">
+      <GuestHeader />
+
+      {/* Hero Section */}
       <Flex
-        ref={scrollContainerRef}
+        maxW="1200px"
+        mx="auto"
+        px={4}
+        py={16}
         direction="column"
-        flex="1"
-        overflow="auto"
-        padding="1rem"
-        maxHeight="calc(100vh - 80px)"
-        onScroll={handleScroll}
+        align="center"
+        textAlign="center"
       >
-        {messages.map((m, index) => (
-          <Box
-            key={index}
-            border="1px solid"
-            padding="1rem"
-            borderRadius="md"
-            marginBottom="1rem"
+        <Stack gap={6} maxW="2xl">
+          {/* Main Heading */}
+          <styled.h1
+            fontSize={{ base: '3xl', md: '4xl', lg: '5xl' }}
+            fontWeight="bold"
+            color="gray.900"
+            lineHeight="tight"
           >
-            <Box fontWeight="bold" fontSize="sm" color="gray.500">
-              {m.role}
+            AI-Powered E-Commerce Platform
+          </styled.h1>
+
+          {/* Subheading */}
+          <styled.p
+            fontSize={{ base: 'lg', md: 'xl' }}
+            color="gray.600"
+            lineHeight="relaxed"
+          >
+            Generate complete product catalogs, brand identities, and marketing assets
+            with AI. Build your entire storefront in minutes, not months.
+          </styled.p>
+
+          {/* Call to Action Buttons */}
+          <Flex gap={4} justify="center" direction={{ base: 'column', sm: 'row' }} pt={4}>
+            <Link href="/login">
+              <styled.div
+                px={8}
+                py={3}
+                fontSize="lg"
+                fontWeight="semibold"
+                color="white"
+                bg="blue.600"
+                borderRadius="lg"
+                cursor="pointer"
+                _hover={{
+                  bg: 'blue.700',
+                }}
+                transition="all 0.2s"
+                w={{ base: 'full', sm: 'auto' }}
+                display="inline-block"
+                textAlign="center"
+              >
+                Get Started Free
+              </styled.div>
+            </Link>
+
+            <Link href="/login">
+              <styled.div
+                px={8}
+                py={3}
+                fontSize="lg"
+                fontWeight="semibold"
+                color="gray.700"
+                bg="white"
+                border="2px solid"
+                borderColor="gray.300"
+                borderRadius="lg"
+                cursor="pointer"
+                _hover={{
+                  bg: 'gray.50',
+                  borderColor: 'gray.400',
+                }}
+                transition="all 0.2s"
+                w={{ base: 'full', sm: 'auto' }}
+                display="inline-block"
+                textAlign="center"
+              >
+                Learn More
+              </styled.div>
+            </Link>
+          </Flex>
+        </Stack>
+
+        {/* Feature Highlights */}
+        <Stack gap={4} pt={16} maxW="4xl">
+          <styled.h2
+            fontSize={{ base: 'xl', md: '2xl' }}
+            fontWeight="semibold"
+            color="gray.900"
+            textAlign="center"
+          >
+            What You Can Build
+          </styled.h2>
+
+          <Flex gap={8} direction={{ base: 'column', md: 'row' }} justify="center" pt={8}>
+            <Box textAlign="center" flex="1">
+              <styled.h3 fontWeight="semibold" color="gray.900" mb={2}>
+                Brand Identity
+              </styled.h3>
+              <styled.p fontSize="sm" color="gray.600">
+                AI-generated mission, values, and visual identity
+              </styled.p>
             </Box>
 
-            {m.parts?.map((p, i) => {
-              const toolInvocation =
-                p.type === 'tool-invocation' ? p.toolInvocation : null
+            <Box textAlign="center" flex="1">
+              <styled.h3 fontWeight="semibold" color="gray.900" mb={2}>
+                Product Catalogs
+              </styled.h3>
+              <styled.p fontSize="sm" color="gray.600">
+                Complete products with variants, pricing, and descriptions
+              </styled.p>
+            </Box>
 
-              if (!toolInvocation) {
-                if (p.type === 'text') {
-                  return <MemoizedMarkdown content={p.text} id={m.id} key={i} />
-                }
-
-                return null
-              }
-
-              const isToolCall = toolInvocation.state === 'call'
-              const isToolResult = toolInvocation.state === 'result'
-              const toolName = toolInvocation.toolName
-              const toolCallId = toolInvocation.toolCallId
-              const args = toolInvocation.args
-
-              console.log(m.id, p)
-
-              if (isToolCall && toolName === 'createBrandFoundation') {
-                return (
-                  <Stack key={i}>
-                    {args?.brandOptions.map((brand: BrandOption, i: number) => (
-                      <styled.button
-                        key={i}
-                        cursor="pointer"
-                        textAlign="left"
-                        _hover={{ backgroundColor: 'gray.100' }}
-                        onClick={() => addToolResult({ toolCallId, result: brand.name })}
-                      >
-                        <Box fontWeight="bold">{brand.name}</Box>
-                        <Box>{brand.description}</Box>
-                        <Box>{brand.tagline}</Box>
-                        <Box>{brand.targetAudience}</Box>
-                      </styled.button>
-                    ))}
-                  </Stack>
-                )
-              }
-            })}
-          </Box>
-        ))}
-        <div ref={messagesEndRef} />
+            <Box textAlign="center" flex="1">
+              <styled.h3 fontWeight="semibold" color="gray.900" mb={2}>
+                Marketing Assets
+              </styled.h3>
+              <styled.p fontSize="sm" color="gray.600">
+                Professional images and marketing materials
+              </styled.p>
+            </Box>
+          </Flex>
+        </Stack>
       </Flex>
-
-      {/* Input container - fixed at bottom */}
-      <Box borderTop="1px solid" padding="1rem" backgroundColor="white" minHeight="80px">
-        <styled.input
-          width="100%"
-          border="1px solid"
-          borderRadius="md"
-          padding="0.75rem"
-          fontSize="md"
-          value={input}
-          placeholder="Type your message..."
-          onChange={(event) => {
-            setInput(event.target.value)
-          }}
-          onKeyDown={async (event) => {
-            if (event.key === 'Enter') {
-              append({ content: input, role: 'user' })
-              setInput('')
-            }
-          }}
-        />
-      </Box>
-    </Flex>
+    </Box>
   )
 }
