@@ -167,4 +167,36 @@ create trigger trigger_products_updated_at
 create trigger trigger_update_catalog_product_count
   after insert or update or delete on public.products
   for each row
-  execute function public.update_catalog_product_count(); 
+  execute function public.update_catalog_product_count();
+
+-- Function to validate that product categories belong to the same catalog
+create or replace function public.validate_product_categories()
+returns trigger as $$
+begin
+  -- Check primary category belongs to same catalog
+  if not exists (
+    select 1 from public.categories 
+    where id = new.primary_category_id 
+    and catalog_id = new.catalog_id
+  ) then
+    raise exception 'Primary category must belong to the same catalog as the product';
+  end if;
+  
+  -- Check subcategory belongs to same catalog (if specified)
+  if new.subcategory_id is not null and not exists (
+    select 1 from public.categories 
+    where id = new.subcategory_id 
+    and catalog_id = new.catalog_id
+  ) then
+    raise exception 'Subcategory must belong to the same catalog as the product';
+  end if;
+  
+  return new;
+end;
+$$ language plpgsql;
+
+-- Trigger to validate product categories
+create trigger trigger_validate_product_categories
+  before insert or update on public.products
+  for each row
+  execute function public.validate_product_categories(); 

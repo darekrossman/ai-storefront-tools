@@ -2,7 +2,7 @@
 
 import { useEffect, useState, useTransition } from 'react'
 import { type User } from '@supabase/supabase-js'
-import { getProfileAction, updateProfileAction } from '../../app/account/actions'
+import { getProfileAction, updateProfileAction } from '../../actions/account'
 
 export default function AccountForm({ user }: { user: User | null }) {
   const [isPending, startTransition] = useTransition()
@@ -14,10 +14,10 @@ export default function AccountForm({ user }: { user: User | null }) {
   useEffect(() => {
     if (user) {
       getProfileAction(user).then((data) => {
-        setFullname(data?.full_name)
-        setUsername(data?.username)
-        setWebsite(data?.website)
-        setAvatarUrl(data?.avatar_url)
+        setFullname(data?.full_name ?? null)
+        setUsername(data?.username ?? null)
+        setWebsite(data?.website ?? null)
+        setAvatarUrl(data?.avatar_url ?? null)
       })
     }
   }, [user])

@@ -1,16 +1,16 @@
 -- =====================================================
 -- Categories Table Schema
 -- =====================================================
--- Purpose: Product categories for organizing products within brands
--- Dependencies: Requires public.brands table
--- RLS: User can only access categories from their own brands
--- Design: Categories belong to brands and can be used across multiple catalogs
+-- Purpose: Product categories for organizing products within product catalogs
+-- Dependencies: Requires public.product_catalogs table
+-- RLS: User can only access categories from their own catalogs
+-- Design: Categories belong to product catalogs, allowing different categorization per catalog
 -- =====================================================
 
 -- Create categories table
 create table public.categories (
   id bigint generated always as identity primary key,
-  brand_id bigint not null references public.brands (id) on delete cascade,
+  catalog_id bigint not null references public.product_catalogs (id) on delete cascade,
   name text not null,
   description text not null,
   slug text not null,
@@ -22,16 +22,16 @@ create table public.categories (
   updated_at timestamptz not null default now()
 );
 
-comment on table public.categories is 'Product categories for organizing products within brands. Supports hierarchical structure with parent-child relationships.';
+comment on table public.categories is 'Product categories for organizing products within product catalogs. Supports hierarchical structure with parent-child relationships.';
 
 -- Add column comments for clarity
 comment on column public.categories.parent_category_id is 'Self-referencing foreign key for hierarchical categories (subcategories)';
 comment on column public.categories.sort_order is 'Display order for categories within the same level';
 comment on column public.categories.metadata is 'JSONB: Additional category metadata like images, colors, SEO data';
-comment on column public.categories.slug is 'URL-friendly identifier for the category within the brand';
+comment on column public.categories.slug is 'URL-friendly identifier for the category within the catalog';
 
 -- Add indexes for performance
-create index idx_categories_brand_id on public.categories (brand_id);
+create index idx_categories_catalog_id on public.categories (catalog_id);
 create index idx_categories_parent_id on public.categories (parent_category_id);
 create index idx_categories_slug on public.categories (slug);
 create index idx_categories_name on public.categories (name);
@@ -42,66 +42,70 @@ create index idx_categories_created_at_desc on public.categories (created_at des
 -- GIN index for efficient JSONB queries
 create index idx_categories_metadata_gin on public.categories using gin (metadata);
 
--- Ensure unique slug per brand
-create unique index idx_categories_brand_slug_unique on public.categories (brand_id, slug);
+-- Ensure unique slug per catalog
+create unique index idx_categories_catalog_slug_unique on public.categories (catalog_id, slug);
 
--- Ensure unique name per brand per parent level
-create unique index idx_categories_brand_parent_name_unique on public.categories (brand_id, parent_category_id, name);
+-- Ensure unique name per catalog per parent level
+create unique index idx_categories_catalog_parent_name_unique on public.categories (catalog_id, parent_category_id, name);
 
 -- Enable Row Level Security
 alter table public.categories enable row level security;
 
--- RLS Policy: Users can view categories from their own brands
-create policy "Users can view categories from their own brands"
+-- RLS Policy: Users can view categories from their own catalogs
+create policy "Users can view categories from their own catalogs"
   on public.categories
   for select
   to authenticated
   using (
-    brand_id in (
-      select brands.id 
-      from public.brands 
+    catalog_id in (
+      select product_catalogs.id 
+      from public.product_catalogs 
+      join public.brands on product_catalogs.brand_id = brands.id
       join public.projects on brands.project_id = projects.id 
       where projects.user_id = auth.uid()
     )
   );
 
--- RLS Policy: Users can insert categories into their own brands
-create policy "Users can insert categories into their own brands"
+-- RLS Policy: Users can insert categories into their own catalogs
+create policy "Users can insert categories into their own catalogs"
   on public.categories
   for insert
   to authenticated
   with check (
-    brand_id in (
-      select brands.id 
-      from public.brands 
+    catalog_id in (
+      select product_catalogs.id 
+      from public.product_catalogs 
+      join public.brands on product_catalogs.brand_id = brands.id
       join public.projects on brands.project_id = projects.id 
       where projects.user_id = auth.uid()
     )
   );
 
--- RLS Policy: Users can update categories from their own brands
-create policy "Users can update categories from their own brands"
+-- RLS Policy: Users can update categories from their own catalogs
+create policy "Users can update categories from their own catalogs"
   on public.categories
   for update
   to authenticated
   using (
-    brand_id in (
-      select brands.id 
-      from public.brands 
+    catalog_id in (
+      select product_catalogs.id 
+      from public.product_catalogs 
+      join public.brands on product_catalogs.brand_id = brands.id
       join public.projects on brands.project_id = projects.id 
       where projects.user_id = auth.uid()
     )
   );
 
--- RLS Policy: Users can delete categories from their own brands
-create policy "Users can delete categories from their own brands"
+-- RLS Policy: Users can delete categories from their own catalogs
+create policy "Users can delete categories from their own catalogs"
   on public.categories
   for delete
   to authenticated
   using (
-    brand_id in (
-      select brands.id 
-      from public.brands 
+    catalog_id in (
+      select product_catalogs.id 
+      from public.product_catalogs 
+      join public.brands on product_catalogs.brand_id = brands.id
       join public.projects on brands.project_id = projects.id 
       where projects.user_id = auth.uid()
     )
