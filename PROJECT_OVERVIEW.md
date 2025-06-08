@@ -21,7 +21,7 @@ Storefront Tools is designed to help businesses create complete e-commerce store
 - **Authentication**: Supabase Auth
 - **Styling**: Panda CSS
 - **Type Safety**: TypeScript with auto-generated database types
-- **Validation**: Zod schemas
+- **Validation**: Database constraints and custom validation logic
 - **Package Manager**: pnpm
 - **Linting**: Biome
 
@@ -32,6 +32,10 @@ Storefront Tools is designed to help businesses create complete e-commerce store
 3. **Server-Side Validation**: All operations validated on server
 4. **Atomic Operations**: Database integrity through proper relationships
 5. **Scalable Structure**: Organized by projects → brands → catalogs → products
+
+### ⚠️ Important Development Notes
+
+- **`lib/schemas.ts` is EXCLUDED**: This file contains legacy Zod schemas kept for reference only. Do not use or reference these schemas in active development. The project has moved to database-generated types and custom validation approaches.
 
 ## 📊 Database Schema
 
@@ -58,7 +62,7 @@ User (Supabase Auth)
 
 ### JSONB Structure
 
-Products use JSONB columns aligned with Zod schemas:
+Products use JSONB columns for flexible data storage:
 - `specifications`: Dimensions, materials, features
 - `pricing`: Base price, variants, margins
 - `inventory`: SKU, stock levels, variants
@@ -110,7 +114,7 @@ storefront-tools/
 │   │   ├── database-types.ts   # Convenience type exports
 │   │   ├── server.ts           # Server client
 │   │   └── session.ts          # Session management
-│   ├── schemas.ts              # Zod validation schemas
+│   ├── schemas.ts              # Legacy Zod schemas (reference only - EXCLUDED from active development)
 │   ├── types.ts                # Manual types (AI agents, etc.)
 │   ├── constants.ts            # Business rules and constants
 │   ├── utils.ts                # Utility functions
@@ -204,7 +208,7 @@ pnpm lint        # Run Biome linter
 
 ### Agent System Structure
 
-The project includes AI agent types and schemas:
+The project includes AI agent types and interfaces:
 - **Brand Agent**: Generates brand identity and guidelines
 - **Product Agent**: Creates detailed product catalogs
 - **Image Agent**: Generates product photography
@@ -232,13 +236,14 @@ Defined in `lib/constants.ts`:
 - File size and type restrictions
 - Business logic constraints
 
-### Zod Schemas
+### Legacy Schemas (Reference Only)
 
-Comprehensive validation in `lib/schemas.ts`:
-- Product specifications schema
-- Brand identity schema
-- Marketing data schema
-- Export configuration schema
+**Note**: `lib/schemas.ts` is kept for historical reference but is **EXCLUDED from active development**. 
+
+The project has moved beyond the original Zod schema approach and now uses:
+- Database-generated types as the primary source of truth
+- Server-side validation through database constraints
+- Custom validation logic developed per feature requirements
 
 ## 🔧 Server Actions
 
@@ -395,6 +400,6 @@ Required for Supabase integration:
 2. **Generate Types**: Auto-generate TypeScript types
 3. **Server Actions**: Implement CRUD operations
 4. **Frontend**: Build UI consuming server actions
-5. **Validation**: Zod schemas for client/server validation
+5. **Validation**: Custom validation logic and database constraints
 
 This project provides a solid foundation for building a comprehensive e-commerce platform with AI-powered content generation, proper security, and excellent developer experience. 
