@@ -18,9 +18,9 @@ export type Database = {
       graphql: {
         Args: {
           operationName?: string
-          query?: string
-          variables?: Json
           extensions?: Json
+          variables?: Json
+          query?: string
         }
         Returns: Json
       }
@@ -150,6 +150,50 @@ export type Database = {
           },
         ]
       }
+      product_attributes: {
+        Row: {
+          attribute_id: string
+          attribute_label: string
+          created_at: string
+          id: number
+          is_required: boolean
+          options: Json
+          product_id: number
+          sort_order: number
+          updated_at: string
+        }
+        Insert: {
+          attribute_id: string
+          attribute_label: string
+          created_at?: string
+          id?: never
+          is_required?: boolean
+          options?: Json
+          product_id: number
+          sort_order?: number
+          updated_at?: string
+        }
+        Update: {
+          attribute_id?: string
+          attribute_label?: string
+          created_at?: string
+          id?: never
+          is_required?: boolean
+          options?: Json
+          product_id?: number
+          sort_order?: number
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "product_attributes_product_id_fkey"
+            columns: ["product_id"]
+            isOneToOne: false
+            referencedRelation: "products"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       product_catalogs: {
         Row: {
           brand_id: number
@@ -197,65 +241,156 @@ export type Database = {
           },
         ]
       }
-      products: {
+      product_images: {
         Row: {
-          catalog_id: number
+          alt_text: string | null
+          attribute_filters: Json | null
+          color_id: string | null
           created_at: string
-          description: string
           id: number
-          inventory: Json
-          is_featured: boolean
-          marketing: Json
-          name: string
-          pricing: Json
-          primary_category_id: number
-          relations: Json | null
-          short_description: string
+          product_id: number
           sort_order: number
-          specifications: Json
+          type: string
+          updated_at: string
+          url: string
+        }
+        Insert: {
+          alt_text?: string | null
+          attribute_filters?: Json | null
+          color_id?: string | null
+          created_at?: string
+          id?: never
+          product_id: number
+          sort_order?: number
+          type?: string
+          updated_at?: string
+          url: string
+        }
+        Update: {
+          alt_text?: string | null
+          attribute_filters?: Json | null
+          color_id?: string | null
+          created_at?: string
+          id?: never
+          product_id?: number
+          sort_order?: number
+          type?: string
+          updated_at?: string
+          url?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "product_images_product_id_fkey"
+            columns: ["product_id"]
+            isOneToOne: false
+            referencedRelation: "products"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      product_variants: {
+        Row: {
+          attributes: Json
+          barcode: string | null
+          created_at: string
+          id: number
+          orderable: boolean
+          price: number
+          product_id: number
+          sku: string
+          sort_order: number
           status: Database["public"]["Enums"]["brand_status"]
-          subcategory_id: number | null
-          tags: string[] | null
           updated_at: string
         }
         Insert: {
-          catalog_id: number
+          attributes?: Json
+          barcode?: string | null
           created_at?: string
-          description: string
           id?: never
-          inventory?: Json
-          is_featured?: boolean
-          marketing?: Json
-          name: string
-          pricing?: Json
-          primary_category_id: number
-          relations?: Json | null
-          short_description: string
+          orderable?: boolean
+          price: number
+          product_id: number
+          sku: string
           sort_order?: number
-          specifications?: Json
           status?: Database["public"]["Enums"]["brand_status"]
-          subcategory_id?: number | null
-          tags?: string[] | null
           updated_at?: string
         }
         Update: {
+          attributes?: Json
+          barcode?: string | null
+          created_at?: string
+          id?: never
+          orderable?: boolean
+          price?: number
+          product_id?: number
+          sku?: string
+          sort_order?: number
+          status?: Database["public"]["Enums"]["brand_status"]
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "product_variants_product_id_fkey"
+            columns: ["product_id"]
+            isOneToOne: false
+            referencedRelation: "products"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      products: {
+        Row: {
+          attributes: Json | null
+          catalog_id: number
+          category_id: number | null
+          created_at: string
+          description: string
+          id: number
+          max_price: number | null
+          meta_description: string | null
+          meta_title: string | null
+          min_price: number | null
+          name: string
+          sort_order: number
+          status: Database["public"]["Enums"]["brand_status"]
+          tags: string[] | null
+          total_inventory: number | null
+          updated_at: string
+        }
+        Insert: {
+          attributes?: Json | null
+          catalog_id: number
+          category_id?: number | null
+          created_at?: string
+          description: string
+          id?: never
+          max_price?: number | null
+          meta_description?: string | null
+          meta_title?: string | null
+          min_price?: number | null
+          name: string
+          sort_order?: number
+          status?: Database["public"]["Enums"]["brand_status"]
+          tags?: string[] | null
+          total_inventory?: number | null
+          updated_at?: string
+        }
+        Update: {
+          attributes?: Json | null
           catalog_id?: number
+          category_id?: number | null
           created_at?: string
           description?: string
           id?: never
-          inventory?: Json
-          is_featured?: boolean
-          marketing?: Json
+          max_price?: number | null
+          meta_description?: string | null
+          meta_title?: string | null
+          min_price?: number | null
           name?: string
-          pricing?: Json
-          primary_category_id?: number
-          relations?: Json | null
-          short_description?: string
           sort_order?: number
-          specifications?: Json
           status?: Database["public"]["Enums"]["brand_status"]
-          subcategory_id?: number | null
           tags?: string[] | null
+          total_inventory?: number | null
           updated_at?: string
         }
         Relationships: [
@@ -267,15 +402,8 @@ export type Database = {
             referencedColumns: ["id"]
           },
           {
-            foreignKeyName: "products_primary_category_id_fkey"
-            columns: ["primary_category_id"]
-            isOneToOne: false
-            referencedRelation: "categories"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "products_subcategory_id_fkey"
-            columns: ["subcategory_id"]
+            foreignKeyName: "products_category_id_fkey"
+            columns: ["category_id"]
             isOneToOne: false
             referencedRelation: "categories"
             referencedColumns: ["id"]
@@ -355,7 +483,19 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
-      [_ in never]: never
+      get_avatar_path: {
+        Args: { user_id: string; file_extension: string }
+        Returns: string
+      }
+      get_product_image_path: {
+        Args: {
+          product_id: number
+          image_type: string
+          file_extension: string
+          project_id: number
+        }
+        Returns: string
+      }
     }
     Enums: {
       brand_status: "draft" | "active" | "archived"

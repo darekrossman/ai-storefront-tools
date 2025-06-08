@@ -2,11 +2,11 @@
 
 import { createClient } from '@/lib/supabase/server'
 import { revalidatePath } from 'next/cache'
-import type {
-  Category,
-  CategoryInsert,
-  CategoryUpdate,
-} from '@/lib/supabase/database-types'
+import type { Tables, TablesInsert, TablesUpdate } from '@/lib/supabase/types'
+
+type Category = Tables<'categories'>
+type CategoryInsert = TablesInsert<'categories'>
+type CategoryUpdate = TablesUpdate<'categories'>
 
 // Create and update data types
 export type CreateCategoryData = Omit<CategoryInsert, 'id' | 'created_at' | 'updated_at'>

@@ -2,11 +2,11 @@
 
 import { createClient } from '@/lib/supabase/server'
 import { revalidatePath } from 'next/cache'
-import type {
-  ProductCatalog,
-  ProductCatalogInsert,
-  ProductCatalogUpdate,
-} from '@/lib/supabase/database-types'
+import type { Tables, TablesInsert, TablesUpdate } from '@/lib/supabase/types'
+
+type ProductCatalog = Tables<'product_catalogs'>
+type ProductCatalogInsert = TablesInsert<'product_catalogs'>
+type ProductCatalogUpdate = TablesUpdate<'product_catalogs'>
 
 // Create and update data types
 export type CreateProductCatalogData = Omit<

@@ -2,7 +2,11 @@
 
 import { createClient } from '@/lib/supabase/server'
 import { revalidatePath } from 'next/cache'
-import type { Brand, BrandInsert, BrandUpdate } from '@/lib/supabase/database-types'
+import type { Tables, TablesInsert, TablesUpdate } from '@/lib/supabase/types'
+
+type Brand = Tables<'brands'>
+type BrandInsert = TablesInsert<'brands'>
+type BrandUpdate = TablesUpdate<'brands'>
 
 // Create and update data types
 export type CreateBrandData = Omit<BrandInsert, 'id' | 'created_at' | 'updated_at'>

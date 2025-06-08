@@ -5,7 +5,8 @@
 // Supports avatars and product images with proper security and validation
 
 import { createClient } from './supabase/server'
-import type { SupabaseClient } from './supabase/database-types'
+import type { SupabaseClient } from '@supabase/supabase-js'
+import type { Database } from './supabase/types'
 
 // ==============================================
 // STORAGE CONFIGURATION
