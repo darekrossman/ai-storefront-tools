@@ -7,17 +7,36 @@ import { redirect } from 'next/navigation'
 export async function login(formData: FormData) {
   const supabase = await createClient()
 
-  // type-casting here for convenience
-  // in practice, you should validate your inputs
-  const data = {
-    email: formData.get('email') as string,
-    password: formData.get('password') as string,
+  const email = formData.get('email') as string
+  const password = formData.get('password') as string
+
+  // Basic validation
+  if (!email || !password) {
+    redirect('/login?error=Please fill in all fields')
   }
 
-  const { error } = await supabase.auth.signInWithPassword(data)
+  if (!email.includes('@')) {
+    redirect('/login?error=Please enter a valid email address')
+  }
+
+  if (password.length < 6) {
+    redirect('/login?error=Password must be at least 6 characters')
+  }
+
+  const { error } = await supabase.auth.signInWithPassword({
+    email,
+    password,
+  })
 
   if (error) {
-    redirect('/error')
+    // Handle specific error cases
+    if (error.message.includes('Invalid login credentials')) {
+      redirect('/login?error=Invalid email or password')
+    } else if (error.message.includes('Email not confirmed')) {
+      redirect('/login?error=Please check your email and confirm your account')
+    } else {
+      redirect(`/login?error=${encodeURIComponent(error.message)}`)
+    }
   }
 
   revalidatePath('/', 'layout')
@@ -27,19 +46,40 @@ export async function login(formData: FormData) {
 export async function signup(formData: FormData) {
   const supabase = await createClient()
 
-  // type-casting here for convenience
-  // in practice, you should validate your inputs
-  const data = {
-    email: formData.get('email') as string,
-    password: formData.get('password') as string,
+  const email = formData.get('email') as string
+  const password = formData.get('password') as string
+
+  // Basic validation
+  if (!email || !password) {
+    redirect('/login?error=Please fill in all fields')
   }
 
-  const { error } = await supabase.auth.signUp(data)
+  if (!email.includes('@')) {
+    redirect('/login?error=Please enter a valid email address')
+  }
+
+  if (password.length < 6) {
+    redirect('/login?error=Password must be at least 6 characters')
+  }
+
+  const { error } = await supabase.auth.signUp({
+    email,
+    password,
+  })
 
   if (error) {
-    redirect('/error')
+    // Handle specific error cases
+    if (error.message.includes('User already registered')) {
+      redirect(
+        '/login?error=An account with this email already exists. Try logging in instead.',
+      )
+    } else if (error.message.includes('Password should be')) {
+      redirect('/login?error=Password must be at least 6 characters')
+    } else {
+      redirect(`/login?error=${encodeURIComponent(error.message)}`)
+    }
   }
 
-  revalidatePath('/', 'layout')
-  redirect('/dashboard')
+  // Show success message for signup
+  redirect('/login?message=Check your email to confirm your account before logging in')
 }

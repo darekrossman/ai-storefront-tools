@@ -84,7 +84,7 @@
   - Pre-populated with current data
   - Uses existing `updateProjectAction`
 
-### **Step 6: Create Reusable UI Components**
+<!-- ### **Step 6: Create Reusable UI Components**
 - [ ] **Button Component** (`components/ui/button.tsx`)
   - Styled using PandaCSS patterns
   - Primary, secondary, and danger variants
@@ -98,7 +98,7 @@
 - [ ] **Modal Component** (`components/ui/modal.tsx`)
   - For delete confirmations
   - Overlay and basic modal structure
-  - Close functionality
+  - Close functionality -->
 
 ### **Step 7: Update Authentication Flow**
 - [ ] **Modify Login Actions** (`app/login/actions.ts`)
