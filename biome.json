@@ -30,7 +30,7 @@
     "enabled": true,
     "indentWidth": 2,
     "indentStyle": "space",
-    "lineWidth": 100
+    "lineWidth": 90
   },
   "javascript": {
     "formatter": {
