@@ -1,0 +1,304 @@
+---
+description: 
+globs: 
+alwaysApply: false
+---
+# PandaCSS Usage Guidelines
+
+## Overview
+This project uses [PandaCSS](mdc:https:/panda-css.com) as the CSS-in-JS styling solution. The configuration is located in [panda.config.ts](mdc:panda.config.ts) and outputs to the `styled-system` directory.
+
+## Import Strategy & Priority
+
+### 1. First Priority: Use Predefined Patterns with JSX Components
+Always prefer predefined pattern components from `@/styled-system/jsx` for layout and common UI patterns:
+
+```tsx
+import { Box, Stack, HStack, VStack, Flex, Grid, Container } from '@/styled-system/jsx'
+
+// Layout patterns
+<Stack gap="4">              // Vertical stack
+<HStack gap="4">             // Horizontal stack  
+<VStack gap="4">             // Vertical stack (alias)
+<Flex direction="row">       // Flexible layouts
+<Grid columns={3} gap="4">   // Grid layouts
+<Container>                  // Centered container with max-width
+
+// Utility patterns
+<Box>                        // Generic container (equivalent to styled.div)
+<Center>                     // Center content
+<Circle size="12">           // Circle shape
+<Square size="12">           // Square shape
+<Divider orientation="horizontal"> // Dividers
+<AspectRatio ratio={16/9}>   // Aspect ratio containers
+<VisuallyHidden>             // Screen reader only content
+<Bleed inline="6">           // Full-width bleed content
+```
+
+### 2. Second Priority: Use `styled` for Custom Components
+When predefined patterns don't exist (like buttons, inputs, forms), use `styled` from `@/styled-system/jsx`:
+
+```tsx
+import { styled } from '@/styled-system/jsx'
+
+// For interactive elements and custom components
+<styled.button
+  bg="blue.500" 
+  color="white"
+  px="4" 
+  py="2"
+  borderRadius="md"
+  _hover={{ bg: "blue.600" }}
+>
+  Click me
+</styled.button>
+
+<styled.input
+  border="1px solid"
+  borderColor="gray.300"
+  borderRadius="md"
+  px="3"
+  py="2"
+  _focus={{ borderColor: "blue.500", outline: "none" }}
+/>
+```
+
+## Available Predefined Patterns
+
+### Layout Patterns
+- **Box**: Generic container, equivalent to `styled.div`
+- **Container**: Centered container with responsive padding and max-width
+- **Stack**: Vertical layout with gap spacing
+- **HStack**: Horizontal layout with gap spacing  
+- **VStack**: Vertical layout with gap spacing (alias for Stack)
+- **Flex**: Flexible box layout with full flex properties
+- **Grid**: CSS Grid layout with columns/rows
+- **GridItem**: Grid item with span controls
+- **Wrap**: Flexbox wrap container
+
+### Utility Patterns
+- **Center**: Center content both horizontally and vertically
+- **Circle**: Circular container with equal width/height
+- **Square**: Square container with equal width/height
+- **AspectRatio**: Maintain aspect ratio for content
+- **Divider**: Horizontal or vertical dividers
+- **Float**: Floating positioned elements
+- **LinkOverlay**: Clickable overlay for cards
+- **Spacer**: Flexible spacer for pushing content
+- **VisuallyHidden**: Hide visually but keep for screen readers
+- **Bleed**: Break out of container padding
+- **Cq**: Container query wrapper
+
+## Style Props Patterns
+
+### Spacing
+```tsx
+// Margin
+m="4"          // all sides
+mx="4"         // horizontal
+my="4"         // vertical
+mt="4"         // top
+mr="4"         // right
+mb="4"         // bottom  
+ml="4"         // left
+
+// Padding
+p="4"          // all sides
+px="4"         // horizontal
+py="4"         // vertical
+pt="4"         // top
+pr="4"         // right
+pb="4"         // bottom
+pl="4"         // left
+```
+
+### Layout
+```tsx
+// Display
+display="flex"
+display="grid"
+display="none"
+
+// Position
+position="relative"
+position="absolute"
+top="0"
+right="0"
+bottom="0"
+left="0"
+
+// Size
+width="100%"
+height="100vh"
+minW="0"
+maxW="md"
+minH="100dvh"
+maxH="screen"
+```
+
+### Colors & Backgrounds
+```tsx
+// Text colors
+color="blue.500"
+color="gray.700"
+
+// Background colors  
+bg="white"
+backgroundColor="blue.100"
+
+// Border colors
+borderColor="gray.300"
+```
+
+### Typography
+```tsx
+fontSize="lg"
+fontWeight="bold"
+lineHeight="1.5"
+textAlign="center"
+textTransform="uppercase"
+```
+
+### Interactive States
+```tsx
+// Hover states
+_hover={{ bg: "blue.600", color: "white" }}
+
+// Focus states  
+_focus={{ borderColor: "blue.500", outline: "none" }}
+
+// Active states
+_active={{ bg: "blue.700" }}
+
+// Disabled states
+_disabled={{ opacity: 0.5, cursor: "not-allowed" }}
+```
+
+## Common Patterns & Examples
+
+### Layout Compositions
+```tsx
+// Page layout
+<Container>
+  <VStack gap="8">
+    <Box as="header">Header content</Box>
+    <Box as="main" flex="1">Main content</Box>
+    <Box as="footer">Footer content</Box>
+  </VStack>
+</Container>
+
+// Card with hover state
+<Box
+  bg="white"
+  borderRadius="lg"
+  border="1px solid"
+  borderColor="gray.200"
+  p="6"
+  _hover={{ shadow: "lg", borderColor: "gray.300" }}
+>
+  Card content
+</Box>
+
+// Button variants
+<styled.button
+  bg="blue.500"
+  color="white"
+  px="4"
+  py="2"
+  borderRadius="md"
+  _hover={{ bg: "blue.600" }}
+  _active={{ bg: "blue.700" }}
+  _disabled={{ opacity: 0.5, cursor: "not-allowed" }}
+>
+  Primary Button
+</styled.button>
+```
+
+### Form Elements
+```tsx
+// Input with focus states
+<styled.input
+  width="100%"
+  border="1px solid"
+  borderColor="gray.300"
+  borderRadius="md"
+  px="3"
+  py="2"
+  fontSize="md"
+  _focus={{ 
+    borderColor: "blue.500", 
+    outline: "none",
+    shadow: "0 0 0 1px blue.500"
+  }}
+  _invalid={{ borderColor: "red.500" }}
+/>
+
+// Form layout
+<VStack gap="4" align="stretch">
+  <Box>
+    <styled.label fontSize="sm" fontWeight="medium">Email</styled.label>
+    <styled.input type="email" mt="1" />
+  </Box>
+  <Box>
+    <styled.label fontSize="sm" fontWeight="medium">Password</styled.label>
+    <styled.input type="password" mt="1" />
+  </Box>
+  <styled.button type="submit" mt="2">
+    Submit
+  </styled.button>
+</VStack>
+```
+
+## Best Practices
+
+### 1. Component Composition
+- Use predefined patterns as building blocks
+- Combine patterns for complex layouts
+- Prefer semantic HTML elements with styling
+
+### 2. Responsive Design
+```tsx
+// Responsive values
+<Box
+  fontSize={{ base: "sm", md: "md", lg: "lg" }}
+  p={{ base: "4", md: "6", lg: "8" }}
+>
+  Responsive content
+</Box>
+```
+
+### 3. Consistent Spacing
+- Use design tokens for spacing: `"1"`, `"2"`, `"4"`, `"6"`, `"8"`, `"12"`, `"16"`
+- Prefer gap over margins for layout spacing
+- Use padding for internal component spacing
+
+### 4. Performance
+- Import only what you need from `@/styled-system/jsx`
+- Use the generated pattern functions for better tree-shaking
+- Avoid inline styles when possible
+
+## Source of Truth: `styled-system` Directory
+
+⚠️ **Important**: The `styled-system` directory is the **source of truth** for all available tokens, props, and patterns in this project. Always reference these generated files to see what's actually available:
+
+- **`styled-system/jsx/`** - All available JSX pattern components
+- **`styled-system/patterns/`** - Pattern function definitions  
+- **`styled-system/tokens/`** - All design tokens (colors, spacing, typography, etc.)
+- **`styled-system/types/`** - TypeScript definitions for all props and tokens
+- **`styled-system/css/`** - CSS utilities and classes
+
+When in doubt about available tokens or props, check the `styled-system` directory rather than guessing. The generated files reflect exactly what's configured and available in your PandaCSS setup.
+
+## File References
+- Configuration: [panda.config.ts](mdc:panda.config.ts)
+- Global styles: [app/globals.css](mdc:app/globals.css)
+- Layout example: [app/layout.tsx](mdc:app/layout.tsx)
+- Usage example: [app/page.tsx](mdc:app/page.tsx)
+- **Generated system**: `styled-system/` directory (source of truth)
+
+## Migration from Other CSS-in-JS
+If migrating from other solutions:
+- Replace `div` with `Box`
+- Replace custom flex containers with `Flex`, `HStack`, `VStack`
+- Replace CSS Grid containers with `Grid` and `GridItem`
+- Use `styled` for elements that need custom styling
