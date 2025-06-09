@@ -166,3 +166,73 @@ export const deleteProjectAction = async (projectId: number): Promise<void> => {
 
   revalidatePath('/projects')
 }
+
+// Project statistics type
+export interface ProjectStats {
+  brandsCount: number
+  catalogsCount: number
+  productsCount: number
+}
+
+// Get project statistics
+export const getProjectStatsAction = async (projectId: number): Promise<ProjectStats> => {
+  const supabase = await createClient()
+
+  const {
+    data: { user },
+  } = await supabase.auth.getUser()
+
+  if (!user) {
+    throw new Error('User not authenticated')
+  }
+
+  // First verify user owns the project
+  const { data: project } = await supabase
+    .from('projects')
+    .select('id')
+    .eq('id', projectId)
+    .eq('user_id', user.id)
+    .single()
+
+  if (!project) {
+    throw new Error('Project not found or access denied')
+  }
+
+  // Get brands count
+  const { count: brandsCount } = await supabase
+    .from('brands')
+    .select('*', { count: 'exact', head: true })
+    .eq('project_id', projectId)
+
+  // Get catalogs count (across all brands in the project)
+  const { count: catalogsCount } = await supabase
+    .from('product_catalogs')
+    .select(
+      `
+      *,
+      brands!inner(project_id)
+    `,
+      { count: 'exact', head: true },
+    )
+    .eq('brands.project_id', projectId)
+
+  // Get products count (across all catalogs in the project)
+  const { count: productsCount } = await supabase
+    .from('products')
+    .select(
+      `
+      *,
+      product_catalogs!inner(
+        brands!inner(project_id)
+      )
+    `,
+      { count: 'exact', head: true },
+    )
+    .eq('product_catalogs.brands.project_id', projectId)
+
+  return {
+    brandsCount: brandsCount || 0,
+    catalogsCount: catalogsCount || 0,
+    productsCount: productsCount || 0,
+  }
+}
