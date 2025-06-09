@@ -3,6 +3,7 @@
 import { createClient } from '@/lib/supabase/server'
 import { revalidatePath } from 'next/cache'
 import type { Project, ProjectInsert, ProjectUpdate } from '@/lib/supabase/database-types'
+import { ensureUserProfileAction } from './profiles'
 
 // Create and update data types
 export type CreateProjectData = Omit<
@@ -82,6 +83,12 @@ export const createProjectAction = async (
 
   if (!user) {
     throw new Error('User not authenticated')
+  }
+
+  // Ensure user has a profile before creating project
+  const profileResult = await ensureUserProfileAction()
+  if (!profileResult.success) {
+    throw new Error('Failed to ensure user profile: ' + profileResult.error)
   }
 
   const { data, error } = await supabase
