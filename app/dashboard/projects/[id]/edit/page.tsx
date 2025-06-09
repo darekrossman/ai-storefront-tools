@@ -1,5 +1,5 @@
 import { notFound } from 'next/navigation'
-import { Box, Flex, Stack, styled } from '@/styled-system/jsx'
+import { Container, Flex, Stack, styled } from '@/styled-system/jsx'
 import Link from 'next/link'
 import { getProjectAction } from '@/actions/projects'
 import EditProjectForm from '@/components/projects/edit-project-form'
@@ -25,7 +25,7 @@ export default async function EditProjectPage({ params }: EditProjectPageProps) 
   }
 
   return (
-    <Box maxW="1200px" mx="auto" px={4} py={8}>
+    <Container py={8}>
       <Stack gap={6}>
         {/* Breadcrumb */}
         <Flex align="center" gap={2}>
@@ -63,6 +63,6 @@ export default async function EditProjectPage({ params }: EditProjectPageProps) 
         {/* Edit Form */}
         <EditProjectForm project={project} />
       </Stack>
-    </Box>
+    </Container>
   )
 }

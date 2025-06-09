@@ -1,5 +1,5 @@
 import { notFound } from 'next/navigation'
-import { Box } from '@/styled-system/jsx'
+import { Container } from '@/styled-system/jsx'
 import { getProjectAction } from '@/actions/projects'
 import CreateBrandForm from '@/components/brands/create-brand-form'
 
@@ -25,9 +25,9 @@ export default async function CreateBrandPage({ params }: CreateBrandPageProps) 
   }
 
   return (
-    <Box maxW="1200px" mx="auto" px={4} py={8}>
+    <Container py={8}>
       <CreateBrandForm projectId={projectId} />
-    </Box>
+    </Container>
   )
 }
 

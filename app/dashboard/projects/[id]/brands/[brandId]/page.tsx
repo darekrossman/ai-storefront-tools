@@ -1,9 +1,9 @@
 import { notFound } from 'next/navigation'
-import { Box, Flex, Stack, styled } from '@/styled-system/jsx'
+import { Box, Container, Flex, Stack, styled } from '@/styled-system/jsx'
 import Link from 'next/link'
 import { getBrandAction } from '@/actions/brands'
 import { getProductCatalogsAction } from '@/actions/product-catalogs'
-import type { Brand } from '@/lib/supabase/database-types'
+import type { Brand, ProductCatalog } from '@/lib/supabase/database-types'
 
 interface BrandDetailsPageProps {
   params: Promise<{
@@ -47,7 +47,7 @@ export default async function BrandDetailsPage({ params }: BrandDetailsPageProps
   }
 
   // Get associated product catalogs
-  let catalogs = []
+  let catalogs: ProductCatalog[] = []
   try {
     catalogs = await getProductCatalogsAction(brandIdNum)
   } catch (error) {
@@ -59,7 +59,7 @@ export default async function BrandDetailsPage({ params }: BrandDetailsPageProps
   const statusColor = getStatusColor(brand.status)
 
   return (
-    <Box maxW="1200px" mx="auto" px={4} py={8}>
+    <Container py={8}>
       <Stack gap={8}>
         {/* Header */}
         <Flex justify="space-between" align="start" gap={4}>
@@ -573,7 +573,7 @@ export default async function BrandDetailsPage({ params }: BrandDetailsPageProps
           </Stack>
         </Box>
       </Stack>
-    </Box>
+    </Container>
   )
 }
 

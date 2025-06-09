@@ -1,7 +1,7 @@
 'use client'
 
 import { usePathname } from 'next/navigation'
-import { Box, Flex, styled } from '@/styled-system/jsx'
+import { Box, Container, Flex, styled } from '@/styled-system/jsx'
 import Link from 'next/link'
 
 interface ProjectNavProps {
@@ -46,7 +46,7 @@ export default function ProjectNav({ projectId, projectName }: ProjectNavProps) 
 
   return (
     <Box borderBottom="1px solid" borderColor="gray.200" bg="white">
-      <Box maxW="1200px" mx="auto" px={4}>
+      <Container>
         {/* Project Header */}
         <Box py={4} borderBottom="1px solid" borderColor="gray.100">
           <Flex align="center" gap={2} mb={2}>
@@ -103,7 +103,7 @@ export default function ProjectNav({ projectId, projectName }: ProjectNavProps) 
             })}
           </Flex>
         </Box>
-      </Box>
+      </Container>
     </Box>
   )
 }

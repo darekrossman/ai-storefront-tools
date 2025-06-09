@@ -1,5 +1,5 @@
 import { notFound } from 'next/navigation'
-import { Box } from '@/styled-system/jsx'
+import { Container } from '@/styled-system/jsx'
 import { getBrandAction } from '@/actions/brands'
 import EditBrandForm from '@/components/brands/edit-brand-form'
 
@@ -27,9 +27,9 @@ export default async function EditBrandPage({ params }: EditBrandPageProps) {
   }
 
   return (
-    <Box maxW="1200px" mx="auto" px={4} py={8}>
+    <Container py={8}>
       <EditBrandForm brand={brand} projectId={projectId} />
-    </Box>
+    </Container>
   )
 }
 

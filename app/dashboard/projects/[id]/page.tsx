@@ -1,5 +1,5 @@
 import { notFound } from 'next/navigation'
-import { Box, Flex, Stack, styled } from '@/styled-system/jsx'
+import { Box, Container, Flex, Stack, styled } from '@/styled-system/jsx'
 import Link from 'next/link'
 import { getProjectAction, getProjectStatsAction } from '@/actions/projects'
 import ProjectActions from '@/components/projects/project-actions'
@@ -28,7 +28,7 @@ export default async function ProjectPage({ params }: ProjectPageProps) {
   const stats = await getProjectStatsAction(projectId)
 
   return (
-    <Box maxW="1200px" mx="auto" px={4} py={8}>
+    <Container py={8}>
       <Stack gap={8}>
         {/* Project Header */}
         <Flex justify="space-between" align="start" gap={4}>
@@ -369,6 +369,6 @@ export default async function ProjectPage({ params }: ProjectPageProps) {
           </Stack>
         </Box>
       </Stack>
-    </Box>
+    </Container>
   )
 }

@@ -1,5 +1,5 @@
 import { notFound } from 'next/navigation'
-import { Box } from '@/styled-system/jsx'
+import { Container } from '@/styled-system/jsx'
 import { getProjectAction } from '@/actions/projects'
 import BrandList from '@/components/brands/brand-list'
 
@@ -25,9 +25,9 @@ export default async function ProjectBrandsPage({ params }: ProjectBrandsPagePro
   }
 
   return (
-    <Box maxW="1200px" mx="auto" px={4} py={8}>
+    <Container py={8}>
       <BrandList projectId={projectId} />
-    </Box>
+    </Container>
   )
 }
 

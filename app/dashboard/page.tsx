@@ -1,6 +1,6 @@
 import { createClient } from '@/lib/supabase/server'
 import { getProjectsAction } from '@/actions/projects'
-import { Box, Flex, Stack, styled } from '@/styled-system/jsx'
+import { Box, Container, Flex, Stack, styled } from '@/styled-system/jsx'
 import Link from 'next/link'
 import ProjectList from '@/components/projects/project-list'
 
@@ -14,7 +14,7 @@ export default async function DashboardPage() {
   const projects = await getProjectsAction()
 
   return (
-    <Box maxW="1200px" mx="auto" px={4} py={8}>
+    <Container py={8}>
       {/* Welcome Section */}
       <Stack gap={6} mb={8}>
         <Stack gap={2}>
@@ -129,6 +129,6 @@ export default async function DashboardPage() {
           <ProjectList projects={projects} />
         )}
       </Stack>
-    </Box>
+    </Container>
   )
 }
