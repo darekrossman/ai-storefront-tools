@@ -1,3 +1,4 @@
 {
-  "adapter": "pg"
+  "adapter": "pg",
+  "projectDescription": "This project is about managing a variety of data related to web responses, audits, brands, categories, extensions, user flows, authentication, storage, products, user profiles, sessions, subscriptions, tenants, and user management."
 }
