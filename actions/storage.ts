@@ -112,6 +112,210 @@ export async function deleteAvatarAction(): Promise<{
 }
 
 // ==============================================
+// BRAND LOGO MANAGEMENT ACTIONS
+// ==============================================
+
+/**
+ * Upload brand logo
+ */
+export async function uploadBrandLogoAction(
+  projectId: number,
+  brandId: number,
+  formData: FormData,
+): Promise<{
+  success: boolean
+  url?: string
+  path?: string
+  error?: string
+}> {
+  try {
+    const supabase = await createClient()
+    const {
+      data: { user },
+    } = await supabase.auth.getUser()
+
+    if (!user) {
+      return { success: false, error: 'User not authenticated' }
+    }
+
+    // Verify user owns the project
+    const { data: project } = await supabase
+      .from('projects')
+      .select('id')
+      .eq('id', projectId)
+      .eq('user_id', user.id)
+      .single()
+
+    if (!project) {
+      return { success: false, error: 'Project not found or access denied' }
+    }
+
+    // Verify brand exists in project
+    const { data: brand } = await supabase
+      .from('brands')
+      .select('id, project_id')
+      .eq('id', brandId)
+      .eq('project_id', projectId)
+      .single()
+
+    if (!brand) {
+      return { success: false, error: 'Brand not found or access denied' }
+    }
+
+    const file = formData.get('logo') as File
+
+    if (!file || file.size === 0) {
+      return { success: false, error: 'No file provided' }
+    }
+
+    // Validate file using existing avatar validation (similar size/type requirements)
+    const validation = validateImageFile(file, 'avatar')
+    if (!validation.valid) {
+      return { success: false, error: validation.error }
+    }
+
+    // Upload to storage using product image upload but with brand folder structure
+    const storage = await createStorageManager()
+    const fileExtension = file.name.split('.').pop()?.toLowerCase() || 'jpg'
+    const timestamp = Date.now()
+    const logoPath = `${projectId}/brands/${brandId}/logo_${timestamp}.${fileExtension}`
+
+    // Upload directly to product-images bucket using custom path
+    const { data, error } = await supabase.storage
+      .from('product-images')
+      .upload(logoPath, file, {
+        cacheControl: '3600',
+        upsert: true,
+        metadata: {
+          originalName: file.name,
+          uploadedBy: user.id,
+          brandId,
+          projectId,
+          uploadedAt: new Date().toISOString(),
+        },
+      })
+
+    if (error) {
+      return { success: false, error: `Failed to upload logo: ${error.message}` }
+    }
+
+    // Get public URL
+    const { data: urlData } = supabase.storage
+      .from('product-images')
+      .getPublicUrl(data.path)
+
+    // Update brand with logo path in visual_identity field
+    const { data: updatedBrand, error: updateError } = await supabase
+      .from('brands')
+      .update({
+        visual_identity: {
+          ...((brand as any).visual_identity || {}),
+          logo_url: data.path,
+          logo_public_url: urlData.publicUrl,
+        },
+        updated_at: new Date().toISOString(),
+      })
+      .eq('id', brandId)
+      .select()
+      .single()
+
+    if (updateError) {
+      // If brand update fails, clean up uploaded file
+      await supabase.storage.from('product-images').remove([data.path])
+      return { success: false, error: 'Failed to update brand with logo' }
+    }
+
+    revalidatePath(`/dashboard/projects/${projectId}/brands`)
+    revalidatePath(`/dashboard/projects/${projectId}/brands/${brandId}`)
+    return { success: true, url: urlData.publicUrl, path: data.path }
+  } catch (error) {
+    console.error('Brand logo upload error:', error)
+    return {
+      success: false,
+      error: error instanceof StorageError ? error.message : 'Upload failed',
+    }
+  }
+}
+
+/**
+ * Delete brand logo
+ */
+export async function deleteBrandLogoAction(
+  projectId: number,
+  brandId: number,
+): Promise<{
+  success: boolean
+  error?: string
+}> {
+  try {
+    const supabase = await createClient()
+    const {
+      data: { user },
+    } = await supabase.auth.getUser()
+
+    if (!user) {
+      return { success: false, error: 'User not authenticated' }
+    }
+
+    // Verify user owns the project
+    const { data: project } = await supabase
+      .from('projects')
+      .select('id')
+      .eq('id', projectId)
+      .eq('user_id', user.id)
+      .single()
+
+    if (!project) {
+      return { success: false, error: 'Project not found or access denied' }
+    }
+
+    // Get brand with current logo
+    const { data: brand } = await supabase
+      .from('brands')
+      .select('id, visual_identity')
+      .eq('id', brandId)
+      .eq('project_id', projectId)
+      .single()
+
+    if (!brand) {
+      return { success: false, error: 'Brand not found or access denied' }
+    }
+
+    const visualIdentity = (brand.visual_identity as any) || {}
+    const logoPath = visualIdentity.logo_url
+
+    // Delete from storage if logo exists
+    if (logoPath) {
+      await supabase.storage.from('product-images').remove([logoPath])
+    }
+
+    // Update brand to remove logo from visual_identity
+    const { logo_url, logo_public_url, ...remainingVisualIdentity } = visualIdentity
+    const { error: updateError } = await supabase
+      .from('brands')
+      .update({
+        visual_identity: remainingVisualIdentity,
+        updated_at: new Date().toISOString(),
+      })
+      .eq('id', brandId)
+
+    if (updateError) {
+      return { success: false, error: 'Failed to update brand' }
+    }
+
+    revalidatePath(`/dashboard/projects/${projectId}/brands`)
+    revalidatePath(`/dashboard/projects/${projectId}/brands/${brandId}`)
+    return { success: true }
+  } catch (error) {
+    console.error('Brand logo deletion error:', error)
+    return {
+      success: false,
+      error: error instanceof StorageError ? error.message : 'Deletion failed',
+    }
+  }
+}
+
+// ==============================================
 // PRODUCT IMAGE MANAGEMENT ACTIONS
 // ==============================================
 
