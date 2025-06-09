@@ -6,8 +6,12 @@
 -- RLS: User can only access their own projects
 -- =====================================================
 
--- Create session status enum for projects
-create type public.session_status as enum ('active', 'completed', 'archived');
+-- Create session status enum for projects (if not exists)
+do $$ begin
+    create type public.session_status as enum ('active', 'completed', 'archived');
+exception
+    when duplicate_object then null;
+end $$;
 
 -- Create projects table
 create table public.projects (
@@ -67,14 +71,7 @@ create policy "Users can delete their own projects"
     user_id = auth.uid()
   );
 
--- Function to automatically update updated_at timestamp
-create or replace function public.handle_updated_at()
-returns trigger as $$
-begin
-  new.updated_at = now();
-  return new;
-end;
-$$ language plpgsql;
+-- Function handle_updated_at is defined in the migration file
 
 -- Trigger to automatically update updated_at on projects
 create trigger trigger_projects_updated_at

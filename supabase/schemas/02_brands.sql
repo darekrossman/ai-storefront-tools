@@ -7,8 +7,12 @@
 -- JSONB Structure: Aligns with Zod schemas in lib/schemas.ts
 -- =====================================================
 
--- Create brand status enum
-create type public.brand_status as enum ('draft', 'active', 'archived');
+-- Create brand status enum if it doesn't exist
+do $$ begin
+    create type public.brand_status as enum ('draft', 'active', 'inactive', 'archived');
+exception
+    when duplicate_object then null;
+end $$;
 
 -- Create brands table
 create table public.brands (

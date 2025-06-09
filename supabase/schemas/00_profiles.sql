@@ -6,6 +6,19 @@
 -- RLS: Users can manage their own profiles, public viewing
 -- =====================================================
 
+-- =====================================================
+-- UTILITY FUNCTIONS
+-- =====================================================
+
+-- Function to handle updated_at timestamps
+create or replace function public.handle_updated_at()
+returns trigger as $$
+begin
+  new.updated_at = now();
+  return new;
+end;
+$$ language plpgsql;
+
 -- Create handle_new_user function (existing)
 create or replace function public.handle_new_user()
 returns trigger 
@@ -21,7 +34,7 @@ end;
 $$;
 
 -- Create profiles table (existing structure)
-create table public.profiles (
+create table if not exists public.profiles (
   id uuid not null primary key,
   updated_at timestamptz,
   username text,
@@ -33,15 +46,23 @@ create table public.profiles (
 
 comment on table public.profiles is 'User profiles containing additional user information beyond authentication data.';
 
--- Add foreign key constraint to auth.users
-alter table public.profiles 
-  add constraint profiles_id_fkey 
-  foreign key (id) references auth.users (id) on delete cascade;
+-- Add foreign key constraint to auth.users (if not exists)
+do $$ begin
+    alter table public.profiles 
+      add constraint profiles_id_fkey 
+      foreign key (id) references auth.users (id) on delete cascade;
+exception
+    when duplicate_object then null;
+end $$;
 
--- Add unique constraint on username
-alter table public.profiles 
-  add constraint profiles_username_key 
-  unique (username);
+-- Add unique constraint on username (if not exists)
+do $$ begin
+    alter table public.profiles 
+      add constraint profiles_username_key 
+      unique (username);
+exception
+    when duplicate_object then null;
+end $$;
 
 -- Enable Row Level Security
 alter table public.profiles enable row level security;
