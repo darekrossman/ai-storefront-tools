@@ -5,13 +5,14 @@ import { getProjectAction } from '@/actions/projects'
 import EditProjectForm from '@/components/projects/edit-project-form'
 
 interface EditProjectPageProps {
-  params: {
+  params: Promise<{
     id: string
-  }
+  }>
 }
 
 export default async function EditProjectPage({ params }: EditProjectPageProps) {
-  const projectId = parseInt(params.id)
+  const { id } = await params
+  const projectId = parseInt(id)
 
   if (isNaN(projectId)) {
     notFound()

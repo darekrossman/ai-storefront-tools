@@ -5,13 +5,14 @@ import { getProjectAction } from '@/actions/projects'
 import ProjectActions from '@/components/projects/project-actions'
 
 interface ProjectPageProps {
-  params: {
+  params: Promise<{
     id: string
-  }
+  }>
 }
 
 export default async function ProjectPage({ params }: ProjectPageProps) {
-  const projectId = parseInt(params.id)
+  const { id } = await params
+  const projectId = parseInt(id)
 
   if (isNaN(projectId)) {
     notFound()

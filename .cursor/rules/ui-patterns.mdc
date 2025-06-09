@@ -1,7 +1,7 @@
 ---
-description: Creating, editing, or styling any user interface components or elements. 
+description: 
 globs: 
-alwaysApply: false
+alwaysApply: true
 ---
 # UI Patterns and HTML Semantics
 
@@ -113,6 +113,148 @@ alwaysApply: false
 </styled.div>
 ```
 
+## React 19 Form Patterns
+
+### Use Modern Form State Management
+Always use React 19's `useActionState` hook for form state management instead of URL parameters or client-side state for errors and messages.
+
+**Reference**: [React 19 useActionState Documentation](mdc:https:/react.dev/reference/react/useActionState)
+
+### ✅ Correct React 19 Form Pattern
+
+#### Server Actions Structure
+```tsx
+// actions.ts
+'use server'
+
+export type FormState = {
+  error?: string
+  message?: string
+  success?: boolean
+}
+
+export async function submitForm(prevState: FormState, formData: FormData): Promise<FormState> {
+  // Validation
+  const field = formData.get('field') as string
+  if (!field) {
+    return { error: 'Field is required' }
+  }
+
+  try {
+    // Process form
+    await processData(field)
+    return { message: 'Success!', success: true }
+  } catch (error) {
+    return { error: 'Something went wrong' }
+  }
+}
+```
+
+#### Client Component with useActionState
+```tsx
+// form-component.tsx
+'use client'
+
+import { useActionState } from 'react'
+import { submitForm, type FormState } from './actions'
+
+export default function FormComponent() {
+  const [state, formAction, isPending] = useActionState(submitForm, {})
+
+  return (
+    <form action={formAction}>
+      {/* Error Display */}
+      {state.error && (
+        <styled.div bg="red.50" borderColor="red.200" p={4}>
+          {state.error}
+        </styled.div>
+      )}
+
+      {/* Success Message */}
+      {state.message && (
+        <styled.div bg="green.50" borderColor="green.200" p={4}>
+          {state.message}
+        </styled.div>
+      )}
+
+      <styled.input
+        name="field"
+        required
+        disabled={isPending}
+      />
+
+      <styled.button
+        type="submit"
+        disabled={isPending}
+        bg={isPending ? 'gray.400' : 'blue.600'}
+        cursor={isPending ? 'not-allowed' : 'pointer'}
+      >
+        {isPending ? 'Loading...' : 'Submit'}
+      </styled.button>
+    </form>
+  )
+}
+```
+
+#### Server Component Integration
+```tsx
+// page.tsx (Server Component)
+import FormComponent from './form-component'
+
+export default function Page() {
+  return (
+    <main>
+      <h1>Form Page</h1>
+      <FormComponent />
+    </main>
+  )
+}
+```
+
+### ❌ Avoid Legacy Patterns
+
+```tsx
+// ❌ Bad: Using URL parameters for form state
+const searchParams = useSearchParams()
+const error = searchParams.get('error')
+
+// ❌ Bad: Server actions that redirect with error params
+export async function badAction(formData: FormData) {
+  if (error) {
+    redirect('/form?error=Something went wrong')
+  }
+}
+
+// ❌ Bad: Client-side form state without useActionState
+const [error, setError] = useState('')
+const [loading, setLoading] = useState(false)
+```
+
+### Form Architecture Best Practices
+
+1. **Separation of Concerns**:
+   - Server components for layout and static content
+   - Client components for interactive forms using `useActionState`
+   - Server actions for form processing
+
+2. **Type Safety**:
+   - Define clear state types for form responses
+   - Use TypeScript for server actions and form state
+
+3. **Progressive Enhancement**:
+   - Forms work without JavaScript when using server actions
+   - `useActionState` enhances with loading states and better UX
+
+4. **Error Handling**:
+   - Return structured error objects from server actions
+   - Display errors in the UI, not URL parameters
+   - Handle both validation and server errors gracefully
+
+5. **Loading States**:
+   - Use `isPending` from `useActionState` for loading indicators
+   - Disable form inputs during submission
+   - Provide clear feedback to users
+
 ## HTML Semantics Rules
 
 ### Interactive Elements
@@ -166,4 +308,4 @@ alwaysApply: false
 </Link>
 ```
 
-These patterns ensure proper HTML semantics, accessibility, and maintainable code while working with Next.js Link components and PandaCSS styling.
+These patterns ensure proper HTML semantics, accessibility, and maintainable code while working with Next.js Link components, PandaCSS styling, and modern React 19 form patterns.
