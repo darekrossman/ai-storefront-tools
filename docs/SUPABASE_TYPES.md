@@ -15,7 +15,7 @@ Instead of manually defining database types, we use the Supabase CLI to generate
 
 ```
 lib/supabase/
-├── types.ts              # Auto-generated types from Supabase CLI
+├── generated-types.ts              # Auto-generated types from Supabase CLI
 ├── database-types.ts     # Convenience type exports and helpers
 ├── server.ts             # Typed server client
 └── session.ts            # Typed session client
@@ -30,7 +30,7 @@ app/actions/
 
 ## Generated Types
 
-The `lib/supabase/types.ts` file contains:
+The `lib/supabase/generated-types.ts` file contains:
 
 - **Database**: Complete database schema type
 - **Tables**: Row types for each table
@@ -96,7 +96,7 @@ npm run generate:types
 pnpm generate:types
 
 # Direct command
-supabase gen types --lang=typescript --local > lib/supabase/types.ts
+supabase gen types --lang=typescript --local > lib/supabase/generated-types.ts
 
 # Using the shell script
 ./scripts/generate-types.sh
@@ -111,7 +111,7 @@ Generate types from a remote Supabase project:
 npm run generate:types:remote
 
 # Direct command
-supabase gen types --lang=typescript --project-id YOUR_PROJECT_ID > lib/supabase/types.ts
+supabase gen types --lang=typescript --project-id YOUR_PROJECT_ID > lib/supabase/generated-types.ts
 ```
 
 ## When to Regenerate Types
@@ -141,8 +141,8 @@ Consider adding type generation to your CI/CD pipeline:
 # Example GitHub Actions step
 - name: Generate Supabase Types
   run: |
-    supabase gen types --lang=typescript --project-id ${{ secrets.SUPABASE_PROJECT_ID }} > lib/supabase/types.ts
-    git diff --exit-code lib/supabase/types.ts || (echo "Types are out of sync!" && exit 1)
+    supabase gen types --lang=typescript --project-id ${{ secrets.SUPABASE_PROJECT_ID }} > lib/supabase/generated-types.ts
+    git diff --exit-code lib/supabase/generated-types.ts || (echo "Types are out of sync!" && exit 1)
 ```
 
 ## Benefits Over Manual Types

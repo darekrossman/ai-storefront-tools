@@ -2,6 +2,7 @@ import { notFound } from 'next/navigation'
 import { Container } from '@/styled-system/jsx'
 import { getProjectAction } from '@/actions/projects'
 import CreateBrandForm from '@/components/brands/create-brand-form'
+import type { Metadata } from 'next'
 
 interface CreateBrandPageProps {
   params: Promise<{
@@ -31,7 +32,9 @@ export default async function CreateBrandPage({ params }: CreateBrandPageProps) 
   )
 }
 
-export async function generateMetadata({ params }: CreateBrandPageProps) {
+export async function generateMetadata({
+  params,
+}: CreateBrandPageProps): Promise<Metadata> {
   const { id } = await params
   const projectId = parseInt(id)
 
