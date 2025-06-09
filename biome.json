@@ -42,6 +42,7 @@
     "ignore": [
       "node_modules/**",
       "lib/supabase/generated-types.ts",
+      "styled-system/**",
       ".next/**",
       "**/dist/**",
       "**/.turbo/**",

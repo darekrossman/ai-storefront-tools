@@ -13,6 +13,6 @@ export default defineConfig({
   select: [
     '!*',
     'public.*',
-    'auth.users',  // Include auth.users table to satisfy the profilesTousers relationship
+    'auth.users', // Include auth.users table to satisfy the profilesTousers relationship
   ],
 })
