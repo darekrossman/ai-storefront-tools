@@ -10,15 +10,14 @@ ALTER TABLE public.products DROP COLUMN IF EXISTS inventory;
 ALTER TABLE public.products DROP COLUMN IF EXISTS pricing;
 ALTER TABLE public.products DROP COLUMN IF EXISTS marketing;
 ALTER TABLE public.products DROP COLUMN IF EXISTS relations;
-ALTER TABLE public.products DROP COLUMN IF EXISTS specifications;
-ALTER TABLE public.products DROP COLUMN IF EXISTS short_description;
 ALTER TABLE public.products DROP COLUMN IF EXISTS is_featured;
 
--- Update category relationship to be optional (nullable)
+-- Update category relationship - rename primary_category_id to parent_category_id
 ALTER TABLE public.products DROP CONSTRAINT IF EXISTS products_primary_category_id_fkey;
-ALTER TABLE public.products DROP COLUMN IF EXISTS primary_category_id;
+ALTER TABLE public.products RENAME COLUMN primary_category_id TO parent_category_id;
 ALTER TABLE public.products DROP COLUMN IF EXISTS subcategory_id;
-ALTER TABLE public.products ADD COLUMN category_id BIGINT REFERENCES public.categories(id) ON DELETE SET NULL;
+ALTER TABLE public.products ADD CONSTRAINT products_parent_category_id_fkey 
+  FOREIGN KEY (parent_category_id) REFERENCES public.categories(id) ON DELETE SET NULL;
 
 -- Add new fields for master product structure
 ALTER TABLE public.products ADD COLUMN attributes JSONB DEFAULT '{}';
@@ -29,7 +28,7 @@ ALTER TABLE public.products ADD COLUMN meta_title TEXT;
 ALTER TABLE public.products ADD COLUMN meta_description TEXT;
 
 -- Add indexes for new columns
-CREATE INDEX IF NOT EXISTS idx_products_category_id ON public.products(category_id);
+CREATE INDEX IF NOT EXISTS idx_products_parent_category_id ON public.products(parent_category_id);
 CREATE INDEX IF NOT EXISTS idx_products_attributes_gin ON public.products USING gin(attributes);
 CREATE INDEX IF NOT EXISTS idx_products_min_price ON public.products(min_price);
 CREATE INDEX IF NOT EXISTS idx_products_max_price ON public.products(max_price);
@@ -37,7 +36,9 @@ CREATE INDEX IF NOT EXISTS idx_products_total_inventory ON public.products(total
 
 -- Update table comment
 COMMENT ON TABLE public.products IS 'Master products containing shared information. Variants hold specific SKUs, pricing, and attributes.';
-COMMENT ON COLUMN public.products.category_id IS 'Optional category assignment';
+COMMENT ON COLUMN public.products.parent_category_id IS 'Parent category assignment';
+COMMENT ON COLUMN public.products.specifications IS 'JSONB: Product specifications including dimensions, materials, colors, features';
+COMMENT ON COLUMN public.products.short_description IS 'Brief product description for listings and previews';
 COMMENT ON COLUMN public.products.attributes IS 'JSONB: General product attributes that apply to all variants';
 COMMENT ON COLUMN public.products.min_price IS 'Minimum price across all variants (auto-calculated)';
 COMMENT ON COLUMN public.products.max_price IS 'Maximum price across all variants (auto-calculated)';

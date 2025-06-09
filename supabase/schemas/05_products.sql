@@ -11,60 +11,59 @@
 create table public.products (
   id bigint generated always as identity primary key,
   catalog_id bigint not null references public.product_catalogs (id) on delete cascade,
-  primary_category_id bigint not null references public.categories (id) on delete restrict,
-  subcategory_id bigint references public.categories (id) on delete set null,
+  parent_category_id bigint references public.categories (id) on delete set null,
   name text not null,
   description text not null,
   short_description text not null,
   tags text[] default '{}',
-  -- JSONB columns that align with Zod schemas
+  -- JSONB columns for master product data
   specifications jsonb not null default '{}',
-  pricing jsonb not null default '{}',
-  inventory jsonb not null default '{}',
-  marketing jsonb not null default '{}',
-  relations jsonb default '{}',
+  attributes jsonb default '{}',
+  min_price decimal(10,2),
+  max_price decimal(10,2),
+  total_inventory integer default 0,
+  meta_title text,
+  meta_description text,
   status public.brand_status not null default 'draft',
   sort_order integer not null default 0,
-  is_featured boolean not null default false,
   created_at timestamptz not null default now(),
   updated_at timestamptz not null default now()
 );
 
-comment on table public.products is 'Individual products with complete specifications, pricing, inventory, and marketing data. JSONB columns align with ProductSchema from lib/schemas.ts.';
+comment on table public.products is 'Master products containing shared information. Variants hold specific SKUs, pricing, and attributes.';
 
 -- Add column comments for clarity
-comment on column public.products.specifications is 'JSONB: Product specifications including dimensions, materials, colors, features (ProductSpecificationsSchema)';
-comment on column public.products.pricing is 'JSONB: Pricing structure including base price, currency, variants, margins (ProductPricingSchema)';
-comment on column public.products.inventory is 'JSONB: Inventory management including SKU, barcode, stock levels, variants (ProductInventorySchema)';
-comment on column public.products.marketing is 'JSONB: Marketing data including SEO, copy, headlines, benefits (ProductMarketingSchema)';
-comment on column public.products.relations is 'JSONB: Product relationships including related, cross-sells, up-sells, bundles (ProductRelationsSchema)';
-comment on column public.products.subcategory_id is 'Optional subcategory, must be a child of primary_category_id';
+comment on column public.products.parent_category_id is 'Parent category assignment';
+comment on column public.products.specifications is 'JSONB: Product specifications including dimensions, materials, colors, features';
+comment on column public.products.short_description is 'Brief product description for listings and previews';
+comment on column public.products.attributes is 'JSONB: General product attributes that apply to all variants';
+comment on column public.products.min_price is 'Minimum price across all variants (auto-calculated)';
+comment on column public.products.max_price is 'Maximum price across all variants (auto-calculated)';
+comment on column public.products.total_inventory is 'Total count of orderable variants (auto-calculated)';
+comment on column public.products.meta_title is 'SEO meta title';
+comment on column public.products.meta_description is 'SEO meta description';
 comment on column public.products.sort_order is 'Display order for products within the catalog';
-comment on column public.products.is_featured is 'Whether this product is featured in the catalog';
 
 -- Add indexes for performance
 create index idx_products_catalog_id on public.products (catalog_id);
-create index idx_products_primary_category_id on public.products (primary_category_id);
-create index idx_products_subcategory_id on public.products (subcategory_id);
+create index idx_products_parent_category_id on public.products (parent_category_id);
 create index idx_products_status on public.products (status);
 create index idx_products_name on public.products (name);
 create index idx_products_sort_order on public.products (sort_order);
-create index idx_products_is_featured on public.products (is_featured);
 create index idx_products_created_at_desc on public.products (created_at desc);
+create index idx_products_min_price on public.products (min_price);
+create index idx_products_max_price on public.products (max_price);
+create index idx_products_total_inventory on public.products (total_inventory);
 
 -- GIN indexes for efficient JSONB queries
 create index idx_products_specifications_gin on public.products using gin (specifications);
-create index idx_products_pricing_gin on public.products using gin (pricing);
-create index idx_products_inventory_gin on public.products using gin (inventory);
-create index idx_products_marketing_gin on public.products using gin (marketing);
-create index idx_products_relations_gin on public.products using gin (relations);
+create index idx_products_attributes_gin on public.products using gin (attributes);
 
 -- GIN index for tags array
 create index idx_products_tags_gin on public.products using gin (tags);
 
 -- Composite indexes for common queries
 create index idx_products_catalog_status on public.products (catalog_id, status);
-create index idx_products_category_featured on public.products (primary_category_id, is_featured);
 
 -- Enable Row Level Security
 alter table public.products enable row level security;
@@ -173,22 +172,13 @@ create trigger trigger_update_catalog_product_count
 create or replace function public.validate_product_categories()
 returns trigger as $$
 begin
-  -- Check primary category belongs to same catalog
-  if not exists (
+  -- Check parent category belongs to same catalog (if specified)
+  if new.parent_category_id is not null and not exists (
     select 1 from public.categories 
-    where id = new.primary_category_id 
+    where id = new.parent_category_id 
     and catalog_id = new.catalog_id
   ) then
-    raise exception 'Primary category must belong to the same catalog as the product';
-  end if;
-  
-  -- Check subcategory belongs to same catalog (if specified)
-  if new.subcategory_id is not null and not exists (
-    select 1 from public.categories 
-    where id = new.subcategory_id 
-    and catalog_id = new.catalog_id
-  ) then
-    raise exception 'Subcategory must belong to the same catalog as the product';
+    raise exception 'Parent category must belong to the same catalog as the product';
   end if;
   
   return new;
