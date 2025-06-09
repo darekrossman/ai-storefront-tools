@@ -1,4 +1,4 @@
-// @ts-ignore
+// @ts-nocheck
 
 import { createSeedClient } from '@snaplet/seed'
 import bcrypt from 'bcryptjs'
