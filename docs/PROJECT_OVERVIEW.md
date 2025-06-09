@@ -197,7 +197,7 @@ storefront-tools/
 │   └── account/                 # Account-related components
 ├── lib/                         # Core utilities and types
 │   ├── supabase/                # Supabase configuration
-│   │   ├── types.ts            # Auto-generated database types
+│   │   ├── generated-types.ts            # Auto-generated database types
 │   │   ├── database-types.ts   # Convenience type exports
 │   │   ├── server.ts           # Server client
 │   │   └── session.ts          # Session management

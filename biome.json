@@ -41,7 +41,7 @@
   "files": {
     "ignore": [
       "node_modules/**",
-      "lib/data/**",
+      "lib/supabase/generated-types.ts",
       ".next/**",
       "**/dist/**",
       "**/.turbo/**",

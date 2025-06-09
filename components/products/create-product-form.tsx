@@ -51,9 +51,11 @@ async function submitProductForm(
     // Create product data
     const productData: CreateProductData = {
       catalog_id: catalogId,
-      category_id: categoryId && categoryId.trim() ? parseInt(categoryId) : null,
+      parent_category_id: categoryId && categoryId.trim() ? parseInt(categoryId) : null,
       name: name.trim(),
       description: description && description.trim() ? description.trim() : '',
+      short_description: '', // This field is required in the database
+      specifications: {},
       attributes: {},
       meta_title: metaTitle && metaTitle.trim() ? metaTitle.trim() : null,
       meta_description:

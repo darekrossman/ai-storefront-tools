@@ -113,9 +113,11 @@ export async function createProduct(data: CreateProductData) {
       .from('products')
       .insert({
         catalog_id: data.catalog_id,
-        category_id: data.category_id,
+        parent_category_id: data.parent_category_id,
         name: data.name,
         description: data.description,
+        short_description: data.short_description,
+        specifications: data.specifications || {},
         attributes: data.attributes || {},
         meta_title: data.meta_title,
         meta_description: data.meta_description,
@@ -433,9 +435,11 @@ export async function duplicateProduct(productId: number, newName: string) {
     // Create the new product
     const createResult = await createProduct({
       catalog_id: originalProduct.catalog_id,
-      category_id: originalProduct.category_id,
+      parent_category_id: originalProduct.parent_category_id,
       name: newName,
       description: originalProduct.description,
+      short_description: originalProduct.short_description,
+      specifications: originalProduct.specifications,
       attributes: originalProduct.attributes,
       meta_title: originalProduct.meta_title,
       meta_description: originalProduct.meta_description,

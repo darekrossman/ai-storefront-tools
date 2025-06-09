@@ -1,4 +1,10 @@
-import type { Database, Tables, TablesInsert, TablesUpdate, Enums } from './types'
+import type {
+  Database,
+  Tables,
+  TablesInsert,
+  TablesUpdate,
+  Enums,
+} from './generated-types'
 
 // ==============================================
 // DATABASE TYPE EXPORTS

@@ -219,7 +219,7 @@ export default async function BrandDetailsPage({ params }: BrandDetailsPageProps
                         Brand Values
                       </styled.h3>
                       <Flex gap={2} wrap="wrap">
-                        {brand.values.map((value, index) => (
+                        {brand.values.map((value: string, index: number) => (
                           <styled.span
                             key={index}
                             fontSize="sm"

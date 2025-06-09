@@ -2,7 +2,7 @@
 
 import { createClient } from '@/lib/supabase/server'
 import { revalidatePath } from 'next/cache'
-import type { Tables, TablesInsert, TablesUpdate } from '@/lib/supabase/types'
+import type { Tables, TablesInsert, TablesUpdate } from '@/lib/supabase/generated-types'
 
 type Category = Tables<'categories'>
 type CategoryInsert = TablesInsert<'categories'>
