@@ -12,6 +12,7 @@ const main = async () => {
   await seed.users([
     {
       instance_id: '00000000-0000-0000-0000-000000000000',
+      id: '0f5d546a-dd80-5406-a005-a4f3061b9fb4',
       aud: 'authenticated',
       role: 'authenticated',
       email: 'darek@subpopular.dev',
@@ -27,30 +28,40 @@ const main = async () => {
       confirmation_token: '',
       confirmation_sent_at: null,
 
-      profiles: [
+      // profiles: [
+      //   {
+      //     projects: [
+      //       {
+      //         brands: [
+      //           {
+      //             product_catalogs: [
+      //               {
+      //                 categories: (x) => x(4, { products: (x) => x(10) }),
+      //               },
+      //             ],
+      //           },
+      //         ],
+      //       },
+      //     ],
+      //   },
+      // ],
+    },
+  ])
+
+  await seed.projects([
+    {
+      user_id: '0f5d546a-dd80-5406-a005-a4f3061b9fb4',
+      brands: [
         {
-          projects: [
+          product_catalogs: [
             {
-              brands: [
-                {
-                  product_catalogs: [
-                    {
-                      categories: (x) =>
-                        x(4, {
-                          products: (x) => x(10),
-                        }),
-                    },
-                  ],
-                },
-              ],
+              categories: (x) => x(4, { products: (x) => x(10) }),
             },
           ],
         },
       ],
     },
   ])
-
-  console.log('Database seeded successfully!')
 
   process.exit()
 }

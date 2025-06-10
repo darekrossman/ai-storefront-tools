@@ -1,0 +1,4 @@
+{
+  "adapter": "pg",
+  "projectDescription": "This project is about managing and displaying products from different brands and categories. It includes attributes, catalogs, images, and variants for each product. It also involves managing user profiles and projects related to product management."
+}
