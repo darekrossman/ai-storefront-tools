@@ -19,7 +19,24 @@ type SelectionState = {
   phase4Selection?: number
 }
 
-export default function BrandChat({ projectId }: { projectId: number }) {
+type Project = {
+  id: number
+  name: string
+  description: string | null
+  status: 'active' | 'completed' | 'archived'
+  created_at: string
+  updated_at: string
+  user_id: string
+  settings: any
+}
+
+export default function BrandChat({
+  projectId,
+  project,
+}: {
+  projectId: number
+  project: Project
+}) {
   const [messages, setMessages] = useState<Message[]>([])
   const [selections, setSelections] = useState<SelectionState>({})
   const [isSaving, setIsSaving] = useState(false)
@@ -519,6 +536,34 @@ export default function BrandChat({ projectId }: { projectId: number }) {
                   {strategy?.brandFoundation?.vision}
                 </styled.p>
               </Box>
+              {strategy?.brandFoundation?.values &&
+                strategy.brandFoundation.values.length > 0 && (
+                  <Box>
+                    <styled.label
+                      fontSize="xs"
+                      fontWeight="medium"
+                      color="gray.500"
+                      mb={1}
+                    >
+                      Core Values
+                    </styled.label>
+                    <Flex gap={1} wrap="wrap">
+                      {strategy.brandFoundation.values.map((value, i) => (
+                        <styled.span
+                          key={i}
+                          fontSize="xs"
+                          px={2}
+                          py={0.5}
+                          bg="emerald.100"
+                          color="emerald.700"
+                          borderRadius="sm"
+                        >
+                          {value}
+                        </styled.span>
+                      ))}
+                    </Flex>
+                  </Box>
+                )}
             </Stack>
           </Box>
 
@@ -534,23 +579,191 @@ export default function BrandChat({ projectId }: { projectId: number }) {
               <styled.h3 fontSize="lg" fontWeight="semibold" color="gray.900" mb={3}>
                 Target Market
               </styled.h3>
-              <Stack gap={2}>
-                <Box>
-                  <styled.label fontSize="xs" fontWeight="medium" color="gray.500">
-                    Demographics
-                  </styled.label>
-                  <styled.p fontSize="sm" lineHeight="relaxed">
-                    {strategy.targetMarket.demographics}
-                  </styled.p>
-                </Box>
-                <Box>
-                  <styled.label fontSize="xs" fontWeight="medium" color="gray.500">
-                    Psychographics
-                  </styled.label>
-                  <styled.p fontSize="sm" lineHeight="relaxed">
-                    {strategy.targetMarket.psychographics}
-                  </styled.p>
-                </Box>
+              <Stack gap={4}>
+                {/* Demographics */}
+                {strategy.targetMarket.demographics && (
+                  <Box>
+                    <styled.label
+                      fontSize="xs"
+                      fontWeight="medium"
+                      color="gray.500"
+                      mb={2}
+                    >
+                      Demographics
+                    </styled.label>
+                    <Stack gap={2}>
+                      <Flex gap={4}>
+                        <Box flex={1}>
+                          <styled.label
+                            fontSize="xs"
+                            fontWeight="medium"
+                            color="gray.400"
+                          >
+                            Age Range
+                          </styled.label>
+                          <styled.p fontSize="sm">
+                            {strategy.targetMarket.demographics.ageRange}
+                          </styled.p>
+                        </Box>
+                        <Box flex={1}>
+                          <styled.label
+                            fontSize="xs"
+                            fontWeight="medium"
+                            color="gray.400"
+                          >
+                            Income
+                          </styled.label>
+                          <styled.p fontSize="sm">
+                            {strategy.targetMarket.demographics.income}
+                          </styled.p>
+                        </Box>
+                      </Flex>
+                      <Flex gap={4}>
+                        <Box flex={1}>
+                          <styled.label
+                            fontSize="xs"
+                            fontWeight="medium"
+                            color="gray.400"
+                          >
+                            Education
+                          </styled.label>
+                          <styled.p fontSize="sm">
+                            {strategy.targetMarket.demographics.education}
+                          </styled.p>
+                        </Box>
+                        <Box flex={1}>
+                          <styled.label
+                            fontSize="xs"
+                            fontWeight="medium"
+                            color="gray.400"
+                          >
+                            Location
+                          </styled.label>
+                          <styled.p fontSize="sm">
+                            {strategy.targetMarket.demographics.location}
+                          </styled.p>
+                        </Box>
+                      </Flex>
+                    </Stack>
+                  </Box>
+                )}
+
+                {/* Psychographics */}
+                {strategy.targetMarket.psychographics && (
+                  <Box>
+                    <styled.label
+                      fontSize="xs"
+                      fontWeight="medium"
+                      color="gray.500"
+                      mb={2}
+                    >
+                      Psychographics
+                    </styled.label>
+                    <Stack gap={2}>
+                      <Box>
+                        <styled.label fontSize="xs" fontWeight="medium" color="gray.400">
+                          Lifestyle
+                        </styled.label>
+                        <styled.p fontSize="sm" lineHeight="relaxed">
+                          {strategy.targetMarket.psychographics.lifestyle}
+                        </styled.p>
+                      </Box>
+                      {strategy.targetMarket.psychographics.interests &&
+                        strategy.targetMarket.psychographics.interests.length > 0 && (
+                          <Box>
+                            <styled.label
+                              fontSize="xs"
+                              fontWeight="medium"
+                              color="gray.400"
+                              mb={1}
+                            >
+                              Interests
+                            </styled.label>
+                            <Flex gap={1} wrap="wrap">
+                              {strategy.targetMarket.psychographics.interests.map(
+                                (interest, i) => (
+                                  <styled.span
+                                    key={i}
+                                    fontSize="xs"
+                                    px={2}
+                                    py={0.5}
+                                    bg="cyan.100"
+                                    color="cyan.700"
+                                    borderRadius="sm"
+                                  >
+                                    {interest}
+                                  </styled.span>
+                                ),
+                              )}
+                            </Flex>
+                          </Box>
+                        )}
+                      {strategy.targetMarket.psychographics.values &&
+                        strategy.targetMarket.psychographics.values.length > 0 && (
+                          <Box>
+                            <styled.label
+                              fontSize="xs"
+                              fontWeight="medium"
+                              color="gray.400"
+                              mb={1}
+                            >
+                              Values
+                            </styled.label>
+                            <Flex gap={1} wrap="wrap">
+                              {strategy.targetMarket.psychographics.values.map(
+                                (value, i) => (
+                                  <styled.span
+                                    key={i}
+                                    fontSize="xs"
+                                    px={2}
+                                    py={0.5}
+                                    bg="violet.100"
+                                    color="violet.700"
+                                    borderRadius="sm"
+                                  >
+                                    {value}
+                                  </styled.span>
+                                ),
+                              )}
+                            </Flex>
+                          </Box>
+                        )}
+                      {strategy.targetMarket.psychographics.personalityTraits &&
+                        strategy.targetMarket.psychographics.personalityTraits.length >
+                          0 && (
+                          <Box>
+                            <styled.label
+                              fontSize="xs"
+                              fontWeight="medium"
+                              color="gray.400"
+                              mb={1}
+                            >
+                              Personality Traits
+                            </styled.label>
+                            <Flex gap={1} wrap="wrap">
+                              {strategy.targetMarket.psychographics.personalityTraits.map(
+                                (trait, i) => (
+                                  <styled.span
+                                    key={i}
+                                    fontSize="xs"
+                                    px={2}
+                                    py={0.5}
+                                    bg="amber.100"
+                                    color="amber.700"
+                                    borderRadius="sm"
+                                  >
+                                    {trait}
+                                  </styled.span>
+                                ),
+                              )}
+                            </Flex>
+                          </Box>
+                        )}
+                    </Stack>
+                  </Box>
+                )}
+
+                {/* Pain Points */}
                 {strategy.targetMarket.painPoints &&
                   strategy.targetMarket.painPoints.length > 0 && (
                     <Box>
@@ -579,6 +792,8 @@ export default function BrandChat({ projectId }: { projectId: number }) {
                       </Flex>
                     </Box>
                   )}
+
+                {/* Needs */}
                 {strategy.targetMarket.needs &&
                   strategy.targetMarket.needs.length > 0 && (
                     <Box>
@@ -952,6 +1167,9 @@ export default function BrandChat({ projectId }: { projectId: number }) {
             <styled.h1 fontSize="2xl" fontWeight="bold" color="gray.900" mb={4}>
               Brand Strategy Generator
             </styled.h1>
+            <styled.p fontSize="md" color="gray.600" mb={6}>
+              We'll use your project details to generate brand strategy options.
+            </styled.p>
             <form
               onSubmit={(e) => {
                 e.preventDefault()
@@ -966,6 +1184,9 @@ export default function BrandChat({ projectId }: { projectId: number }) {
               <Stack gap={4}>
                 <Input
                   ref={inputRef}
+                  defaultValue={
+                    project.description ? `${project.name} - ${project.description}` : ''
+                  }
                   placeholder="Describe your business or product idea..."
                 />
                 <Button type="submit">Generate Brand Options</Button>

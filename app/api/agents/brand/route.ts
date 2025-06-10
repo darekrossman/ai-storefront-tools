@@ -1,15 +1,6 @@
-import { AI_AGENTS } from '@/lib/constants'
-import { BrandGeneratorService } from '@/lib/brand/brand-generator'
-import { BrandPhaseManager } from '@/lib/brand/brand-phases'
 import { openai } from '@ai-sdk/openai'
-import { generateObject, generateText, Output, streamObject, streamText } from 'ai'
-import { z } from 'zod'
+import { streamObject } from 'ai'
 import { brandStructuredOutputSchemas } from '@/lib/brand/schemas'
-
-interface Message {
-  role: 'user' | 'assistant'
-  content: string
-}
 
 const systemPrompt = `You are a world-class brand strategist and creative director who works collaboratively with users through a structured, step-by-step brand development process. Your expertise spans brand positioning, visual identity, target market analysis, and brand storytelling.
 

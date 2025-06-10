@@ -29,7 +29,7 @@ export default async function CreateBrandPage({ params }: CreateBrandPageProps) 
   return (
     <Container py={8}>
       {/* <CreateBrandForm projectId={projectId} /> */}
-      <BrandChat projectId={projectId} />
+      <BrandChat projectId={projectId} project={project} />
     </Container>
   )
 }

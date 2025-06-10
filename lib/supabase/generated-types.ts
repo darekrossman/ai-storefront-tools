@@ -36,52 +36,127 @@ export type Database = {
     Tables: {
       brands: {
         Row: {
-          brand_personality: Json | null
+          brand_archetype: string | null
+          brand_tone: string | null
+          brand_voice: string | null
+          category: string | null
+          color_scheme: string[] | null
+          communication_style: string | null
+          competitive_advantages: string[] | null
           created_at: string
+          design_principles: string[] | null
+          differentiation: string | null
           id: number
+          imagery_guidelines: string[] | null
+          imagery_mood: string | null
+          imagery_style: string | null
+          logo_description: string | null
+          market_position: string | null
           mission: string | null
           name: string
-          positioning: Json | null
+          personality_traits: string[] | null
+          price_point: Database["public"]["Enums"]["price_point"] | null
           project_id: number
           status: Database["public"]["Enums"]["brand_status"]
           tagline: string | null
-          target_market: Json | null
+          target_age_range: string | null
+          target_education: string | null
+          target_income: string | null
+          target_interests: string[] | null
+          target_lifestyle: string | null
+          target_location: string | null
+          target_needs: string[] | null
+          target_pain_points: string[] | null
+          target_personality_traits: string[] | null
+          target_values: string[] | null
+          typography_accent: string | null
+          typography_primary: string | null
+          typography_secondary: string | null
           updated_at: string
           values: string[] | null
           vision: string | null
-          visual_identity: Json | null
         }
         Insert: {
-          brand_personality?: Json | null
+          brand_archetype?: string | null
+          brand_tone?: string | null
+          brand_voice?: string | null
+          category?: string | null
+          color_scheme?: string[] | null
+          communication_style?: string | null
+          competitive_advantages?: string[] | null
           created_at?: string
+          design_principles?: string[] | null
+          differentiation?: string | null
           id?: never
+          imagery_guidelines?: string[] | null
+          imagery_mood?: string | null
+          imagery_style?: string | null
+          logo_description?: string | null
+          market_position?: string | null
           mission?: string | null
           name: string
-          positioning?: Json | null
+          personality_traits?: string[] | null
+          price_point?: Database["public"]["Enums"]["price_point"] | null
           project_id: number
           status?: Database["public"]["Enums"]["brand_status"]
           tagline?: string | null
-          target_market?: Json | null
+          target_age_range?: string | null
+          target_education?: string | null
+          target_income?: string | null
+          target_interests?: string[] | null
+          target_lifestyle?: string | null
+          target_location?: string | null
+          target_needs?: string[] | null
+          target_pain_points?: string[] | null
+          target_personality_traits?: string[] | null
+          target_values?: string[] | null
+          typography_accent?: string | null
+          typography_primary?: string | null
+          typography_secondary?: string | null
           updated_at?: string
           values?: string[] | null
           vision?: string | null
-          visual_identity?: Json | null
         }
         Update: {
-          brand_personality?: Json | null
+          brand_archetype?: string | null
+          brand_tone?: string | null
+          brand_voice?: string | null
+          category?: string | null
+          color_scheme?: string[] | null
+          communication_style?: string | null
+          competitive_advantages?: string[] | null
           created_at?: string
+          design_principles?: string[] | null
+          differentiation?: string | null
           id?: never
+          imagery_guidelines?: string[] | null
+          imagery_mood?: string | null
+          imagery_style?: string | null
+          logo_description?: string | null
+          market_position?: string | null
           mission?: string | null
           name?: string
-          positioning?: Json | null
+          personality_traits?: string[] | null
+          price_point?: Database["public"]["Enums"]["price_point"] | null
           project_id?: number
           status?: Database["public"]["Enums"]["brand_status"]
           tagline?: string | null
-          target_market?: Json | null
+          target_age_range?: string | null
+          target_education?: string | null
+          target_income?: string | null
+          target_interests?: string[] | null
+          target_lifestyle?: string | null
+          target_location?: string | null
+          target_needs?: string[] | null
+          target_pain_points?: string[] | null
+          target_personality_traits?: string[] | null
+          target_values?: string[] | null
+          typography_accent?: string | null
+          typography_primary?: string | null
+          typography_secondary?: string | null
           updated_at?: string
           values?: string[] | null
           vision?: string | null
-          visual_identity?: Json | null
         }
         Relationships: [
           {
@@ -231,15 +306,7 @@ export type Database = {
           total_products?: number
           updated_at?: string
         }
-        Relationships: [
-          {
-            foreignKeyName: "product_catalogs_brand_id_fkey"
-            columns: ["brand_id"]
-            isOneToOne: false
-            referencedRelation: "brands"
-            referencedColumns: ["id"]
-          },
-        ]
+        Relationships: []
       }
       product_images: {
         Row: {
@@ -493,6 +560,7 @@ export type Database = {
     }
     Enums: {
       brand_status: "draft" | "active" | "inactive" | "archived"
+      price_point: "luxury" | "premium" | "mid-market" | "value" | "budget"
       session_status: "active" | "completed" | "archived"
     }
     CompositeTypes: {
@@ -613,6 +681,7 @@ export const Constants = {
   public: {
     Enums: {
       brand_status: ["draft", "active", "inactive", "archived"],
+      price_point: ["luxury", "premium", "mid-market", "value", "budget"],
       session_status: ["active", "completed", "archived"],
     },
   },

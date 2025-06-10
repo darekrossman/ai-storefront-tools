@@ -88,19 +88,58 @@ export const brandStructuredOutputSchemas = z.object({
           tagline: z.string(),
           mission: z.string().describe('Brand mission statement'),
           vision: z.string().describe('Brand vision statement'),
+          values: z
+            .array(z.string())
+            .describe('Core brand values that guide the organization'),
         }),
         targetMarket: z.object({
-          demographics: z.string(),
-          psychographics: z.string(),
-          painPoints: z.array(z.string()),
-          needs: z.array(z.string()),
+          demographics: z.object({
+            ageRange: z.string().describe('Target age range (e.g., "25-35", "18-24")'),
+            income: z
+              .string()
+              .describe('Target income level (e.g., "$50k-75k", "High income")'),
+            education: z
+              .string()
+              .describe('Education level (e.g., "College educated", "High school")'),
+            location: z
+              .string()
+              .describe('Geographic location (e.g., "Urban areas", "North America")'),
+          }),
+          psychographics: z.object({
+            lifestyle: z
+              .string()
+              .describe('Lifestyle description (e.g., "Active and health-conscious")'),
+            interests: z
+              .array(z.string())
+              .describe('Array of target audience interests and hobbies'),
+            values: z
+              .array(z.string())
+              .describe('Array of target audience values (distinct from brand values)'),
+            personalityTraits: z
+              .array(z.string())
+              .describe('Array of target audience personality characteristics'),
+          }),
+          painPoints: z
+            .array(z.string())
+            .describe('Problems and challenges the brand solves'),
+          needs: z
+            .array(z.string())
+            .describe('Customer needs and desires the brand addresses'),
         }),
         brandPersonality: z.object({
-          voice: z.string(),
-          tone: z.string(),
-          personality: z.array(z.string()),
-          communicationStyle: z.string(),
-          brandArchetype: z.string(),
+          voice: z
+            .string()
+            .describe('Brand voice description (e.g., "Professional and approachable")'),
+          tone: z
+            .string()
+            .describe('Brand tone characteristics (e.g., "Confident yet humble")'),
+          personality: z.array(z.string()).describe('Array of brand personality traits'),
+          communicationStyle: z
+            .string()
+            .describe('How the brand communicates (e.g., "Direct and clear")'),
+          brandArchetype: z
+            .string()
+            .describe('Brand archetype (e.g., "The Hero", "The Sage")'),
         }),
         positioning: z.object({
           category: z.string(),
@@ -113,8 +152,14 @@ export const brandStructuredOutputSchemas = z.object({
           logoDescription: z.string(),
           colorScheme: z.array(z.string()).describe('Primary color palette'),
           typography: z.object({
-            primary: z.string(),
-            secondary: z.string(),
+            primary: z
+              .string()
+              .describe('Primary font family for headings and key content'),
+            secondary: z.string().describe('Secondary font family for body text'),
+            accent: z
+              .string()
+              .optional()
+              .describe('Optional accent font family for special elements'),
           }),
           imagery: z.object({
             style: z.string(),

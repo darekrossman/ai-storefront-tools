@@ -111,19 +111,7 @@ export const createBrandAction = async (brandData: CreateBrandData): Promise<Bra
 
   const { data, error } = await supabase
     .from('brands')
-    .insert({
-      project_id: brandData.project_id,
-      name: brandData.name,
-      tagline: brandData.tagline,
-      mission: brandData.mission,
-      vision: brandData.vision,
-      values: brandData.values || [],
-      target_market: brandData.target_market || {},
-      brand_personality: brandData.brand_personality || {},
-      positioning: brandData.positioning || {},
-      visual_identity: brandData.visual_identity || {},
-      status: brandData.status || 'draft',
-    })
+    .insert(brandData)
     .select()
     .single()
 

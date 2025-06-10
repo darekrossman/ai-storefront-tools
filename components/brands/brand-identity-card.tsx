@@ -18,19 +18,48 @@ function formatPrice(pricePoint: string) {
 export function BrandIdentityCard({ brand, projectId }: BrandIdentityCardProps) {
   const [showDetails, setShowDetails] = useState(false)
 
-  // Parse JSONB fields
-  const targetMarket = brand.target_market as any
-  const brandPersonality = brand.brand_personality as any
-  const positioning = brand.positioning as any
-  const visualIdentity = brand.visual_identity as any
-
   const hasCoreGuidelines =
     brand.mission || brand.vision || (brand.values && brand.values.length > 0)
+
+  const hasTargetMarket =
+    brand.target_age_range ||
+    brand.target_education ||
+    brand.target_income ||
+    brand.target_lifestyle ||
+    brand.target_location ||
+    (brand.target_interests && brand.target_interests.length > 0) ||
+    (brand.target_needs && brand.target_needs.length > 0) ||
+    (brand.target_pain_points && brand.target_pain_points.length > 0) ||
+    (brand.target_personality_traits && brand.target_personality_traits.length > 0) ||
+    (brand.target_values && brand.target_values.length > 0)
+
+  const hasBrandPersonality =
+    brand.brand_voice ||
+    brand.brand_tone ||
+    brand.communication_style ||
+    brand.brand_archetype ||
+    (brand.personality_traits && brand.personality_traits.length > 0)
+
+  const hasPositioning =
+    brand.category ||
+    brand.market_position ||
+    brand.differentiation ||
+    brand.price_point ||
+    (brand.competitive_advantages && brand.competitive_advantages.length > 0)
+
+  const hasVisualIdentity =
+    brand.logo_description ||
+    (brand.color_scheme && brand.color_scheme.length > 0) ||
+    brand.typography_primary ||
+    brand.typography_secondary ||
+    brand.typography_accent ||
+    brand.imagery_style ||
+    brand.imagery_mood ||
+    (brand.imagery_guidelines && brand.imagery_guidelines.length > 0) ||
+    (brand.design_principles && brand.design_principles.length > 0)
+
   const hasExtraDetails =
-    (targetMarket && Object.keys(targetMarket).length > 0) ||
-    (brandPersonality && Object.keys(brandPersonality).length > 0) ||
-    (positioning && Object.keys(positioning).length > 0) ||
-    (visualIdentity && Object.keys(visualIdentity).length > 0)
+    hasTargetMarket || hasBrandPersonality || hasPositioning || hasVisualIdentity
 
   return (
     <Box bg="white" border="1px solid" borderColor="gray.200" borderRadius="lg" p={6}>
@@ -147,45 +176,253 @@ export function BrandIdentityCard({ brand, projectId }: BrandIdentityCardProps) 
 
         {showDetails && hasExtraDetails && (
           <Stack gap={8} borderTop="1px solid" borderColor="gray.200" pt={6} mt={2}>
+            {/* Brand Personality */}
+            {hasBrandPersonality && (
+              <Stack gap={4}>
+                <styled.h2 fontSize="lg" fontWeight="semibold" color="gray.800">
+                  Brand Personality
+                </styled.h2>
+
+                {/* Brand Voice */}
+                {brand.brand_voice && (
+                  <Stack gap={2}>
+                    <styled.h3 fontSize="sm" fontWeight="medium" color="gray.700">
+                      Brand Voice
+                    </styled.h3>
+                    <styled.p fontSize="sm" color="gray.900" lineHeight="relaxed">
+                      {brand.brand_voice}
+                    </styled.p>
+                  </Stack>
+                )}
+
+                {/* Brand Tone */}
+                {brand.brand_tone && (
+                  <Stack gap={2}>
+                    <styled.h3 fontSize="sm" fontWeight="medium" color="gray.700">
+                      Brand Tone
+                    </styled.h3>
+                    <styled.p fontSize="sm" color="gray.900" lineHeight="relaxed">
+                      {brand.brand_tone}
+                    </styled.p>
+                  </Stack>
+                )}
+
+                {/* Communication Style */}
+                {brand.communication_style && (
+                  <Stack gap={2}>
+                    <styled.h3 fontSize="sm" fontWeight="medium" color="gray.700">
+                      Communication Style
+                    </styled.h3>
+                    <styled.p fontSize="sm" color="gray.900" lineHeight="relaxed">
+                      {brand.communication_style}
+                    </styled.p>
+                  </Stack>
+                )}
+
+                {/* Brand Archetype */}
+                {brand.brand_archetype && (
+                  <Stack gap={2}>
+                    <styled.h3 fontSize="sm" fontWeight="medium" color="gray.700">
+                      Brand Archetype
+                    </styled.h3>
+                    <styled.span
+                      fontSize="sm"
+                      fontWeight="medium"
+                      px={3}
+                      py={1}
+                      bg="indigo.50"
+                      color="indigo.700"
+                      borderRadius="md"
+                      display="inline-block"
+                    >
+                      {brand.brand_archetype}
+                    </styled.span>
+                  </Stack>
+                )}
+
+                {/* Personality Traits */}
+                {brand.personality_traits && brand.personality_traits.length > 0 && (
+                  <Stack gap={2}>
+                    <styled.h3 fontSize="sm" fontWeight="medium" color="gray.700">
+                      Personality Traits
+                    </styled.h3>
+                    <Flex gap={2} wrap="wrap">
+                      {brand.personality_traits.map((trait: string, index: number) => (
+                        <styled.span
+                          key={index}
+                          fontSize="sm"
+                          px={3}
+                          py={1}
+                          bg="purple.50"
+                          color="purple.700"
+                          borderRadius="md"
+                          fontWeight="medium"
+                        >
+                          {trait}
+                        </styled.span>
+                      ))}
+                    </Flex>
+                  </Stack>
+                )}
+              </Stack>
+            )}
+
             {/* Target Market */}
-            {targetMarket && Object.keys(targetMarket).length > 0 && (
+            {hasTargetMarket && (
               <Stack gap={4}>
                 <styled.h2 fontSize="lg" fontWeight="semibold" color="gray.800">
                   Target Market
                 </styled.h2>
 
                 {/* Demographics */}
-                {targetMarket.demographics && (
+                <Stack gap={3}>
+                  <styled.h3 fontSize="sm" fontWeight="medium" color="gray.700">
+                    Demographics
+                  </styled.h3>
+                  <Box
+                    display="grid"
+                    gridTemplateColumns="repeat(auto-fit, minmax(200px, 1fr))"
+                    gap={3}
+                  >
+                    {brand.target_age_range && (
+                      <Box>
+                        <styled.label fontSize="xs" fontWeight="medium" color="gray.600">
+                          Age Range
+                        </styled.label>
+                        <styled.p fontSize="sm" color="gray.900">
+                          {brand.target_age_range}
+                        </styled.p>
+                      </Box>
+                    )}
+                    {brand.target_income && (
+                      <Box>
+                        <styled.label fontSize="xs" fontWeight="medium" color="gray.600">
+                          Income Level
+                        </styled.label>
+                        <styled.p fontSize="sm" color="gray.900">
+                          {brand.target_income}
+                        </styled.p>
+                      </Box>
+                    )}
+                    {brand.target_education && (
+                      <Box>
+                        <styled.label fontSize="xs" fontWeight="medium" color="gray.600">
+                          Education
+                        </styled.label>
+                        <styled.p fontSize="sm" color="gray.900">
+                          {brand.target_education}
+                        </styled.p>
+                      </Box>
+                    )}
+                    {brand.target_location && (
+                      <Box>
+                        <styled.label fontSize="xs" fontWeight="medium" color="gray.600">
+                          Location
+                        </styled.label>
+                        <styled.p fontSize="sm" color="gray.900">
+                          {brand.target_location}
+                        </styled.p>
+                      </Box>
+                    )}
+                    {brand.target_lifestyle && (
+                      <Box>
+                        <styled.label fontSize="xs" fontWeight="medium" color="gray.600">
+                          Lifestyle
+                        </styled.label>
+                        <styled.p fontSize="sm" color="gray.900">
+                          {brand.target_lifestyle}
+                        </styled.p>
+                      </Box>
+                    )}
+                  </Box>
+                </Stack>
+
+                {/* Interests */}
+                {brand.target_interests && brand.target_interests.length > 0 && (
                   <Stack gap={2}>
                     <styled.h3 fontSize="sm" fontWeight="medium" color="gray.700">
-                      Demographics
+                      Interests
                     </styled.h3>
-                    <styled.p fontSize="sm" color="gray.900" lineHeight="relaxed">
-                      {targetMarket.demographics}
-                    </styled.p>
+                    <Flex gap={2} wrap="wrap">
+                      {brand.target_interests.map((interest: string, index: number) => (
+                        <styled.span
+                          key={index}
+                          fontSize="sm"
+                          px={3}
+                          py={1}
+                          bg="cyan.50"
+                          color="cyan.700"
+                          borderRadius="md"
+                          fontWeight="medium"
+                        >
+                          {interest}
+                        </styled.span>
+                      ))}
+                    </Flex>
                   </Stack>
                 )}
 
-                {/* Psychographics */}
-                {targetMarket.psychographics && (
+                {/* Values */}
+                {brand.target_values && brand.target_values.length > 0 && (
                   <Stack gap={2}>
                     <styled.h3 fontSize="sm" fontWeight="medium" color="gray.700">
-                      Psychographics
+                      Values
                     </styled.h3>
-                    <styled.p fontSize="sm" color="gray.900" lineHeight="relaxed">
-                      {targetMarket.psychographics}
-                    </styled.p>
+                    <Flex gap={2} wrap="wrap">
+                      {brand.target_values.map((value: string, index: number) => (
+                        <styled.span
+                          key={index}
+                          fontSize="sm"
+                          px={3}
+                          py={1}
+                          bg="teal.50"
+                          color="teal.700"
+                          borderRadius="md"
+                          fontWeight="medium"
+                        >
+                          {value}
+                        </styled.span>
+                      ))}
+                    </Flex>
                   </Stack>
                 )}
+
+                {/* Personality Traits */}
+                {brand.target_personality_traits &&
+                  brand.target_personality_traits.length > 0 && (
+                    <Stack gap={2}>
+                      <styled.h3 fontSize="sm" fontWeight="medium" color="gray.700">
+                        Personality Traits
+                      </styled.h3>
+                      <Flex gap={2} wrap="wrap">
+                        {brand.target_personality_traits.map(
+                          (trait: string, index: number) => (
+                            <styled.span
+                              key={index}
+                              fontSize="sm"
+                              px={3}
+                              py={1}
+                              bg="emerald.50"
+                              color="emerald.700"
+                              borderRadius="md"
+                              fontWeight="medium"
+                            >
+                              {trait}
+                            </styled.span>
+                          ),
+                        )}
+                      </Flex>
+                    </Stack>
+                  )}
 
                 {/* Pain Points */}
-                {targetMarket.pain_points && targetMarket.pain_points.length > 0 && (
+                {brand.target_pain_points && brand.target_pain_points.length > 0 && (
                   <Stack gap={2}>
                     <styled.h3 fontSize="sm" fontWeight="medium" color="gray.700">
                       Pain Points
                     </styled.h3>
                     <Stack gap={1}>
-                      {targetMarket.pain_points.map((point: string, index: number) => (
+                      {brand.target_pain_points.map((point: string, index: number) => (
                         <styled.div
                           key={index}
                           fontSize="sm"
@@ -205,13 +442,13 @@ export function BrandIdentityCard({ brand, projectId }: BrandIdentityCardProps) 
                 )}
 
                 {/* Needs */}
-                {targetMarket.needs && targetMarket.needs.length > 0 && (
+                {brand.target_needs && brand.target_needs.length > 0 && (
                   <Stack gap={2}>
                     <styled.h3 fontSize="sm" fontWeight="medium" color="gray.700">
                       Customer Needs
                     </styled.h3>
                     <Stack gap={1}>
-                      {targetMarket.needs.map((need: string, index: number) => (
+                      {brand.target_needs.map((need: string, index: number) => (
                         <styled.div
                           key={index}
                           fontSize="sm"
@@ -232,140 +469,78 @@ export function BrandIdentityCard({ brand, projectId }: BrandIdentityCardProps) 
               </Stack>
             )}
 
-            {/* Brand Personality */}
-            {brandPersonality && Object.keys(brandPersonality).length > 0 && (
-              <Stack gap={4}>
-                <styled.h2 fontSize="lg" fontWeight="semibold" color="gray.800">
-                  Brand Personality
-                </styled.h2>
-
-                {/* Voice */}
-                {brandPersonality.voice && (
-                  <Stack gap={2}>
-                    <styled.h3 fontSize="sm" fontWeight="medium" color="gray.700">
-                      Brand Voice
-                    </styled.h3>
-                    <styled.p fontSize="sm" color="gray.900" lineHeight="relaxed">
-                      {brandPersonality.voice}
-                    </styled.p>
-                  </Stack>
-                )}
-
-                {/* Tone */}
-                {brandPersonality.tone && (
-                  <Stack gap={2}>
-                    <styled.h3 fontSize="sm" fontWeight="medium" color="gray.700">
-                      Brand Tone
-                    </styled.h3>
-                    <styled.p fontSize="sm" color="gray.900" lineHeight="relaxed">
-                      {brandPersonality.tone}
-                    </styled.p>
-                  </Stack>
-                )}
-
-                {/* Personality Traits */}
-                {brandPersonality.personality &&
-                  brandPersonality.personality.length > 0 && (
-                    <Stack gap={2}>
-                      <styled.h3 fontSize="sm" fontWeight="medium" color="gray.700">
-                        Personality Traits
-                      </styled.h3>
-                      <Flex gap={2} wrap="wrap">
-                        {brandPersonality.personality.map(
-                          (trait: string, index: number) => (
-                            <styled.span
-                              key={index}
-                              fontSize="sm"
-                              px={3}
-                              py={1}
-                              bg="purple.50"
-                              color="purple.700"
-                              borderRadius="md"
-                              fontWeight="medium"
-                            >
-                              {trait}
-                            </styled.span>
-                          ),
-                        )}
-                      </Flex>
-                    </Stack>
-                  )}
-
-                {/* Communication Style */}
-                {brandPersonality.communication_style && (
-                  <Stack gap={2}>
-                    <styled.h3 fontSize="sm" fontWeight="medium" color="gray.700">
-                      Communication Style
-                    </styled.h3>
-                    <styled.p fontSize="sm" color="gray.900" lineHeight="relaxed">
-                      {brandPersonality.communication_style}
-                    </styled.p>
-                  </Stack>
-                )}
-
-                {/* Brand Archetype */}
-                {brandPersonality.brand_archetype && (
-                  <Stack gap={2}>
-                    <styled.h3 fontSize="sm" fontWeight="medium" color="gray.700">
-                      Brand Archetype
-                    </styled.h3>
-                    <styled.span
-                      fontSize="sm"
-                      fontWeight="medium"
-                      px={3}
-                      py={1}
-                      bg="indigo.50"
-                      color="indigo.700"
-                      borderRadius="md"
-                      display="inline-block"
-                    >
-                      {brandPersonality.brand_archetype}
-                    </styled.span>
-                  </Stack>
-                )}
-              </Stack>
-            )}
-
             {/* Market Positioning */}
-            {positioning && Object.keys(positioning).length > 0 && (
+            {hasPositioning && (
               <Stack gap={4}>
                 <styled.h2 fontSize="lg" fontWeight="semibold" color="gray.800">
                   Market Positioning
                 </styled.h2>
 
                 {/* Category */}
-                {positioning.category && (
+                {brand.category && (
                   <Stack gap={2}>
                     <styled.h3 fontSize="sm" fontWeight="medium" color="gray.700">
                       Market Category
                     </styled.h3>
                     <styled.p fontSize="sm" color="gray.900" lineHeight="relaxed">
-                      {positioning.category}
+                      {brand.category}
+                    </styled.p>
+                  </Stack>
+                )}
+
+                {/* Market Position */}
+                {brand.market_position && (
+                  <Stack gap={2}>
+                    <styled.h3 fontSize="sm" fontWeight="medium" color="gray.700">
+                      Market Position
+                    </styled.h3>
+                    <styled.p fontSize="sm" color="gray.900" lineHeight="relaxed">
+                      {brand.market_position}
                     </styled.p>
                   </Stack>
                 )}
 
                 {/* Differentiation */}
-                {positioning.differentiation && (
+                {brand.differentiation && (
                   <Stack gap={2}>
                     <styled.h3 fontSize="sm" fontWeight="medium" color="gray.700">
                       Key Differentiation
                     </styled.h3>
                     <styled.p fontSize="sm" color="gray.900" lineHeight="relaxed">
-                      {positioning.differentiation}
+                      {brand.differentiation}
                     </styled.p>
                   </Stack>
                 )}
 
+                {/* Price Point */}
+                {brand.price_point && (
+                  <Stack gap={2}>
+                    <styled.h3 fontSize="sm" fontWeight="medium" color="gray.700">
+                      Price Point
+                    </styled.h3>
+                    <styled.span
+                      fontSize="sm"
+                      fontWeight="medium"
+                      px={3}
+                      py={1}
+                      bg="green.50"
+                      color="green.700"
+                      borderRadius="md"
+                    >
+                      {formatPrice(brand.price_point)}
+                    </styled.span>
+                  </Stack>
+                )}
+
                 {/* Competitive Advantages */}
-                {positioning.competitive_advantages &&
-                  positioning.competitive_advantages.length > 0 && (
+                {brand.competitive_advantages &&
+                  brand.competitive_advantages.length > 0 && (
                     <Stack gap={2}>
                       <styled.h3 fontSize="sm" fontWeight="medium" color="gray.700">
                         Competitive Advantages
                       </styled.h3>
                       <Stack gap={1}>
-                        {positioning.competitive_advantages.map(
+                        {brand.competitive_advantages.map(
                           (advantage: string, index: number) => (
                             <styled.div
                               key={index}
@@ -385,106 +560,78 @@ export function BrandIdentityCard({ brand, projectId }: BrandIdentityCardProps) 
                       </Stack>
                     </Stack>
                   )}
-
-                {/* Price Point & Market Position */}
-                <Flex gap={6}>
-                  {positioning.price_point && (
-                    <Stack gap={2}>
-                      <styled.h3 fontSize="sm" fontWeight="medium" color="gray.700">
-                        Price Point
-                      </styled.h3>
-                      <styled.span
-                        fontSize="sm"
-                        fontWeight="medium"
-                        px={3}
-                        py={1}
-                        bg="green.50"
-                        color="green.700"
-                        borderRadius="md"
-                      >
-                        {formatPrice(positioning.price_point)}
-                      </styled.span>
-                    </Stack>
-                  )}
-
-                  {positioning.market_position && (
-                    <Stack gap={2} flex={1}>
-                      <styled.h3 fontSize="sm" fontWeight="medium" color="gray.700">
-                        Market Position
-                      </styled.h3>
-                      <styled.p fontSize="sm" color="gray.900" lineHeight="relaxed">
-                        {positioning.market_position}
-                      </styled.p>
-                    </Stack>
-                  )}
-                </Flex>
               </Stack>
             )}
 
             {/* Visual Identity */}
-            {visualIdentity && Object.keys(visualIdentity).length > 0 && (
+            {hasVisualIdentity && (
               <Stack gap={4}>
                 <styled.h2 fontSize="lg" fontWeight="semibold" color="gray.800">
                   Visual Identity
                 </styled.h2>
 
                 {/* Logo Description */}
-                {visualIdentity.logo_description && (
+                {brand.logo_description && (
                   <Stack gap={2}>
                     <styled.h3 fontSize="sm" fontWeight="medium" color="gray.700">
                       Logo Description
                     </styled.h3>
                     <styled.p fontSize="sm" color="gray.900" lineHeight="relaxed">
-                      {visualIdentity.logo_description}
+                      {brand.logo_description}
                     </styled.p>
                   </Stack>
                 )}
 
                 {/* Color Scheme */}
-                {visualIdentity.color_scheme &&
-                  visualIdentity.color_scheme.length > 0 && (
-                    <Stack gap={2}>
-                      <styled.h3 fontSize="sm" fontWeight="medium" color="gray.700">
-                        Color Palette
-                      </styled.h3>
-                      <Flex gap={2} wrap="wrap">
-                        {visualIdentity.color_scheme.map(
-                          (color: string, index: number) => (
-                            <styled.span
-                              key={index}
-                              fontSize="sm"
-                              px={3}
-                              py={1}
-                              bg="orange.50"
-                              color="orange.700"
-                              borderRadius="md"
-                              fontWeight="medium"
-                            >
-                              {color}
-                            </styled.span>
-                          ),
-                        )}
-                      </Flex>
-                    </Stack>
-                  )}
+                {brand.color_scheme && brand.color_scheme.length > 0 && (
+                  <Stack gap={2}>
+                    <styled.h3 fontSize="sm" fontWeight="medium" color="gray.700">
+                      Color Palette
+                    </styled.h3>
+                    <Flex gap={2} wrap="wrap">
+                      {brand.color_scheme.map((color: string, index: number) => (
+                        <styled.span
+                          key={index}
+                          fontSize="sm"
+                          px={3}
+                          py={1}
+                          bg="orange.50"
+                          color="orange.700"
+                          borderRadius="md"
+                          fontWeight="medium"
+                        >
+                          {color}
+                        </styled.span>
+                      ))}
+                    </Flex>
+                  </Stack>
+                )}
 
                 {/* Typography */}
-                {visualIdentity.typography && (
+                {(brand.typography_primary ||
+                  brand.typography_secondary ||
+                  brand.typography_accent) && (
                   <Stack gap={2}>
                     <styled.h3 fontSize="sm" fontWeight="medium" color="gray.700">
                       Typography
                     </styled.h3>
                     <Stack gap={2}>
-                      {visualIdentity.typography.primary && (
+                      {brand.typography_primary && (
                         <styled.div fontSize="sm" color="gray.900">
                           <styled.span fontWeight="medium">Primary: </styled.span>
-                          {visualIdentity.typography.primary}
+                          {brand.typography_primary}
                         </styled.div>
                       )}
-                      {visualIdentity.typography.secondary && (
+                      {brand.typography_secondary && (
                         <styled.div fontSize="sm" color="gray.900">
                           <styled.span fontWeight="medium">Secondary: </styled.span>
-                          {visualIdentity.typography.secondary}
+                          {brand.typography_secondary}
+                        </styled.div>
+                      )}
+                      {brand.typography_accent && (
+                        <styled.div fontSize="sm" color="gray.900">
+                          <styled.span fontWeight="medium">Accent: </styled.span>
+                          {brand.typography_accent}
                         </styled.div>
                       )}
                     </Stack>
@@ -492,26 +639,28 @@ export function BrandIdentityCard({ brand, projectId }: BrandIdentityCardProps) 
                 )}
 
                 {/* Imagery Guidelines */}
-                {visualIdentity.imagery && (
+                {(brand.imagery_style ||
+                  brand.imagery_mood ||
+                  (brand.imagery_guidelines && brand.imagery_guidelines.length > 0)) && (
                   <Stack gap={2}>
                     <styled.h3 fontSize="sm" fontWeight="medium" color="gray.700">
                       Imagery Style
                     </styled.h3>
                     <Stack gap={2}>
-                      {visualIdentity.imagery.style && (
+                      {brand.imagery_style && (
                         <styled.div fontSize="sm" color="gray.900">
                           <styled.span fontWeight="medium">Style: </styled.span>
-                          {visualIdentity.imagery.style}
+                          {brand.imagery_style}
                         </styled.div>
                       )}
-                      {visualIdentity.imagery.mood && (
+                      {brand.imagery_mood && (
                         <styled.div fontSize="sm" color="gray.900">
                           <styled.span fontWeight="medium">Mood: </styled.span>
-                          {visualIdentity.imagery.mood}
+                          {brand.imagery_mood}
                         </styled.div>
                       )}
-                      {visualIdentity.imagery.guidelines &&
-                        visualIdentity.imagery.guidelines.length > 0 && (
+                      {brand.imagery_guidelines &&
+                        brand.imagery_guidelines.length > 0 && (
                           <Stack gap={1}>
                             <styled.span
                               fontSize="sm"
@@ -520,7 +669,7 @@ export function BrandIdentityCard({ brand, projectId }: BrandIdentityCardProps) 
                             >
                               Guidelines:
                             </styled.span>
-                            {visualIdentity.imagery.guidelines.map(
+                            {brand.imagery_guidelines.map(
                               (guideline: string, index: number) => (
                                 <styled.div
                                   key={index}
@@ -544,33 +693,30 @@ export function BrandIdentityCard({ brand, projectId }: BrandIdentityCardProps) 
                 )}
 
                 {/* Design Principles */}
-                {visualIdentity.design_principles &&
-                  visualIdentity.design_principles.length > 0 && (
-                    <Stack gap={2}>
-                      <styled.h3 fontSize="sm" fontWeight="medium" color="gray.700">
-                        Design Principles
-                      </styled.h3>
-                      <Stack gap={1}>
-                        {visualIdentity.design_principles.map(
-                          (principle: string, index: number) => (
-                            <styled.div
-                              key={index}
-                              fontSize="sm"
-                              color="gray.900"
-                              display="flex"
-                              alignItems="start"
-                              gap={2}
-                            >
-                              <styled.span color="indigo.500" mt="1px">
-                                ✦
-                              </styled.span>
-                              <styled.span>{principle}</styled.span>
-                            </styled.div>
-                          ),
-                        )}
-                      </Stack>
+                {brand.design_principles && brand.design_principles.length > 0 && (
+                  <Stack gap={2}>
+                    <styled.h3 fontSize="sm" fontWeight="medium" color="gray.700">
+                      Design Principles
+                    </styled.h3>
+                    <Stack gap={1}>
+                      {brand.design_principles.map((principle: string, index: number) => (
+                        <styled.div
+                          key={index}
+                          fontSize="sm"
+                          color="gray.900"
+                          display="flex"
+                          alignItems="start"
+                          gap={2}
+                        >
+                          <styled.span color="indigo.500" mt="1px">
+                            ✦
+                          </styled.span>
+                          <styled.span>{principle}</styled.span>
+                        </styled.div>
+                      ))}
                     </Stack>
-                  )}
+                  </Stack>
+                )}
               </Stack>
             )}
           </Stack>

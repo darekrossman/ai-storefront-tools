@@ -14,8 +14,8 @@ interface BrandDetailsPageProps {
 }
 
 function getLogoUrl(brand: Brand): string | null {
-  const visualIdentity = brand.visual_identity as any
-  return visualIdentity?.logo_public_url || null
+  // No logo field in new schema; always return null
+  return null
 }
 
 function getStatusColor(status: string) {
@@ -63,12 +63,6 @@ export default async function BrandDetailsPage({ params }: BrandDetailsPageProps
   const logoUrl = getLogoUrl(brand)
   const statusColor = getStatusColor(brand.status)
 
-  // Parse JSONB fields
-  const targetMarket = brand.target_market as any
-  const brandPersonality = brand.brand_personality as any
-  const positioning = brand.positioning as any
-  const visualIdentity = brand.visual_identity as any
-
   return (
     <Container py={8}>
       <Stack gap={8}>
@@ -87,19 +81,10 @@ export default async function BrandDetailsPage({ params }: BrandDetailsPageProps
               overflow="hidden"
               flexShrink={0}
             >
-              {logoUrl ? (
-                <styled.img
-                  src={logoUrl}
-                  alt={`${brand.name} logo`}
-                  w="full"
-                  h="full"
-                  objectFit="cover"
-                />
-              ) : (
-                <styled.div fontSize="lg" color="gray.500" textAlign="center">
-                  🏷️
-                </styled.div>
-              )}
+              {/* Always show placeholder since logo is not in schema */}
+              <styled.div fontSize="lg" color="gray.500" textAlign="center">
+                🏷️
+              </styled.div>
             </Box>
 
             {/* Brand Info */}
