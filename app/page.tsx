@@ -3,6 +3,7 @@ import { createClient } from '@/lib/supabase/server'
 import { Box, Flex, Stack, styled } from '@/styled-system/jsx'
 import Link from 'next/link'
 import GuestHeader from '@/components/navigation/guest-header'
+import WaitlistForm from '@/components/waitlist-form'
 
 export default async function Page() {
   const supabase = await createClient()
@@ -50,55 +51,26 @@ export default async function Page() {
             with AI. Build your entire storefront in minutes, not months.
           </styled.p>
 
-          {/* Call to Action Buttons */}
-          <Flex gap={4} justify="center" direction={{ base: 'column', sm: 'row' }} pt={4}>
-            <Link href="/login">
-              <styled.div
-                px={8}
-                py={3}
-                fontSize="lg"
-                fontWeight="semibold"
-                color="white"
-                bg="blue.600"
-                borderRadius="lg"
-                cursor="pointer"
-                _hover={{
-                  bg: 'blue.700',
-                }}
-                transition="all 0.2s"
-                w={{ base: 'full', sm: 'auto' }}
-                display="inline-block"
-                textAlign="center"
-              >
-                Get Started Free
-              </styled.div>
-            </Link>
+          {/* Coming Soon Notice */}
+          <styled.p
+            fontSize="md"
+            color="orange.700"
+            fontWeight="medium"
+            bg="orange.50"
+            px={4}
+            py={2}
+            borderRadius="md"
+            border="1px solid"
+            borderColor="orange.200"
+            textAlign="center"
+          >
+            🚀 Coming Soon - Join our waitlist to be the first to know when we launch!
+          </styled.p>
 
-            <Link href="/login">
-              <styled.div
-                px={8}
-                py={3}
-                fontSize="lg"
-                fontWeight="semibold"
-                color="gray.700"
-                bg="white"
-                border="2px solid"
-                borderColor="gray.300"
-                borderRadius="lg"
-                cursor="pointer"
-                _hover={{
-                  bg: 'gray.50',
-                  borderColor: 'gray.400',
-                }}
-                transition="all 0.2s"
-                w={{ base: 'full', sm: 'auto' }}
-                display="inline-block"
-                textAlign="center"
-              >
-                Learn More
-              </styled.div>
-            </Link>
-          </Flex>
+          {/* Waitlist Form */}
+          <Box pt={4}>
+            <WaitlistForm />
+          </Box>
         </Stack>
 
         {/* Feature Highlights */}

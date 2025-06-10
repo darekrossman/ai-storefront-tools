@@ -55,10 +55,6 @@ async function submitBrandForm(
       vision: vision?.trim() || null,
       values: valuesArray.length > 0 ? valuesArray : null,
       status: status as any,
-      brand_personality: {},
-      target_market: {},
-      positioning: {},
-      visual_identity: {},
     }
 
     // Create the brand

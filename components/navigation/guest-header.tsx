@@ -19,53 +19,21 @@ export default function GuestHeader() {
             </styled.h1>
           </Link>
 
-          {/* Navigation Buttons */}
+          {/* Status Badge */}
           <Flex gap={3} align="center">
-            <Link href="/login">
-              <styled.div
-                px={4}
-                py={2}
-                fontSize="sm"
-                fontWeight="medium"
-                color="gray.700"
-                bg="transparent"
-                border="1px solid"
-                borderColor="gray.300"
-                borderRadius="md"
-                cursor="pointer"
-                _hover={{
-                  bg: 'gray.50',
-                  borderColor: 'gray.400',
-                }}
-                transition="all 0.2s"
-                display="inline-block"
-              >
-                Log In
-              </styled.div>
-            </Link>
-
-            <Link href="/login">
-              <styled.div
-                px={4}
-                py={2}
-                fontSize="sm"
-                fontWeight="medium"
-                color="white"
-                bg="blue.600"
-                border="1px solid"
-                borderColor="blue.600"
-                borderRadius="md"
-                cursor="pointer"
-                _hover={{
-                  bg: 'blue.700',
-                  borderColor: 'blue.700',
-                }}
-                transition="all 0.2s"
-                display="inline-block"
-              >
-                Sign Up
-              </styled.div>
-            </Link>
+            <styled.div
+              px={4}
+              py={2}
+              fontSize="sm"
+              fontWeight="medium"
+              color="orange.700"
+              bg="orange.100"
+              border="1px solid"
+              borderColor="orange.200"
+              borderRadius="md"
+            >
+              Coming Soon
+            </styled.div>
           </Flex>
         </Flex>
       </Container>

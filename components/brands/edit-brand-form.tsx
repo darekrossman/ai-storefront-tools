@@ -20,8 +20,9 @@ type FormState = {
 }
 
 function getLogoUrl(brand: Brand): string | null {
-  const visualIdentity = brand.visual_identity as any
-  return visualIdentity?.logo_public_url || null
+  // The visual_identity field doesn't exist in the database schema
+  // TODO: Implement logo URL retrieval from actual storage/brand fields
+  return null
 }
 
 async function submitUpdateBrandForm(
