@@ -217,7 +217,6 @@ storefront-tools/
 │   └── schemas/                 # Declarative schema files
 ├── docs/                        # Documentation
 │   ├── SUPABASE_TYPES.md       # Type generation guide
-│   └── SUPABASE_STORAGE.md     # Storage implementation guide
 ├── scripts/                     # Utility scripts
 │   └── generate-types.sh       # Type generation script
 └── panda.config.ts             # PandaCSS configuration
