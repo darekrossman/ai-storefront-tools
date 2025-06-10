@@ -51,6 +51,7 @@ export type Database = {
           imagery_mood: string | null
           imagery_style: string | null
           logo_description: string | null
+          logo_url: string | null
           market_position: string | null
           mission: string | null
           name: string
@@ -92,6 +93,7 @@ export type Database = {
           imagery_mood?: string | null
           imagery_style?: string | null
           logo_description?: string | null
+          logo_url?: string | null
           market_position?: string | null
           mission?: string | null
           name: string
@@ -133,6 +135,7 @@ export type Database = {
           imagery_mood?: string | null
           imagery_style?: string | null
           logo_description?: string | null
+          logo_url?: string | null
           market_position?: string | null
           mission?: string | null
           name?: string

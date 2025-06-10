@@ -63,6 +63,7 @@ create table public.brands (
   
   -- Visual Identity - Basic (flattened)
   logo_description text,
+  logo_url text,
   color_scheme text[] default '{}',
   design_principles text[] default '{}',
   
@@ -109,6 +110,7 @@ comment on column public.brands.price_point is 'Market price positioning';
 comment on column public.brands.market_position is 'Overall market position description';
 
 comment on column public.brands.logo_description is 'Textual description of the logo design';
+comment on column public.brands.logo_url is 'URL path to logo file in brand_assets bucket (e.g., "brand-123/logo.png")';
 comment on column public.brands.color_scheme is 'Array of brand colors (hex codes)';
 comment on column public.brands.design_principles is 'Array of visual design principles';
 

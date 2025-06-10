@@ -4,7 +4,6 @@ import { useActionState } from 'react'
 import { useRouter } from 'next/navigation'
 import { Box, Flex, Stack, styled } from '@/styled-system/jsx'
 import { updateBrandAction, type UpdateBrandData } from '@/actions/brands'
-import { uploadBrandLogoAction, deleteBrandLogoAction } from '@/actions/storage'
 import { useState } from 'react'
 import type { Brand } from '@/lib/supabase/database-types'
 
@@ -17,12 +16,6 @@ type FormState = {
   error?: string
   message?: string
   success?: boolean
-}
-
-function getLogoUrl(brand: Brand): string | null {
-  // The visual_identity field doesn't exist in the database schema
-  // TODO: Implement logo URL retrieval from actual storage/brand fields
-  return null
 }
 
 async function submitUpdateBrandForm(
@@ -55,26 +48,6 @@ async function submitUpdateBrandForm(
           .filter((v) => v.length > 0)
       : []
 
-    // Handle logo removal if requested
-    if (removeLogo) {
-      const logoResult = await deleteBrandLogoAction(projectId, brandId)
-      if (!logoResult.success) {
-        return { error: `Failed to remove logo: ${logoResult.error}` }
-      }
-    }
-
-    // Handle new logo upload if provided
-    const logoFile = formData.get('logo') as File
-    if (logoFile && logoFile.size > 0) {
-      const logoFormData = new FormData()
-      logoFormData.append('logo', logoFile)
-
-      const logoResult = await uploadBrandLogoAction(projectId, brandId, logoFormData)
-      if (!logoResult.success) {
-        return { error: `Failed to upload logo: ${logoResult.error}` }
-      }
-    }
-
     // Update brand data
     const brandData: UpdateBrandData = {
       name: name.trim(),
@@ -106,7 +79,6 @@ export default function EditBrandForm({ brand, projectId }: EditBrandFormProps) 
   const [logoPreview, setLogoPreview] = useState<string | null>(null)
   const [removeLogo, setRemoveLogo] = useState(false)
 
-  const currentLogoUrl = getLogoUrl(brand)
   const valuesString = brand.values ? brand.values.join(', ') : ''
 
   // Handle successful update
@@ -325,141 +297,6 @@ export default function EditBrandForm({ brand, projectId }: EditBrandFormProps) 
                     <option value="active">Active</option>
                     <option value="archived">Archived</option>
                   </styled.select>
-                </Stack>
-              </Stack>
-            </Stack>
-          </Box>
-
-          {/* Logo Management */}
-          <Box
-            bg="white"
-            border="1px solid"
-            borderColor="gray.200"
-            borderRadius="lg"
-            p={6}
-          >
-            <Stack gap={6}>
-              <styled.h3 fontSize="lg" fontWeight="medium" color="gray.900">
-                Brand Logo
-              </styled.h3>
-
-              <Stack gap={4}>
-                {/* Current Logo */}
-                {currentLogoUrl && !removeLogo && (
-                  <Stack gap={2}>
-                    <styled.label fontSize="sm" fontWeight="medium" color="gray.700">
-                      Current Logo
-                    </styled.label>
-                    <Flex align="start" gap={4}>
-                      <Box
-                        w={24}
-                        h={24}
-                        border="1px solid"
-                        borderColor="gray.200"
-                        borderRadius="md"
-                        overflow="hidden"
-                        bg="gray.50"
-                        flexShrink={0}
-                      >
-                        <styled.img
-                          src={currentLogoUrl}
-                          alt={`${brand.name} current logo`}
-                          w="full"
-                          h="full"
-                          objectFit="cover"
-                        />
-                      </Box>
-                      <styled.button
-                        type="button"
-                        onClick={handleRemoveLogo}
-                        disabled={isPending}
-                        px={3}
-                        py={1}
-                        bg="red.50"
-                        color="red.600"
-                        border="1px solid"
-                        borderColor="red.200"
-                        borderRadius="sm"
-                        fontSize="xs"
-                        cursor="pointer"
-                        _hover={{
-                          bg: 'red.100',
-                        }}
-                        _disabled={{
-                          opacity: 0.5,
-                          cursor: 'not-allowed',
-                        }}
-                      >
-                        Remove Logo
-                      </styled.button>
-                    </Flex>
-                  </Stack>
-                )}
-
-                {removeLogo && (
-                  <Box
-                    bg="yellow.50"
-                    border="1px solid"
-                    borderColor="yellow.200"
-                    borderRadius="md"
-                    p={3}
-                  >
-                    <styled.p fontSize="sm" color="yellow.700">
-                      Logo will be removed when you save the form.
-                    </styled.p>
-                  </Box>
-                )}
-
-                {/* Upload New Logo */}
-                <Stack gap={2}>
-                  <styled.label
-                    htmlFor="logo"
-                    fontSize="sm"
-                    fontWeight="medium"
-                    color="gray.700"
-                  >
-                    {currentLogoUrl ? 'Replace Logo' : 'Upload Logo'}
-                  </styled.label>
-
-                  <Box>
-                    <styled.input
-                      id="logo"
-                      name="logo"
-                      type="file"
-                      accept="image/jpeg,image/png,image/webp"
-                      disabled={isPending}
-                      onChange={handleLogoChange}
-                      fontSize="sm"
-                    />
-                    <styled.p fontSize="xs" color="gray.500" mt={1}>
-                      Supports JPEG, PNG, and WebP files. Maximum size: 5MB.
-                    </styled.p>
-                  </Box>
-
-                  {logoPreview && (
-                    <Box>
-                      <styled.p fontSize="sm" fontWeight="medium" color="gray.700" mb={2}>
-                        New Logo Preview:
-                      </styled.p>
-                      <Box
-                        w={24}
-                        h={24}
-                        border="1px solid"
-                        borderColor="gray.200"
-                        borderRadius="md"
-                        overflow="hidden"
-                        bg="gray.50"
-                      >
-                        <styled.img
-                          src={logoPreview}
-                          alt="New logo preview"
-                          w="full"
-                          h="full"
-                          objectFit="cover"
-                        />
-                      </Box>
-                    </Box>
-                  )}
                 </Stack>
               </Stack>
             </Stack>

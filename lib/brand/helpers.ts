@@ -50,6 +50,7 @@ export function convertToDBFormat(
 
     // Visual Identity - Basic (flattened)
     logo_description: strategy.visualIdentity.logoDescription,
+    logo_url: null, // Logo will be uploaded separately after brand creation
     color_scheme: strategy.visualIdentity.colorScheme,
     design_principles: strategy.visualIdentity.designPrinciples,
 
