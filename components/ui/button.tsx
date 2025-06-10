@@ -8,6 +8,7 @@ export const Button = styled('button', {
     py: '2',
     px: '4',
     rounded: 'md',
+    cursor: 'pointer',
   },
   variants: {
     variant: {
@@ -24,5 +25,8 @@ export const Button = styled('button', {
         color: 'white',
       },
     },
+  },
+  defaultVariants: {
+    variant: 'primary',
   },
 })

@@ -1,0 +1,27 @@
+{
+  "phase1": {
+    "phase": 1,
+    "industry": "Sustainable Fashion",
+    "brandOptions": [
+      {
+        "name": "VerdeVibe",
+        "tagline": "Wear the Change, Live Green",
+        "concept": "VerdeVibe fuses modern style with eco-friendly values, offering fashion-forward pieces made from sustainable materials. The brand champions conscious living and empowers individuals to make a positive impact through their wardrobe choices.",
+        "targetAudience": "Eco-conscious millennials seeking stylish, sustainable clothing."
+      },
+      {
+        "name": "ThreadRoot",
+        "tagline": "Fashion Grown from Purpose",
+        "concept": "ThreadRoot is dedicated to transparency and ethical sourcing, creating timeless essentials with a minimal environmental footprint. The brand appeals to those who value authenticity and want their fashion choices to reflect their values.",
+        "targetAudience": "Millennials who prioritize ethical production and environmental responsibility."
+      },
+      {
+        "name": "Loop & Loom",
+        "tagline": "Circular Style for a Better World",
+        "concept": "Loop & Loom reimagines fashion through a circular lens, focusing on recycled fabrics and closed-loop production. The brand invites trendsetters to join a movement where style and sustainability go hand in hand.",
+        "targetAudience": "Trend-driven millennials passionate about circular economy and innovative eco-fashion."
+      }
+    ],
+    "nextStep": "Please select one brand option (VerdeVibe, ThreadRoot, or Loop & Loom) to continue to the next phase."
+  }
+}

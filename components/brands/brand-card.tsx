@@ -1,3 +1,5 @@
+'use client'
+
 import { Box, Flex, Stack, styled } from '@/styled-system/jsx'
 import Link from 'next/link'
 import type { Brand } from '@/lib/supabase/database-types'
@@ -24,19 +26,6 @@ function getStatusColor(status: string) {
       return { bg: 'gray.100', color: 'gray.700' }
     default:
       return { bg: 'gray.100', color: 'gray.700' }
-  }
-}
-
-async function handleDeleteBrand(brandId: number, projectId: number) {
-  'use server'
-  try {
-    // Delete logo first if it exists
-    await deleteBrandLogoAction(projectId, brandId)
-    // Then delete the brand
-    await deleteBrandAction(brandId)
-  } catch (error) {
-    console.error('Error deleting brand:', error)
-    throw error
   }
 }
 
@@ -116,8 +105,9 @@ export default function BrandCard({ brand, projectId }: BrandCardProps) {
 
           {/* Actions */}
           <Flex gap={1} flexShrink={0}>
+            {/* Edit Link styled as button */}
             <Link href={`/dashboard/projects/${projectId}/brands/${brand.id}/edit`}>
-              <styled.button
+              <styled.div
                 px={2}
                 py={1}
                 fontSize="xs"
@@ -132,12 +122,14 @@ export default function BrandCard({ brand, projectId }: BrandCardProps) {
                   borderColor: 'gray.300',
                 }}
                 transition="all 0.2s"
+                display="inline-block"
               >
                 Edit
-              </styled.button>
+              </styled.div>
             </Link>
 
-            <form action={handleDeleteBrand.bind(null, brand.id, projectId)}>
+            {/* Delete Form */}
+            <form action={deleteBrandAction.bind(null, brand.id)}>
               <styled.button
                 type="submit"
                 px={2}

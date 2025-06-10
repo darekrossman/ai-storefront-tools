@@ -3,6 +3,7 @@ import { Container } from '@/styled-system/jsx'
 import { getProjectAction } from '@/actions/projects'
 import CreateBrandForm from '@/components/brands/create-brand-form'
 import type { Metadata } from 'next'
+import BrandChat from '@/components/brands/brand-chat'
 
 interface CreateBrandPageProps {
   params: Promise<{
@@ -27,7 +28,8 @@ export default async function CreateBrandPage({ params }: CreateBrandPageProps) 
 
   return (
     <Container py={8}>
-      <CreateBrandForm projectId={projectId} />
+      {/* <CreateBrandForm projectId={projectId} /> */}
+      <BrandChat projectId={projectId} />
     </Container>
   )
 }
