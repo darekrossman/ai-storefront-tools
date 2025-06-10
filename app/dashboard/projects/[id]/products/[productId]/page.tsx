@@ -1,4 +1,4 @@
-import { Box, Stack, styled } from '@/styled-system/jsx'
+import { Box, Container, Stack, styled } from '@/styled-system/jsx'
 import { notFound } from 'next/navigation'
 import { getProductById } from '@/actions/products'
 import ProductDetails from '@/components/products/product-details'
@@ -57,5 +57,9 @@ export default async function ProductDetailsPage({ params }: ProductDetailsPageP
     notFound()
   }
 
-  return <ProductDetails product={product} projectId={projectIdNum} />
+  return (
+    <Container py={8}>
+      <ProductDetails product={product} projectId={projectIdNum} />
+    </Container>
+  )
 }

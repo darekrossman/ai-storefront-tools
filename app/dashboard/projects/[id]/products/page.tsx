@@ -1,4 +1,4 @@
-import { Box, Flex, Stack, styled } from '@/styled-system/jsx'
+import { Box, Container, Flex, Stack, styled } from '@/styled-system/jsx'
 import Link from 'next/link'
 import { notFound } from 'next/navigation'
 import { getProjectAction } from '@/actions/projects'
@@ -106,7 +106,7 @@ export default async function ProjectProductsPage({ params }: ProjectProductsPag
   }
 
   return (
-    <Box p={{ base: 4, md: 6, lg: 8 }}>
+    <Container py={8}>
       {/* Header */}
       <Stack gap={2} mb={8}>
         <styled.h1 fontSize="2xl" fontWeight="bold" color="gray.900">
@@ -189,7 +189,7 @@ export default async function ProjectProductsPage({ params }: ProjectProductsPag
           ))}
         </Box>
       )}
-    </Box>
+    </Container>
   )
 }
 
