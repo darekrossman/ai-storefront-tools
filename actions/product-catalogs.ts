@@ -47,11 +47,7 @@ export const getProductCatalogsAction = async (
     throw new Error('Brand not found or access denied')
   }
 
-  const { data, error } = await supabase
-    .from('product_catalogs')
-    .select('*')
-    .eq('brand_id', brandId)
-    .order('created_at', { ascending: false })
+  const { data, error } = await supabase.from('product_catalogs').select('*')
 
   if (error) {
     console.error('Error fetching product catalogs:', error)

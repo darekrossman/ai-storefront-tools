@@ -2,7 +2,7 @@
 -- Projects Table Schema
 -- =====================================================
 -- Purpose: Main container for user storefront projects
--- Dependencies: Requires public.profiles table
+-- Dependencies: Requires auth.users table
 -- RLS: User can only access their own projects
 -- =====================================================
 
@@ -16,7 +16,7 @@ end $$;
 -- Create projects table
 create table public.projects (
   id bigint generated always as identity primary key,
-  user_id uuid not null references public.profiles (id) on delete cascade,
+  user_id uuid not null references auth.users (id) on delete cascade,
   name text not null,
   description text,
   status public.session_status not null default 'active',

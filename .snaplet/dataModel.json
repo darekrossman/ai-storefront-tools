@@ -4244,20 +4244,6 @@
           "isGenerated": false,
           "sequence": false,
           "hasDefaultValue": false
-        },
-        {
-          "name": "projects",
-          "type": "projects",
-          "isRequired": false,
-          "kind": "object",
-          "relationName": "projectsToprofiles",
-          "relationFromFields": [],
-          "relationToFields": [],
-          "isList": true,
-          "isId": false,
-          "isGenerated": false,
-          "sequence": false,
-          "hasDefaultValue": false
         }
       ],
       "uniqueConstraints": [
@@ -4399,11 +4385,11 @@
           "maxLength": null
         },
         {
-          "name": "profiles",
-          "type": "profiles",
+          "name": "users",
+          "type": "users",
           "isRequired": true,
           "kind": "object",
-          "relationName": "projectsToprofiles",
+          "relationName": "projectsTousers",
           "relationFromFields": [
             "user_id"
           ],
@@ -6906,6 +6892,20 @@
           "isRequired": false,
           "kind": "object",
           "relationName": "profilesTousers",
+          "relationFromFields": [],
+          "relationToFields": [],
+          "isList": true,
+          "isId": false,
+          "isGenerated": false,
+          "sequence": false,
+          "hasDefaultValue": false
+        },
+        {
+          "name": "projects",
+          "type": "projects",
+          "isRequired": false,
+          "kind": "object",
+          "relationName": "projectsTousers",
           "relationFromFields": [],
           "relationToFields": [],
           "isList": true,

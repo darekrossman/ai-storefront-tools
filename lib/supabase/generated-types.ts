@@ -17,9 +17,9 @@ export type Database = {
     Functions: {
       graphql: {
         Args: {
+          variables?: Json
           operationName?: string
           query?: string
-          variables?: Json
           extensions?: Json
         }
         Returns: Json
@@ -306,7 +306,15 @@ export type Database = {
           total_products?: number
           updated_at?: string
         }
-        Relationships: []
+        Relationships: [
+          {
+            foreignKeyName: "product_catalogs_brand_id_fkey"
+            columns: ["brand_id"]
+            isOneToOne: false
+            referencedRelation: "brands"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       product_images: {
         Row: {
@@ -541,15 +549,7 @@ export type Database = {
           updated_at?: string
           user_id?: string
         }
-        Relationships: [
-          {
-            foreignKeyName: "projects_user_id_fkey"
-            columns: ["user_id"]
-            isOneToOne: false
-            referencedRelation: "profiles"
-            referencedColumns: ["id"]
-          },
-        ]
+        Relationships: []
       }
     }
     Views: {

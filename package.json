@@ -5,6 +5,7 @@
   "main": "index.js",
   "scripts": {
     "dev": "next dev --turbopack",
+    "dev:debug": "next dev",
     "build": "next build --turbopack",
     "start": "next start",
     "lint": "biome check --fix --unsafe",
