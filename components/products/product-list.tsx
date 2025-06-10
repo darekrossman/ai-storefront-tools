@@ -4,7 +4,7 @@ import { getProductsByCatalog } from '@/actions/products'
 import type { ProductWithRelations } from '@/actions/products'
 
 interface ProductListProps {
-  catalogId: number
+  catalogId: string
   projectId: number
 }
 
@@ -219,7 +219,7 @@ export default async function ProductList({ catalogId, projectId }: ProductListP
 interface ProductCardProps {
   product: ProductWithRelations
   projectId: number
-  catalogId: number
+  catalogId: string
 }
 
 function getStatusColor(status: string) {

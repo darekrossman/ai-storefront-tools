@@ -59,7 +59,7 @@ export const getProductCatalogsAction = async (
 
 // Get a single product catalog by ID
 export const getProductCatalogAction = async (
-  catalogId: number,
+  catalogId: string,
 ): Promise<ProductCatalog | null> => {
   const supabase = await createClient()
 
@@ -79,7 +79,7 @@ export const getProductCatalogAction = async (
         project:projects!inner(user_id)
       )
     `)
-    .eq('id', catalogId)
+    .eq('catalog_id', catalogId)
     .eq('brand.project.user_id', user.id)
     .single()
 
@@ -129,6 +129,7 @@ export const createProductCatalogAction = async (
     .from('product_catalogs')
     .insert({
       brand_id: catalogData.brand_id,
+      catalog_id: catalogData.catalog_id,
       name: catalogData.name,
       description: catalogData.description,
       slug: catalogData.slug,
@@ -149,7 +150,7 @@ export const createProductCatalogAction = async (
 
 // Update an existing product catalog
 export const updateProductCatalogAction = async (
-  catalogId: number,
+  catalogId: string,
   catalogData: UpdateProductCatalogData,
 ): Promise<ProductCatalog> => {
   const supabase = await createClient()
@@ -171,7 +172,7 @@ export const updateProductCatalogAction = async (
         project:projects!inner(user_id)
       )
     `)
-    .eq('id', catalogId)
+    .eq('catalog_id', catalogId)
     .eq('brand.project.user_id', user.id)
     .single()
 
@@ -185,7 +186,7 @@ export const updateProductCatalogAction = async (
       ...catalogData,
       updated_at: new Date().toISOString(),
     })
-    .eq('id', catalogId)
+    .eq('catalog_id', catalogId)
     .select()
     .single()
 
@@ -200,7 +201,7 @@ export const updateProductCatalogAction = async (
 }
 
 // Delete a product catalog
-export const deleteProductCatalogAction = async (catalogId: number): Promise<void> => {
+export const deleteProductCatalogAction = async (catalogId: string): Promise<void> => {
   const supabase = await createClient()
 
   const {
@@ -220,7 +221,7 @@ export const deleteProductCatalogAction = async (catalogId: number): Promise<voi
         project:projects!inner(user_id)
       )
     `)
-    .eq('id', catalogId)
+    .eq('catalog_id', catalogId)
     .eq('brand.project.user_id', user.id)
     .single()
 
@@ -228,7 +229,10 @@ export const deleteProductCatalogAction = async (catalogId: number): Promise<voi
     throw new Error('Product catalog not found or access denied')
   }
 
-  const { error } = await supabase.from('product_catalogs').delete().eq('id', catalogId)
+  const { error } = await supabase
+    .from('product_catalogs')
+    .delete()
+    .eq('catalog_id', catalogId)
 
   if (error) {
     console.error('Error deleting product catalog:', error)

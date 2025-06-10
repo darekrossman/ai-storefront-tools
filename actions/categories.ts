@@ -13,7 +13,7 @@ export type CreateCategoryData = Omit<CategoryInsert, 'id' | 'created_at' | 'upd
 export type UpdateCategoryData = Omit<CategoryUpdate, 'id' | 'created_at' | 'updated_at'>
 
 // Get all categories for a specific catalog (with hierarchical structure)
-export const getCategoriesAction = async (catalogId: number): Promise<Category[]> => {
+export const getCategoriesAction = async (catalogId: string): Promise<Category[]> => {
   const supabase = await createClient()
 
   const {
@@ -28,12 +28,12 @@ export const getCategoriesAction = async (catalogId: number): Promise<Category[]
   const { data: catalog } = await supabase
     .from('product_catalogs')
     .select(`
-      id,
+      catalog_id,
       brand:brands!inner(
         project:projects!inner(user_id)
       )
     `)
-    .eq('id', catalogId)
+    .eq('catalog_id', catalogId)
     .eq('brand.project.user_id', user.id)
     .single()
 
@@ -58,7 +58,7 @@ export const getCategoriesAction = async (catalogId: number): Promise<Category[]
 
 // Get top-level categories (no parent) for a catalog
 export const getTopLevelCategoriesAction = async (
-  catalogId: number,
+  catalogId: string,
 ): Promise<Category[]> => {
   const supabase = await createClient()
 
@@ -74,12 +74,12 @@ export const getTopLevelCategoriesAction = async (
   const { data: catalog } = await supabase
     .from('product_catalogs')
     .select(`
-      id,
+      catalog_id,
       brand:brands!inner(
         project:projects!inner(user_id)
       )
     `)
-    .eq('id', catalogId)
+    .eq('catalog_id', catalogId)
     .eq('brand.project.user_id', user.id)
     .single()
 
@@ -106,7 +106,7 @@ export const getTopLevelCategoriesAction = async (
 
 // Get subcategories for a specific parent category
 export const getSubcategoriesAction = async (
-  parentCategoryId: number,
+  parentCategoryId: string,
 ): Promise<Category[]> => {
   const supabase = await createClient()
 
@@ -122,14 +122,14 @@ export const getSubcategoriesAction = async (
   const { data: parentCategory } = await supabase
     .from('categories')
     .select(`
-      id,
+      category_id,
       catalog:product_catalogs!inner(
         brand:brands!inner(
           project:projects!inner(user_id)
         )
       )
     `)
-    .eq('id', parentCategoryId)
+    .eq('category_id', parentCategoryId)
     .eq('catalog.brand.project.user_id', user.id)
     .single()
 
@@ -154,7 +154,7 @@ export const getSubcategoriesAction = async (
 }
 
 // Get a single category by ID
-export const getCategoryAction = async (categoryId: number): Promise<Category | null> => {
+export const getCategoryAction = async (categoryId: string): Promise<Category | null> => {
   const supabase = await createClient()
 
   const {
@@ -175,7 +175,7 @@ export const getCategoryAction = async (categoryId: number): Promise<Category | 
         )
       )
     `)
-    .eq('id', categoryId)
+    .eq('category_id', categoryId)
     .eq('catalog.brand.project.user_id', user.id)
     .single()
 
@@ -194,7 +194,7 @@ export const getCategoryAction = async (categoryId: number): Promise<Category | 
 
 // Create a new category
 export const createCategoryAction = async (
-  categoryData: CreateCategoryData,
+  categoryData: CreateCategoryData & { category_id: string },
 ): Promise<Category> => {
   const supabase = await createClient()
 
@@ -210,12 +210,12 @@ export const createCategoryAction = async (
   const { data: catalog } = await supabase
     .from('product_catalogs')
     .select(`
-      id,
+      catalog_id,
       brand:brands!inner(
         project:projects!inner(user_id)
       )
     `)
-    .eq('id', categoryData.catalog_id)
+    .eq('catalog_id', categoryData.catalog_id)
     .eq('brand.project.user_id', user.id)
     .single()
 
@@ -227,8 +227,8 @@ export const createCategoryAction = async (
   if (categoryData.parent_category_id) {
     const { data: parentCategory } = await supabase
       .from('categories')
-      .select('id')
-      .eq('id', categoryData.parent_category_id)
+      .select('category_id')
+      .eq('category_id', categoryData.parent_category_id)
       .eq('catalog_id', categoryData.catalog_id)
       .single()
 
@@ -240,6 +240,7 @@ export const createCategoryAction = async (
   const { data, error } = await supabase
     .from('categories')
     .insert({
+      category_id: categoryData.category_id,
       catalog_id: categoryData.catalog_id,
       name: categoryData.name,
       description: categoryData.description,
@@ -263,7 +264,7 @@ export const createCategoryAction = async (
 
 // Update an existing category
 export const updateCategoryAction = async (
-  categoryId: number,
+  categoryId: string,
   categoryData: UpdateCategoryData,
 ): Promise<Category> => {
   const supabase = await createClient()
@@ -287,7 +288,7 @@ export const updateCategoryAction = async (
         )
       )
     `)
-    .eq('id', categoryId)
+    .eq('category_id', categoryId)
     .eq('catalog.brand.project.user_id', user.id)
     .single()
 
@@ -304,8 +305,8 @@ export const updateCategoryAction = async (
     if (categoryData.parent_category_id) {
       const { data: parentCategory } = await supabase
         .from('categories')
-        .select('id')
-        .eq('id', categoryData.parent_category_id)
+        .select('category_id')
+        .eq('category_id', categoryData.parent_category_id)
         .eq('catalog_id', categoryCheck.catalog_id)
         .single()
 
@@ -323,7 +324,7 @@ export const updateCategoryAction = async (
       ...categoryData,
       updated_at: new Date().toISOString(),
     })
-    .eq('id', categoryId)
+    .eq('category_id', categoryId)
     .select()
     .single()
 
@@ -338,7 +339,7 @@ export const updateCategoryAction = async (
 }
 
 // Delete a category
-export const deleteCategoryAction = async (categoryId: number): Promise<void> => {
+export const deleteCategoryAction = async (categoryId: string): Promise<void> => {
   const supabase = await createClient()
 
   const {
@@ -360,7 +361,7 @@ export const deleteCategoryAction = async (categoryId: number): Promise<void> =>
         )
       )
     `)
-    .eq('id', categoryId)
+    .eq('category_id', categoryId)
     .eq('catalog.brand.project.user_id', user.id)
     .single()
 
@@ -371,7 +372,7 @@ export const deleteCategoryAction = async (categoryId: number): Promise<void> =>
   // Check if category has subcategories
   const { data: subcategories } = await supabase
     .from('categories')
-    .select('id')
+    .select('category_id')
     .eq('parent_category_id', categoryId)
     .limit(1)
 
@@ -385,7 +386,7 @@ export const deleteCategoryAction = async (categoryId: number): Promise<void> =>
   const { data: products } = await supabase
     .from('products')
     .select('id')
-    .or(`primary_category_id.eq.${categoryId},subcategory_id.eq.${categoryId}`)
+    .eq('parent_category_id', categoryId)
     .limit(1)
 
   if (products && products.length > 0) {
@@ -394,7 +395,10 @@ export const deleteCategoryAction = async (categoryId: number): Promise<void> =>
     )
   }
 
-  const { error } = await supabase.from('categories').delete().eq('id', categoryId)
+  const { error } = await supabase
+    .from('categories')
+    .delete()
+    .eq('category_id', categoryId)
 
   if (error) {
     console.error('Error deleting category:', error)

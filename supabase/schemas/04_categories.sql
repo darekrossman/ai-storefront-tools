@@ -10,11 +10,12 @@
 -- Create categories table
 create table public.categories (
   id bigint generated always as identity primary key,
-  catalog_id bigint not null references public.product_catalogs (id) on delete cascade,
+  category_id text not null unique,
+  catalog_id text not null references public.product_catalogs (catalog_id) on delete cascade,
   name text not null,
   description text not null,
   slug text not null,
-  parent_category_id bigint references public.categories (id) on delete set null,
+  parent_category_id text references public.categories (category_id) on delete set null,
   sort_order integer not null default 0,
   metadata jsonb default '{}',
   is_active boolean not null default true,
@@ -25,12 +26,14 @@ create table public.categories (
 comment on table public.categories is 'Product categories for organizing products within product catalogs. Supports hierarchical structure with parent-child relationships.';
 
 -- Add column comments for clarity
+comment on column public.categories.category_id is 'Unique text identifier for the category';
 comment on column public.categories.parent_category_id is 'Self-referencing foreign key for hierarchical categories (subcategories)';
 comment on column public.categories.sort_order is 'Display order for categories within the same level';
 comment on column public.categories.metadata is 'JSONB: Additional category metadata like images, colors, SEO data';
 comment on column public.categories.slug is 'URL-friendly identifier for the category within the catalog';
 
 -- Add indexes for performance
+create index idx_categories_category_id on public.categories (category_id);
 create index idx_categories_catalog_id on public.categories (catalog_id);
 create index idx_categories_parent_id on public.categories (parent_category_id);
 create index idx_categories_slug on public.categories (slug);
@@ -58,7 +61,7 @@ create policy "Users can view categories from their own catalogs"
   to authenticated
   using (
     catalog_id in (
-      select product_catalogs.id 
+      select product_catalogs.catalog_id 
       from public.product_catalogs 
       join public.brands on product_catalogs.brand_id = brands.id
       join public.projects on brands.project_id = projects.id 
@@ -73,7 +76,7 @@ create policy "Users can insert categories into their own catalogs"
   to authenticated
   with check (
     catalog_id in (
-      select product_catalogs.id 
+      select product_catalogs.catalog_id 
       from public.product_catalogs 
       join public.brands on product_catalogs.brand_id = brands.id
       join public.projects on brands.project_id = projects.id 
@@ -88,7 +91,7 @@ create policy "Users can update categories from their own catalogs"
   to authenticated
   using (
     catalog_id in (
-      select product_catalogs.id 
+      select product_catalogs.catalog_id 
       from public.product_catalogs 
       join public.brands on product_catalogs.brand_id = brands.id
       join public.projects on brands.project_id = projects.id 
@@ -103,7 +106,7 @@ create policy "Users can delete categories from their own catalogs"
   to authenticated
   using (
     catalog_id in (
-      select product_catalogs.id 
+      select product_catalogs.catalog_id 
       from public.product_catalogs 
       join public.brands on product_catalogs.brand_id = brands.id
       join public.projects on brands.project_id = projects.id 

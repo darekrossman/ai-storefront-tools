@@ -5,6 +5,7 @@ import { getProjectAction } from '@/actions/projects'
 import { getBrandsAction } from '@/actions/brands'
 import { getProductCatalogsAction } from '@/actions/product-catalogs'
 import type { ProductCatalog } from '@/lib/supabase/database-types'
+import { button } from '@/components/ui/button'
 
 interface ProjectCatalogsPageProps {
   params: Promise<{
@@ -92,14 +93,20 @@ export default async function ProjectCatalogsPage({ params }: ProjectCatalogsPag
   return (
     <Box p={{ base: 4, md: 6, lg: 8 }}>
       {/* Header */}
-      <Stack gap={2} mb={8}>
-        <styled.h1 fontSize="2xl" fontWeight="bold" color="gray.900">
-          Product Catalogs
-        </styled.h1>
-        <styled.p fontSize="sm" color="gray.600">
-          All product catalogs across brands in {project?.name}
-        </styled.p>
-      </Stack>
+      <Flex justify="space-between" align="start" gap={4} mb={8}>
+        <Stack gap={2} flex={1}>
+          <styled.h1 fontSize="2xl" fontWeight="bold" color="gray.900">
+            Product Catalogs
+          </styled.h1>
+          <styled.p fontSize="sm" color="gray.600">
+            All product catalogs across brands in {project?.name}
+          </styled.p>
+        </Stack>
+
+        <Link href={`/dashboard/projects/${projectId}/catalogs/new`} className={button()}>
+          Create Catalog
+        </Link>
+      </Flex>
 
       {/* Empty State */}
       {catalogsWithBrands.length === 0 ? (

@@ -1,8 +1,9 @@
+import { getBrandsAction } from '@/actions/brands'
+import { button } from '@/components/ui/button'
+import type { Brand } from '@/lib/supabase/database-types'
 import { Box, Flex, Stack, styled } from '@/styled-system/jsx'
 import Link from 'next/link'
-import { getBrandsAction } from '@/actions/brands'
 import BrandCard from './brand-card'
-import type { Brand } from '@/lib/supabase/database-types'
 
 interface BrandListProps {
   projectId: number
@@ -41,34 +42,39 @@ export default async function BrandList({ projectId }: BrandListProps) {
     )
   }
 
-  // Empty State
-  if (brands.length === 0) {
-    return (
-      <Box>
-        <Flex justify="space-between" align="center" mb={6}>
+  // Brands Grid
+  return (
+    <Box>
+      <Flex justify="space-between" align="center" mb={6}>
+        <Stack gap={1}>
           <styled.h2 fontSize="xl" fontWeight="semibold" color="gray.900">
             Brands
           </styled.h2>
-          <Link href={`/dashboard/projects/${projectId}/brands/new`}>
-            <styled.button
-              px={4}
-              py={2}
-              bg="blue.600"
-              color="white"
-              borderRadius="lg"
-              fontSize="sm"
-              fontWeight="medium"
-              cursor="pointer"
-              _hover={{
-                bg: 'blue.700',
-              }}
-              transition="all 0.2s"
-            >
-              Create Brand
-            </styled.button>
-          </Link>
-        </Flex>
+          <styled.p fontSize="sm" color="gray.600">
+            {brands.length} {brands.length === 1 ? 'brand' : 'brands'} in this project
+          </styled.p>
+        </Stack>
 
+        <Link href={`/dashboard/projects/${projectId}/brands/new`} className={button()}>
+          Add Brand
+        </Link>
+      </Flex>
+
+      {brands.length > 0 ? (
+        <Box
+          display="grid"
+          gridTemplateColumns={{
+            base: '1fr',
+            md: 'repeat(2, 1fr)',
+            lg: 'repeat(3, 1fr)',
+          }}
+          gap={6}
+        >
+          {brands.map((brand) => (
+            <BrandCard key={brand.id} brand={brand} projectId={projectId} />
+          ))}
+        </Box>
+      ) : (
         <Box
           bg="white"
           border="2px dashed"
@@ -104,7 +110,7 @@ export default async function BrandList({ projectId }: BrandListProps) {
             </Stack>
 
             <Link href={`/dashboard/projects/${projectId}/brands/new`}>
-              <styled.button
+              <styled.div
                 px={6}
                 py={3}
                 bg="blue.600"
@@ -117,62 +123,14 @@ export default async function BrandList({ projectId }: BrandListProps) {
                   bg: 'blue.700',
                 }}
                 transition="all 0.2s"
+                display="inline-block"
               >
                 Create Your First Brand
-              </styled.button>
+              </styled.div>
             </Link>
           </Stack>
         </Box>
-      </Box>
-    )
-  }
-
-  // Brands Grid
-  return (
-    <Box>
-      <Flex justify="space-between" align="center" mb={6}>
-        <Stack gap={1}>
-          <styled.h2 fontSize="xl" fontWeight="semibold" color="gray.900">
-            Brands
-          </styled.h2>
-          <styled.p fontSize="sm" color="gray.600">
-            {brands.length} {brands.length === 1 ? 'brand' : 'brands'} in this project
-          </styled.p>
-        </Stack>
-
-        <Link href={`/dashboard/projects/${projectId}/brands/new`}>
-          <styled.button
-            px={4}
-            py={2}
-            bg="blue.600"
-            color="white"
-            borderRadius="lg"
-            fontSize="sm"
-            fontWeight="medium"
-            cursor="pointer"
-            _hover={{
-              bg: 'blue.700',
-            }}
-            transition="all 0.2s"
-          >
-            Add Brand
-          </styled.button>
-        </Link>
-      </Flex>
-
-      <Box
-        display="grid"
-        gridTemplateColumns={{
-          base: '1fr',
-          md: 'repeat(2, 1fr)',
-          lg: 'repeat(3, 1fr)',
-        }}
-        gap={6}
-      >
-        {brands.map((brand) => (
-          <BrandCard key={brand.id} brand={brand} projectId={projectId} />
-        ))}
-      </Box>
+      )}
     </Box>
   )
 }

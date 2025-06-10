@@ -10,8 +10,8 @@
 -- Create products table
 create table public.products (
   id bigint generated always as identity primary key,
-  catalog_id bigint not null references public.product_catalogs (id) on delete cascade,
-  parent_category_id bigint references public.categories (id) on delete set null,
+  catalog_id text not null references public.product_catalogs (catalog_id) on delete cascade,
+  parent_category_id text references public.categories (category_id) on delete set null,
   name text not null,
   description text not null,
   short_description text not null,
@@ -75,7 +75,7 @@ create policy "Users can view products from their own catalogs"
   to authenticated
   using (
     catalog_id in (
-      select product_catalogs.id 
+      select product_catalogs.catalog_id 
       from public.product_catalogs 
       join public.brands on product_catalogs.brand_id = brands.id
       join public.projects on brands.project_id = projects.id 
@@ -90,7 +90,7 @@ create policy "Users can insert products into their own catalogs"
   to authenticated
   with check (
     catalog_id in (
-      select product_catalogs.id 
+      select product_catalogs.catalog_id 
       from public.product_catalogs 
       join public.brands on product_catalogs.brand_id = brands.id
       join public.projects on brands.project_id = projects.id 
@@ -105,7 +105,7 @@ create policy "Users can update products from their own catalogs"
   to authenticated
   using (
     catalog_id in (
-      select product_catalogs.id 
+      select product_catalogs.catalog_id 
       from public.product_catalogs 
       join public.brands on product_catalogs.brand_id = brands.id
       join public.projects on brands.project_id = projects.id 
@@ -120,7 +120,7 @@ create policy "Users can delete products from their own catalogs"
   to authenticated
   using (
     catalog_id in (
-      select product_catalogs.id 
+      select product_catalogs.catalog_id 
       from public.product_catalogs 
       join public.brands on product_catalogs.brand_id = brands.id
       join public.projects on brands.project_id = projects.id 
@@ -135,21 +135,21 @@ begin
   if tg_op = 'INSERT' then
     update public.product_catalogs 
     set total_products = total_products + 1 
-    where id = new.catalog_id;
+    where catalog_id = new.catalog_id;
     return new;
   elsif tg_op = 'DELETE' then
     update public.product_catalogs 
     set total_products = total_products - 1 
-    where id = old.catalog_id;
+    where catalog_id = old.catalog_id;
     return old;
   elsif tg_op = 'UPDATE' and old.catalog_id != new.catalog_id then
     -- Product moved to different catalog
     update public.product_catalogs 
     set total_products = total_products - 1 
-    where id = old.catalog_id;
+    where catalog_id = old.catalog_id;
     update public.product_catalogs 
     set total_products = total_products + 1 
-    where id = new.catalog_id;
+    where catalog_id = new.catalog_id;
     return new;
   end if;
   return coalesce(new, old);
@@ -175,7 +175,7 @@ begin
   -- Check parent category belongs to same catalog (if specified)
   if new.parent_category_id is not null and not exists (
     select 1 from public.categories 
-    where id = new.parent_category_id 
+    where category_id = new.parent_category_id 
     and catalog_id = new.catalog_id
   ) then
     raise exception 'Parent category must belong to the same catalog as the product';

@@ -16,7 +16,7 @@ interface ProjectProductsPageProps {
 // Extended type to include catalog and brand information
 interface ProductWithContext extends ProductWithRelations {
   catalog?: {
-    id: number
+    catalog_id: string
     name: string
   }
   brand?: {
@@ -54,11 +54,11 @@ export default async function ProjectProductsPage({ params }: ProjectProductsPag
         const brandCatalogs = await getProductCatalogsAction(brand.id)
         for (const catalog of brandCatalogs) {
           try {
-            const catalogProducts = await getProductsByCatalog(catalog.id)
+            const catalogProducts = await getProductsByCatalog(catalog.catalog_id)
             const productsWithBrandCatalogInfo = catalogProducts.map((product) => ({
               ...product,
               catalog: {
-                id: catalog.id,
+                catalog_id: catalog.catalog_id,
                 name: catalog.name,
               },
               brand: {
@@ -68,7 +68,10 @@ export default async function ProjectProductsPage({ params }: ProjectProductsPag
             }))
             allProducts.push(...productsWithBrandCatalogInfo)
           } catch (err) {
-            console.error(`Error fetching products for catalog ${catalog.id}:`, err)
+            console.error(
+              `Error fetching products for catalog ${catalog.catalog_id}:`,
+              err,
+            )
           }
         }
       } catch (err) {

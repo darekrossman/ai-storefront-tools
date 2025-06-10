@@ -29,7 +29,7 @@ export type UpdateProductData = {
 
 export interface ProductWithRelations extends Product {
   product_catalogs?: {
-    id: number
+    catalog_id: string
     name: string
     brands?: {
       id: number
@@ -42,7 +42,7 @@ export interface ProductWithRelations extends Product {
     }
   }
   categories?: {
-    id: number
+    category_id: string
     name: string
   } | null
   product_variants?: Array<{
@@ -85,7 +85,7 @@ export async function createProduct(data: CreateProductData) {
     const { data: catalog } = await supabase
       .from('product_catalogs')
       .select(`
-        id,
+        catalog_id,
         brands (
           id,
           projects (
@@ -94,7 +94,7 @@ export async function createProduct(data: CreateProductData) {
           )
         )
       `)
-      .eq('id', data.catalog_id)
+      .eq('catalog_id', data.catalog_id)
       .single()
 
     if (!catalog?.brands?.projects?.user_id) {
@@ -157,7 +157,7 @@ export async function updateProduct(data: UpdateProductData) {
       .select(`
         id,
         product_catalogs (
-          id,
+          catalog_id,
           brands (
             id,
             projects (
@@ -220,7 +220,7 @@ export async function deleteProduct(productId: number) {
       .select(`
         id,
         product_catalogs (
-          id,
+          catalog_id,
           brands (
             id,
             projects (
@@ -267,7 +267,7 @@ export async function deleteProduct(productId: number) {
  * Get products for a catalog with variants and related data
  */
 export async function getProductsByCatalog(
-  catalogId: number,
+  catalogId: string,
 ): Promise<ProductWithRelations[]> {
   const supabase = await createClient()
 
@@ -277,7 +277,7 @@ export async function getProductsByCatalog(
       .select(`
         *,
         product_catalogs (
-          id,
+          catalog_id,
           name,
           brands (
             id,
@@ -290,7 +290,7 @@ export async function getProductsByCatalog(
           )
         ),
         categories (
-          id,
+          category_id,
           name
         ),
         product_variants (
@@ -349,7 +349,7 @@ export async function getProductById(
       .select(`
         *,
         product_catalogs (
-          id,
+          catalog_id,
           name,
           brands (
             id,
@@ -362,7 +362,7 @@ export async function getProductById(
           )
         ),
         categories (
-          id,
+          category_id,
           name
         ),
         product_variants (
@@ -500,7 +500,7 @@ export async function duplicateProduct(productId: number, newName: string) {
 /**
  * Get all products for a catalog with basic info only
  */
-export async function getProducts(catalogId: number): Promise<Product[]> {
+export async function getProducts(catalogId: string): Promise<Product[]> {
   const supabase = await createClient()
 
   try {
@@ -536,7 +536,7 @@ export async function updateProductStatus(productId: number, status: BrandStatus
       .select(`
         id,
         product_catalogs (
-          id,
+          catalog_id,
           brands (
             id,
             projects (

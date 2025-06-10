@@ -4,7 +4,7 @@ import { getCategoriesAction } from '@/actions/categories'
 import type { Category } from '@/lib/supabase/database-types'
 
 interface CategoriesTabProps {
-  catalogId: number
+  catalogId: string
   projectId: number
 }
 
@@ -237,7 +237,7 @@ interface CategoryTableRowProps {
   category: Category
   categories: Category[]
   projectId: number
-  catalogId: number
+  catalogId: string
 }
 
 function CategoryTableRow({
@@ -246,7 +246,16 @@ function CategoryTableRow({
   projectId,
   catalogId,
 }: CategoryTableRowProps) {
-  const parentCategory = categories.find((cat) => cat.id === category.parent_category_id)
+  const getStatusColor = (status: boolean) => {
+    return status
+      ? { bg: 'green.100', color: 'green.700', text: 'Active' }
+      : { bg: 'gray.100', color: 'gray.700', text: 'Inactive' }
+  }
+
+  const statusColor = getStatusColor(category.is_active)
+  const parentCategory = categories.find(
+    (cat) => cat.category_id === category.parent_category_id,
+  )
 
   return (
     <styled.tr
@@ -310,10 +319,10 @@ function CategoryTableRow({
           px={2}
           py={1}
           borderRadius="md"
-          bg={category.is_active ? 'green.100' : 'gray.100'}
-          color={category.is_active ? 'green.700' : 'gray.700'}
+          bg={statusColor.bg}
+          color={statusColor.color}
         >
-          {category.is_active ? 'Active' : 'Inactive'}
+          {statusColor.text}
         </styled.span>
       </styled.td>
 

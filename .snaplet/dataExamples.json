@@ -573,6 +573,32 @@
     "description": "This column is about the style or mood of the imagery associated with the brands in the catalog. It may describe the overall aesthetic, vibe, or emotional tone captured in the images used for the brands."
   },
   {
+    "input": "public brands logo_url",
+    "examples": [
+      "https://example.com/brand1_logo.png",
+      "https://example.com/brand2_logo.png",
+      "https://example.com/brand3_logo.jpg",
+      "https://example.com/brand4_logo.jpg",
+      "https://example.com/brand5_logo.png",
+      "https://example.com/brand6_logo.jpg",
+      "https://example.com/brand7_logo.png",
+      "https://example.com/brand8_logo.jpg",
+      "https://example.com/brand9_logo.png",
+      "https://example.com/brand10_logo.jpg",
+      "https://example.com/brand11_logo.jpg",
+      "https://example.com/brand12_logo.png",
+      "https://example.com/brand13_logo.jpg",
+      "https://example.com/brand14_logo.png",
+      "https://example.com/brand15_logo.jpg",
+      "https://example.com/brand16_logo.png",
+      "https://example.com/brand17_logo.jpg",
+      "https://example.com/brand18_logo.png",
+      "https://example.com/brand19_logo.jpg",
+      "https://example.com/brand20_logo.png"
+    ],
+    "description": "This column contains the URL or link to the logo image associated with each brand in the database. It is used to display the brand's logo in user interfaces or marketing materials."
+  },
+  {
     "input": "public categories name",
     "examples": [
       "Electronics",
@@ -1403,5 +1429,31 @@
       "email.change.me@anotherdomain.com"
     ],
     "description": "This column is about storing the new email address to which a user wants to change their current email address."
+  },
+  {
+    "input": "public waitlist email",
+    "examples": [
+      "john.doe@example.com",
+      "jane.smith@example.com",
+      "samuel.jackson@domain.com",
+      "lisa.wong@example.net",
+      "alex.miller@company.com",
+      "emily.white@example.org",
+      "michael.brown@example.com",
+      "sarah.jones@domain.com",
+      "chris.davis@company.com",
+      "anna.wilson@example.net",
+      "david.nguyen@example.com",
+      "olivia.smith@example.com",
+      "adam.thomas@domain.com",
+      "rachel.green@company.com",
+      "kevin.johnson@example.net",
+      "lauren.morris@example.org",
+      "stephen.baker@example.com",
+      "natalie.hill@domain.com",
+      "jason.nguyen@company.com",
+      "sophia.lee@example.net"
+    ],
+    "description": "This column contains the email addresses of users who have signed up to be notified or are on a waitlist for specific products or services in the catalog."
   }
 ]

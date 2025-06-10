@@ -86,7 +86,7 @@ create policy "Allow uploads for project members in product_images"
     (storage.foldername(name))[1]::bigint in (
       select prod.id
       from public.products prod
-      join public.product_catalogs pc on prod.catalog_id = pc.id
+      join public.product_catalogs pc on prod.catalog_id = pc.catalog_id
       join public.brands b on pc.brand_id = b.id
       join public.projects p on b.project_id = p.id
       where p.user_id = auth.uid()
@@ -102,7 +102,7 @@ create policy "Allow updates for project members in product_images"
     (storage.foldername(name))[1]::bigint in (
       select prod.id
       from public.products prod
-      join public.product_catalogs pc on prod.catalog_id = pc.id
+      join public.product_catalogs pc on prod.catalog_id = pc.catalog_id
       join public.brands b on pc.brand_id = b.id
       join public.projects p on b.project_id = p.id
       where p.user_id = auth.uid()
@@ -118,7 +118,7 @@ create policy "Allow deletes for project members in product_images"
     (storage.foldername(name))[1]::bigint in (
       select prod.id
       from public.products prod
-      join public.product_catalogs pc on prod.catalog_id = pc.id
+      join public.product_catalogs pc on prod.catalog_id = pc.catalog_id
       join public.brands b on pc.brand_id = b.id
       join public.projects p on b.project_id = p.id
       where p.user_id = auth.uid()
@@ -144,7 +144,7 @@ create policy "Allow uploads for project members in product_swatches"
     (storage.foldername(name))[1]::bigint in (
       select prod.id
       from public.products prod
-      join public.product_catalogs pc on prod.catalog_id = pc.id
+      join public.product_catalogs pc on prod.catalog_id = pc.catalog_id
       join public.brands b on pc.brand_id = b.id
       join public.projects p on b.project_id = p.id
       where p.user_id = auth.uid()
@@ -160,7 +160,7 @@ create policy "Allow updates for project members in product_swatches"
     (storage.foldername(name))[1]::bigint in (
       select prod.id
       from public.products prod
-      join public.product_catalogs pc on prod.catalog_id = pc.id
+      join public.product_catalogs pc on prod.catalog_id = pc.catalog_id
       join public.brands b on pc.brand_id = b.id
       join public.projects p on b.project_id = p.id
       where p.user_id = auth.uid()
@@ -176,7 +176,7 @@ create policy "Allow deletes for project members in product_swatches"
     (storage.foldername(name))[1]::bigint in (
       select prod.id
       from public.products prod
-      join public.product_catalogs pc on prod.catalog_id = pc.id
+      join public.product_catalogs pc on prod.catalog_id = pc.catalog_id
       join public.brands b on pc.brand_id = b.id
       join public.projects p on b.project_id = p.id
       where p.user_id = auth.uid()

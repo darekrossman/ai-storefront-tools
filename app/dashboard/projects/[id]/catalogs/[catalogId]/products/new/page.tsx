@@ -13,14 +13,14 @@ interface NewProductPageProps {
 
 export default async function NewProductPage({ params }: NewProductPageProps) {
   const projectId = parseInt(params.id)
-  const catalogId = parseInt(params.catalogId)
+  const catalogId = params.catalogId
 
-  if (isNaN(projectId) || isNaN(catalogId)) {
+  if (isNaN(projectId)) {
     notFound()
   }
 
   let catalog = null
-  let categories: Array<{ id: number; name: string }> = []
+  let categories: Array<{ category_id: string; name: string }> = []
   let error: string | null = null
 
   try {
@@ -33,10 +33,12 @@ export default async function NewProductPage({ params }: NewProductPageProps) {
     // Get categories for this catalog
     try {
       const catalogCategories = await getCategoriesAction(catalogId)
-      categories = catalogCategories.map((cat: { id: number; name: string }) => ({
-        id: cat.id,
-        name: cat.name,
-      }))
+      categories = catalogCategories.map(
+        (cat: { category_id: string; name: string }) => ({
+          category_id: cat.category_id,
+          name: cat.name,
+        }),
+      )
     } catch (err) {
       // Categories are optional, so we can continue without them
       console.warn('Could not load categories:', err)

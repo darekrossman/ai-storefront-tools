@@ -12,9 +12,9 @@ interface CatalogProductsPageProps {
 
 export default async function CatalogProductsPage({ params }: CatalogProductsPageProps) {
   const projectId = parseInt(params.id)
-  const catalogId = parseInt(params.catalogId)
+  const catalogId = params.catalogId
 
-  if (isNaN(projectId) || isNaN(catalogId)) {
+  if (isNaN(projectId)) {
     notFound()
   }
 

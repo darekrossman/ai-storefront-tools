@@ -5,22 +5,22 @@ import { getProductCatalogAction } from '@/actions/product-catalogs'
 import { getProductsByCatalog } from '@/actions/products'
 import type { ProductCatalog } from '@/lib/supabase/database-types'
 import type { ProductWithRelations } from '@/actions/products'
-import CatalogDetailTabs from '@/components/product-catalogs/catalog-detail-tabs'
-import CategoriesTab from '@/components/product-catalogs/categories-tab'
-import ProductsTab from '@/components/product-catalogs/products-tab'
+import CatalogDetailTabs from '@/components/catalogs/catalog-detail-tabs'
+import CategoriesTab from '@/components/catalogs/categories-tab'
+import ProductsTab from '@/components/catalogs/products-tab'
 
 interface CatalogDetailsPageProps {
-  params: {
+  params: Promise<{
     id: string
     catalogId: string
-  }
+  }>
 }
 
 export default async function CatalogDetailsPage({ params }: CatalogDetailsPageProps) {
-  const projectId = parseInt(params.id)
-  const catalogId = parseInt(params.catalogId)
+  const { id, catalogId } = await params
+  const projectId = parseInt(id)
 
-  if (isNaN(projectId) || isNaN(catalogId)) {
+  if (isNaN(projectId)) {
     notFound()
   }
 

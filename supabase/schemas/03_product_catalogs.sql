@@ -10,6 +10,7 @@
 -- Create product catalogs table
 create table public.product_catalogs (
   id bigint generated always as identity primary key,
+  catalog_id text not null unique,
   brand_id bigint not null references public.brands (id) on delete cascade,
   name text not null,
   description text,
@@ -24,11 +25,13 @@ create table public.product_catalogs (
 comment on table public.product_catalogs is 'Product catalogs containing organized collections of products within brands. Each brand can have multiple catalogs for different purposes or audiences.';
 
 -- Add column comments for clarity
+comment on column public.product_catalogs.catalog_id is 'Unique text identifier for the catalog';
 comment on column public.product_catalogs.total_products is 'Automatically calculated count of products in this catalog';
 comment on column public.product_catalogs.settings is 'JSONB: Catalog-specific configuration and metadata';
 comment on column public.product_catalogs.slug is 'URL-friendly identifier for the catalog within the brand';
 
 -- Add indexes for performance
+create index idx_product_catalogs_catalog_id on public.product_catalogs (catalog_id);
 create index idx_product_catalogs_brand_id on public.product_catalogs (brand_id);
 create index idx_product_catalogs_status on public.product_catalogs (status);
 create index idx_product_catalogs_created_at_desc on public.product_catalogs (created_at desc);

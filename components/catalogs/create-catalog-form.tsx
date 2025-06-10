@@ -17,7 +17,7 @@ type FormState = {
   error?: string
   message?: string
   success?: boolean
-  catalogId?: number
+  catalogId?: string
 }
 
 async function submitCatalogForm(
@@ -26,14 +26,11 @@ async function submitCatalogForm(
 ): Promise<FormState> {
   try {
     const brandId = parseInt(formData.get('brandId') as string)
-
-    // Extract form values
     const name = formData.get('name') as string
     const description = formData.get('description') as string
     const slug = formData.get('slug') as string
-    const status = (formData.get('status') as string) || 'draft'
+    const status = formData.get('status') as string
 
-    // Validate required fields
     if (!name?.trim()) {
       return { error: 'Catalog name is required' }
     }
@@ -42,9 +39,13 @@ async function submitCatalogForm(
       return { error: 'Catalog slug is required' }
     }
 
+    // Generate a unique catalog_id
+    const catalog_id = `catalog_${Date.now()}_${Math.random().toString(36).substring(2, 8)}`
+
     // Create catalog data
     const catalogData: CreateProductCatalogData = {
       brand_id: brandId,
+      catalog_id: catalog_id,
       name: name.trim(),
       description: description?.trim() || null,
       slug: slug
@@ -60,7 +61,7 @@ async function submitCatalogForm(
 
     return {
       success: true,
-      catalogId: catalog.id,
+      catalogId: catalog.catalog_id,
       message: 'Product catalog created successfully!',
     }
   } catch (error) {

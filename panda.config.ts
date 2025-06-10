@@ -19,6 +19,17 @@ export default defineConfig({
     extend: {},
   },
 
+  globalCss: {
+    '*': {
+      textBoxEdge: 'cap alphabetic',
+      textBoxTrim: 'trim-both',
+      textWrap: 'pretty',
+    },
+    button: {
+      cursor: 'pointer',
+    },
+  },
+
   jsxFramework: 'react',
 
   // The output directory for your css system

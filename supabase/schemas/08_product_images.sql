@@ -57,7 +57,7 @@ do $$ begin
       using (
         product_id in (
           select products.id from public.products
-          join public.product_catalogs on products.catalog_id = product_catalogs.id
+          join public.product_catalogs on products.catalog_id = product_catalogs.catalog_id
           join public.brands on product_catalogs.brand_id = brands.id
           join public.projects on brands.project_id = projects.id
           where projects.user_id = auth.uid()
@@ -75,7 +75,7 @@ do $$ begin
       with check (
         product_id in (
           select products.id from public.products
-          join public.product_catalogs on products.catalog_id = product_catalogs.id
+          join public.product_catalogs on products.catalog_id = product_catalogs.catalog_id
           join public.brands on product_catalogs.brand_id = brands.id
           join public.projects on brands.project_id = projects.id
           where projects.user_id = auth.uid()
@@ -93,7 +93,7 @@ do $$ begin
       using (
         product_id in (
           select products.id from public.products
-          join public.product_catalogs on products.catalog_id = product_catalogs.id
+          join public.product_catalogs on products.catalog_id = product_catalogs.catalog_id
           join public.brands on product_catalogs.brand_id = brands.id
           join public.projects on brands.project_id = projects.id
           where projects.user_id = auth.uid()
@@ -111,7 +111,7 @@ do $$ begin
       using (
         product_id in (
           select products.id from public.products
-          join public.product_catalogs on products.catalog_id = product_catalogs.id
+          join public.product_catalogs on products.catalog_id = product_catalogs.catalog_id
           join public.brands on product_catalogs.brand_id = brands.id
           join public.projects on brands.project_id = projects.id
           where projects.user_id = auth.uid()

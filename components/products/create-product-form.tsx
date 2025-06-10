@@ -7,8 +7,8 @@ import { createProduct, type CreateProductData } from '@/actions/products'
 
 interface CreateProductFormProps {
   projectId: number
-  catalogId: number
-  categories?: Array<{ id: number; name: string }>
+  catalogId: string
+  categories?: Array<{ category_id: string; name: string }>
 }
 
 type FormState = {
@@ -23,23 +23,25 @@ async function submitProductForm(
   formData: FormData,
 ): Promise<FormState> {
   try {
-    const catalogId = parseInt(formData.get('catalogId') as string)
-
-    // Extract form values with proper null handling
-    const name = formData.get('name') as string | null
-    const description = formData.get('description') as string | null
-    const categoryId = formData.get('categoryId') as string | null
-    const metaTitle = formData.get('metaTitle') as string | null
-    const metaDescription = formData.get('metaDescription') as string | null
-    const tags = formData.get('tags') as string | null
+    const catalogId = formData.get('catalogId') as string
+    const categoryId = formData.get('categoryId') as string
+    const name = formData.get('name') as string
+    const description = formData.get('description') as string
+    const metaTitle = formData.get('metaTitle') as string
+    const metaDescription = formData.get('metaDescription') as string
+    const tags = formData.get('tags') as string
     const status = (formData.get('status') as string) || 'draft'
 
     // Validate required fields
-    if (!name || !name.trim()) {
+    if (!name?.trim()) {
       return { error: 'Product name is required' }
     }
 
-    // Parse tags array
+    if (!catalogId?.trim()) {
+      return { error: 'Catalog ID is required' }
+    }
+
+    // Parse tags
     const tagsArray =
       tags && tags.trim()
         ? tags
@@ -51,7 +53,7 @@ async function submitProductForm(
     // Create product data
     const productData: CreateProductData = {
       catalog_id: catalogId,
-      parent_category_id: categoryId && categoryId.trim() ? parseInt(categoryId) : null,
+      parent_category_id: categoryId && categoryId.trim() ? categoryId : null,
       name: name.trim(),
       description: description && description.trim() ? description.trim() : '',
       short_description: '', // This field is required in the database
@@ -245,7 +247,7 @@ export default function CreateProductForm({
                   >
                     <option value="">Select a category (optional)</option>
                     {categories.map((category) => (
-                      <option key={category.id} value={category.id}>
+                      <option key={category.category_id} value={category.category_id}>
                         {category.name}
                       </option>
                     ))}

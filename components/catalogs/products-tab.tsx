@@ -4,7 +4,7 @@ import { getProductsByCatalog } from '@/actions/products'
 import type { ProductWithRelations } from '@/actions/products'
 
 interface ProductsTabProps {
-  catalogId: number
+  catalogId: string
   projectId: number
 }
 

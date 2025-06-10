@@ -17,10 +17,10 @@ export type Database = {
     Functions: {
       graphql: {
         Args: {
-          variables?: Json
-          operationName?: string
           query?: string
+          operationName?: string
           extensions?: Json
+          variables?: Json
         }
         Returns: Json
       }
@@ -173,40 +173,43 @@ export type Database = {
       }
       categories: {
         Row: {
-          catalog_id: number
+          catalog_id: string
+          category_id: string
           created_at: string
           description: string
           id: number
           is_active: boolean
           metadata: Json | null
           name: string
-          parent_category_id: number | null
+          parent_category_id: string | null
           slug: string
           sort_order: number
           updated_at: string
         }
         Insert: {
-          catalog_id: number
+          catalog_id: string
+          category_id: string
           created_at?: string
           description: string
           id?: never
           is_active?: boolean
           metadata?: Json | null
           name: string
-          parent_category_id?: number | null
+          parent_category_id?: string | null
           slug: string
           sort_order?: number
           updated_at?: string
         }
         Update: {
-          catalog_id?: number
+          catalog_id?: string
+          category_id?: string
           created_at?: string
           description?: string
           id?: never
           is_active?: boolean
           metadata?: Json | null
           name?: string
-          parent_category_id?: number | null
+          parent_category_id?: string | null
           slug?: string
           sort_order?: number
           updated_at?: string
@@ -217,14 +220,14 @@ export type Database = {
             columns: ["catalog_id"]
             isOneToOne: false
             referencedRelation: "product_catalogs"
-            referencedColumns: ["id"]
+            referencedColumns: ["catalog_id"]
           },
           {
             foreignKeyName: "categories_parent_category_id_fkey"
             columns: ["parent_category_id"]
             isOneToOne: false
             referencedRelation: "categories"
-            referencedColumns: ["id"]
+            referencedColumns: ["category_id"]
           },
         ]
       }
@@ -275,6 +278,7 @@ export type Database = {
       product_catalogs: {
         Row: {
           brand_id: number
+          catalog_id: string
           created_at: string
           description: string | null
           id: number
@@ -287,6 +291,7 @@ export type Database = {
         }
         Insert: {
           brand_id: number
+          catalog_id: string
           created_at?: string
           description?: string | null
           id?: never
@@ -299,6 +304,7 @@ export type Database = {
         }
         Update: {
           brand_id?: number
+          catalog_id?: string
           created_at?: string
           description?: string | null
           id?: never
@@ -419,7 +425,7 @@ export type Database = {
       products: {
         Row: {
           attributes: Json | null
-          catalog_id: number
+          catalog_id: string
           created_at: string
           description: string
           id: number
@@ -428,7 +434,7 @@ export type Database = {
           meta_title: string | null
           min_price: number | null
           name: string
-          parent_category_id: number | null
+          parent_category_id: string | null
           short_description: string
           sort_order: number
           specifications: Json
@@ -439,7 +445,7 @@ export type Database = {
         }
         Insert: {
           attributes?: Json | null
-          catalog_id: number
+          catalog_id: string
           created_at?: string
           description: string
           id?: never
@@ -448,7 +454,7 @@ export type Database = {
           meta_title?: string | null
           min_price?: number | null
           name: string
-          parent_category_id?: number | null
+          parent_category_id?: string | null
           short_description: string
           sort_order?: number
           specifications?: Json
@@ -459,7 +465,7 @@ export type Database = {
         }
         Update: {
           attributes?: Json | null
-          catalog_id?: number
+          catalog_id?: string
           created_at?: string
           description?: string
           id?: never
@@ -468,7 +474,7 @@ export type Database = {
           meta_title?: string | null
           min_price?: number | null
           name?: string
-          parent_category_id?: number | null
+          parent_category_id?: string | null
           short_description?: string
           sort_order?: number
           specifications?: Json
@@ -483,14 +489,14 @@ export type Database = {
             columns: ["catalog_id"]
             isOneToOne: false
             referencedRelation: "product_catalogs"
-            referencedColumns: ["id"]
+            referencedColumns: ["catalog_id"]
           },
           {
             foreignKeyName: "products_parent_category_id_fkey"
             columns: ["parent_category_id"]
             isOneToOne: false
             referencedRelation: "categories"
-            referencedColumns: ["id"]
+            referencedColumns: ["category_id"]
           },
         ]
       }
