@@ -1,6 +1,6 @@
 import { redirect } from 'next/navigation'
 import { createClient } from '@/lib/supabase/server'
-import { Box, Flex, Stack, styled } from '@/styled-system/jsx'
+import { Box, Flex, Stack, styled, Grid, GridItem } from '@/styled-system/jsx'
 import Link from 'next/link'
 import GuestHeader from '@/components/navigation/guest-header'
 import WaitlistForm from '@/components/waitlist-form'
@@ -14,182 +14,162 @@ export default async function Page() {
   // Note: Removed automatic redirect to allow logged-in users to view homepage
 
   return (
-    <Box minH="100vh" bg="gray.50">
+    <Box>
       <GuestHeader />
 
-      {/* Hero Section */}
-      <Flex
-        maxW="1200px"
-        mx="auto"
-        px={4}
-        py={16}
-        direction="column"
-        align="center"
-        textAlign="center"
-      >
-        <Stack gap={6} maxW="3xl">
-          {/* Main Heading */}
-          <styled.h1
-            fontSize={{ base: '3xl', md: '4xl', lg: '5xl' }}
+      {/* Combined Hero + Core Features Section */}
+      <Box bg="gray.50" _dark={{ bg: 'gray.900' }} py={{ base: 20, md: 28 }}>
+        <Stack maxW="7xl" mx="auto" px={{ base: 4, md: 8 }} gap={{ base: 12, md: 20 }}>
+          <Box textAlign="center" maxW="4xl" mx="auto">
+            <styled.h1
+              textStyle={{ base: '4xl', md: '6xl' }}
+              fontWeight="extrabold"
+              letterSpacing="tight"
+              color="gray.900"
+              _dark={{ color: 'white' }}
+            >
+              Build, Migrate, and Test at Lightning Speed
+            </styled.h1>
+            <styled.p
+              mt={4}
+              textStyle={{ base: 'lg', md: 'xl' }}
+              color="gray.600"
+              _dark={{ color: 'gray.300' }}
+              maxW="3xl"
+              mx="auto"
+            >
+              Go from a simple idea to a platform-ready ecommerce catalog in minutes.
+              AI-powered generation and migration for Shopify, BigCommerce, and beyond.
+            </styled.p>
+          </Box>
+
+          <Stack gap={{ base: 10, md: 16 }}>
+            {/* Instant Store Seeding */}
+            <Flex
+              direction={{ base: 'column', md: 'row' }}
+              gap={{ base: 8, md: 12 }}
+              align="center"
+            >
+              <Box flex="1">
+                <styled.h2
+                  textStyle={{ base: '2xl', md: '3xl' }}
+                  fontWeight="bold"
+                  color="gray.900"
+                  _dark={{ color: 'white' }}
+                >
+                  Instant Store Seeding
+                </styled.h2>
+                <styled.p
+                  mt={4}
+                  textStyle="lg"
+                  color="gray.600"
+                  _dark={{ color: 'gray.300' }}
+                >
+                  Populate new stores or development environments with realistic,
+                  high-quality product data in a fraction of the time, cutting down your
+                  setup process from days to minutes.
+                </styled.p>
+              </Box>
+              <Box
+                flex="1"
+                bg="white"
+                _dark={{ bg: 'gray.800' }}
+                p={8}
+                borderRadius="xl"
+                shadow="lg"
+              >
+                <styled.p
+                  fontFamily="mono"
+                  fontSize="md"
+                  color="gray.700"
+                  _dark={{ color: 'gray.300' }}
+                >
+                  {`// Before: 2-3 days of manual data entry`}
+                  <br />
+                  <br />
+                  {`// After: ~5 minutes to a full store`}
+                </styled.p>
+              </Box>
+            </Flex>
+
+            {/* Effortless Platform Migration */}
+            <Flex
+              direction={{ base: 'column-reverse', md: 'row' }}
+              gap={{ base: 8, md: 12 }}
+              align="center"
+            >
+              <Box
+                flex="1"
+                bg="white"
+                _dark={{ bg: 'gray.800' }}
+                p={8}
+                borderRadius="xl"
+                shadow="lg"
+              >
+                <styled.p
+                  fontFamily="mono"
+                  fontSize="md"
+                  color="gray.700"
+                  _dark={{ color: 'gray.300' }}
+                >
+                  {`// Shopify -> BigCommerce`}
+                  <br />
+                  {`// Salesforce -> WooCommerce`}
+                  <br />
+                  {`// Any CSV -> Any Platform`}
+                </styled.p>
+              </Box>
+              <Box flex="1">
+                <styled.h2
+                  textStyle={{ base: '2xl', md: '3xl' }}
+                  fontWeight="bold"
+                  color="gray.900"
+                  _dark={{ color: 'white' }}
+                >
+                  Effortless Platform Migration
+                </styled.h2>
+                <styled.p
+                  mt={4}
+                  textStyle="lg"
+                  color="gray.600"
+                  _dark={{ color: 'gray.300' }}
+                >
+                  Move your entire catalog from one ecommerce platform to another without
+                  the headache of manual data mapping and cleanup.
+                </styled.p>
+              </Box>
+            </Flex>
+          </Stack>
+        </Stack>
+      </Box>
+
+      {/* Waitlist CTA Section */}
+      <Box bg="white" _dark={{ bg: 'gray.800' }} py={{ base: 20, md: 24 }}>
+        <Flex
+          maxW="3xl"
+          mx="auto"
+          px={{ base: 4, md: 8 }}
+          direction="column"
+          align="center"
+          textAlign="center"
+        >
+          <styled.h2
+            textStyle={{ base: '3xl', md: '4xl' }}
             fontWeight="bold"
             color="gray.900"
-            lineHeight="tight"
+            _dark={{ color: 'white' }}
           >
-            Generate, Transform & Migrate Ecommerce Catalogs in Minutes
-          </styled.h1>
-
-          {/* Subheading */}
-          <styled.p
-            fontSize={{ base: 'lg', md: 'xl' }}
-            color="gray.600"
-            lineHeight="relaxed"
-          >
-            AI-powered catalog generation from simple prompts. Export to any platform.
-            Migrate between Shopify, BigCommerce, Salesforce, and more with just a few
-            clicks.
+            The End of Tedious Catalog Management
+          </styled.h2>
+          <styled.p mt={4} textStyle="lg" color="gray.600" _dark={{ color: 'gray.300' }}>
+            Stop waiting on data and start building. Join our waitlist to get early access
+            and shape the future of ecommerce catalog management.
           </styled.p>
-
-          {/* Coming Soon Notice */}
-          <styled.p
-            fontSize="md"
-            color="orange.700"
-            fontWeight="medium"
-            bg="orange.50"
-            px={4}
-            py={2}
-            borderRadius="md"
-            border="1px solid"
-            borderColor="orange.200"
-            textAlign="center"
-          >
-            🚀 Coming Soon - Join our waitlist to be the first to access the beta!
-          </styled.p>
-
-          {/* Waitlist Form */}
-          <Box pt={4}>
+          <Box mt={8} w="full" maxW="md">
             <WaitlistForm />
           </Box>
-        </Stack>
-
-        {/* Features Section */}
-        <Stack gap={8} pt={16} maxW="5xl" w="full">
-          <styled.h2
-            fontSize={{ base: 'xl', md: '2xl' }}
-            fontWeight="semibold"
-            color="gray.900"
-            textAlign="center"
-          >
-            Everything You Need for Catalog Management
-          </styled.h2>
-
-          <Flex gap={6} direction={{ base: 'column', md: 'row' }} justify="center">
-            <Box
-              textAlign="center"
-              flex="1"
-              bg="white"
-              p={6}
-              borderRadius="lg"
-              border="1px solid"
-              borderColor="gray.200"
-            >
-              <styled.h3 fontWeight="semibold" color="gray.900" mb={3} fontSize="lg">
-                🤖 AI Generation
-              </styled.h3>
-              <styled.p fontSize="sm" color="gray.600" lineHeight="relaxed">
-                Generate complete catalogs with rich product descriptions, variants,
-                pricing, and professional imagery from simple prompts
-              </styled.p>
-            </Box>
-
-            <Box
-              textAlign="center"
-              flex="1"
-              bg="white"
-              p={6}
-              borderRadius="lg"
-              border="1px solid"
-              borderColor="gray.200"
-            >
-              <styled.h3 fontWeight="semibold" color="gray.900" mb={3} fontSize="lg">
-                📤 Multi-Platform Export
-              </styled.h3>
-              <styled.p fontSize="sm" color="gray.600" lineHeight="relaxed">
-                Export to Shopify, BigCommerce, Salesforce Commerce Cloud, WooCommerce,
-                and custom platforms in the right format
-              </styled.p>
-            </Box>
-
-            <Box
-              textAlign="center"
-              flex="1"
-              bg="white"
-              p={6}
-              borderRadius="lg"
-              border="1px solid"
-              borderColor="gray.200"
-            >
-              <styled.h3 fontWeight="semibold" color="gray.900" mb={3} fontSize="lg">
-                🔄 Easy Migration
-              </styled.h3>
-              <styled.p fontSize="sm" color="gray.600" lineHeight="relaxed">
-                Export from your current platform and migrate to any other in minutes. No
-                manual data entry or complex integrations
-              </styled.p>
-            </Box>
-          </Flex>
-        </Stack>
-
-        {/* Use Cases Section */}
-        <Stack gap={8} pt={16} maxW="5xl" w="full">
-          <styled.h2
-            fontSize={{ base: 'xl', md: '2xl' }}
-            fontWeight="semibold"
-            color="gray.900"
-            textAlign="center"
-          >
-            Perfect For Your Team
-          </styled.h2>
-
-          <Flex gap={6} direction={{ base: 'column', md: 'row' }} justify="center">
-            <Box textAlign="center" flex="1">
-              <styled.h3 fontWeight="semibold" color="blue.700" mb={2} fontSize="md">
-                Sales Teams
-              </styled.h3>
-              <styled.p fontSize="sm" color="gray.600">
-                Create realistic demo catalogs for client presentations and
-                proof-of-concepts
-              </styled.p>
-            </Box>
-
-            <Box textAlign="center" flex="1">
-              <styled.h3 fontWeight="semibold" color="blue.700" mb={2} fontSize="md">
-                Platform Developers
-              </styled.h3>
-              <styled.p fontSize="sm" color="gray.600">
-                Generate test data for integration testing and storefront accelerators
-              </styled.p>
-            </Box>
-
-            <Box textAlign="center" flex="1">
-              <styled.h3 fontWeight="semibold" color="blue.700" mb={2} fontSize="md">
-                Ecommerce Admins
-              </styled.h3>
-              <styled.p fontSize="sm" color="gray.600">
-                Migrate catalogs between platforms without losing data or formatting
-              </styled.p>
-            </Box>
-
-            <Box textAlign="center" flex="1">
-              <styled.h3 fontWeight="semibold" color="blue.700" mb={2} fontSize="md">
-                Merchandisers
-              </styled.h3>
-              <styled.p fontSize="sm" color="gray.600">
-                Quickly populate new stores with rich product content and imagery
-              </styled.p>
-            </Box>
-          </Flex>
-        </Stack>
-      </Flex>
+        </Flex>
+      </Box>
     </Box>
   )
 }

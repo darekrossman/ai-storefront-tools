@@ -251,7 +251,9 @@ function CatalogCard({ catalog, projectId, brandId }: CatalogCardProps) {
 
           {/* Actions */}
           <Flex gap={1} flexShrink={0}>
-            <Link href={`/dashboard/projects/${projectId}/catalogs/${catalog.id}/edit`}>
+            <Link
+              href={`/dashboard/projects/${projectId}/catalogs/${catalog.catalog_id}/edit`}
+            >
               <styled.button
                 px={2}
                 py={1}
@@ -276,7 +278,7 @@ function CatalogCard({ catalog, projectId, brandId }: CatalogCardProps) {
       </Box>
 
       {/* Content */}
-      <Link href={`/dashboard/projects/${projectId}/catalogs/${catalog.id}`}>
+      <Link href={`/dashboard/projects/${projectId}/catalogs/${catalog.catalog_id}`}>
         <Box p={4} cursor="pointer">
           <Stack gap={3}>
             {/* Description */}
