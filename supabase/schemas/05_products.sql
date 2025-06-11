@@ -1,10 +1,10 @@
 -- =====================================================
--- Products Table Schema
+-- Products Table Schema (Enhanced JSONB Approach)
 -- =====================================================
--- Purpose: Individual products with complete specifications and marketing data
+-- Purpose: Master products with shared specifications and base attributes
 -- Dependencies: Requires public.product_catalogs and public.categories tables
 -- RLS: User can only access products from their own catalogs/brands
--- JSONB Structure: Aligns with ProductSchema from lib/schemas.ts
+-- Architecture: JSONB-first for performance with structured attribute validation
 -- =====================================================
 
 -- Create products table
@@ -16,30 +16,43 @@ create table public.products (
   description text not null,
   short_description text not null,
   tags text[] default '{}',
-  -- JSONB columns for master product data
+  
+  -- Static product specifications (dimensions, materials, features)
   specifications jsonb not null default '{}',
-  attributes jsonb default '{}',
-  min_price decimal(10,2),
-  max_price decimal(10,2),
-  total_inventory integer default 0,
+  
+  -- Base attributes that apply to all variants (can be overridden)
+  base_attributes jsonb not null default '{}',
+  
+  -- SEO and marketing
   meta_title text,
   meta_description text,
+  
+  -- Calculated fields (auto-updated by triggers)
+  min_price decimal(10,2),
+  max_price decimal(10,2),
+  variant_count integer default 0,
+  active_variant_count integer default 0,
+  
+  -- Status and ordering
   status public.brand_status not null default 'draft',
   sort_order integer not null default 0,
+  
+  -- Timestamps
   created_at timestamptz not null default now(),
   updated_at timestamptz not null default now()
 );
 
-comment on table public.products is 'Master products containing shared information. Variants hold specific SKUs, pricing, and attributes.';
+comment on table public.products is 'Master products with shared specifications and base attributes. Variants inherit and override these attributes.';
 
 -- Add column comments for clarity
 comment on column public.products.parent_category_id is 'Parent category assignment';
-comment on column public.products.specifications is 'JSONB: Product specifications including dimensions, materials, colors, features';
+comment on column public.products.specifications is 'JSONB: Static product specs (dimensions, materials, features) that don''t vary by SKU';
+comment on column public.products.base_attributes is 'JSONB: Default attribute values that all variants inherit (can be overridden)';
 comment on column public.products.short_description is 'Brief product description for listings and previews';
-comment on column public.products.attributes is 'JSONB: General product attributes that apply to all variants';
-comment on column public.products.min_price is 'Minimum price across all variants (auto-calculated)';
-comment on column public.products.max_price is 'Maximum price across all variants (auto-calculated)';
-comment on column public.products.total_inventory is 'Total count of orderable variants (auto-calculated)';
+comment on column public.products.min_price is 'Minimum price across all active variants (auto-calculated)';
+comment on column public.products.max_price is 'Maximum price across all active variants (auto-calculated)';
+comment on column public.products.variant_count is 'Total number of variants (auto-calculated)';
+comment on column public.products.active_variant_count is 'Number of active/orderable variants (auto-calculated)';
 comment on column public.products.meta_title is 'SEO meta title';
 comment on column public.products.meta_description is 'SEO meta description';
 comment on column public.products.sort_order is 'Display order for products within the catalog';
@@ -53,17 +66,19 @@ create index idx_products_sort_order on public.products (sort_order);
 create index idx_products_created_at_desc on public.products (created_at desc);
 create index idx_products_min_price on public.products (min_price);
 create index idx_products_max_price on public.products (max_price);
-create index idx_products_total_inventory on public.products (total_inventory);
+create index idx_products_variant_count on public.products (variant_count);
+create index idx_products_active_variant_count on public.products (active_variant_count);
 
 -- GIN indexes for efficient JSONB queries
 create index idx_products_specifications_gin on public.products using gin (specifications);
-create index idx_products_attributes_gin on public.products using gin (attributes);
+create index idx_products_base_attributes_gin on public.products using gin (base_attributes);
 
 -- GIN index for tags array
 create index idx_products_tags_gin on public.products using gin (tags);
 
 -- Composite indexes for common queries
 create index idx_products_catalog_status on public.products (catalog_id, status);
+create index idx_products_catalog_active_variants on public.products (catalog_id, active_variant_count) where active_variant_count > 0;
 
 -- Enable Row Level Security
 alter table public.products enable row level security;
@@ -128,6 +143,122 @@ create policy "Users can delete products from their own catalogs"
     )
   );
 
+-- Function to update product variant counts and pricing
+create or replace function public.update_product_aggregates()
+returns trigger as $$
+begin
+  if tg_op = 'INSERT' then
+    update public.products 
+    set 
+      variant_count = (
+        select count(*) 
+        from public.product_variants 
+        where product_id = new.product_id
+      ),
+      active_variant_count = (
+        select count(*) 
+        from public.product_variants 
+        where product_id = new.product_id and is_active = true
+      ),
+      min_price = (
+        select min(price) 
+        from public.product_variants 
+        where product_id = new.product_id and is_active = true
+      ),
+      max_price = (
+        select max(price) 
+        from public.product_variants 
+        where product_id = new.product_id and is_active = true
+      )
+    where id = new.product_id;
+    return new;
+    
+  elsif tg_op = 'DELETE' then
+    update public.products 
+    set 
+      variant_count = (
+        select count(*) 
+        from public.product_variants 
+        where product_id = old.product_id
+      ),
+      active_variant_count = (
+        select count(*) 
+        from public.product_variants 
+        where product_id = old.product_id and is_active = true
+      ),
+      min_price = (
+        select min(price) 
+        from public.product_variants 
+        where product_id = old.product_id and is_active = true
+      ),
+      max_price = (
+        select max(price) 
+        from public.product_variants 
+        where product_id = old.product_id and is_active = true
+      )
+    where id = old.product_id;
+    return old;
+    
+  elsif tg_op = 'UPDATE' then
+    -- Handle product change (shouldn't happen but just in case)
+    if old.product_id != new.product_id then
+      -- Update old product
+      update public.products 
+      set 
+        variant_count = (
+          select count(*) 
+          from public.product_variants 
+          where product_id = old.product_id
+        ),
+        active_variant_count = (
+          select count(*) 
+          from public.product_variants 
+          where product_id = old.product_id and is_active = true
+        ),
+        min_price = (
+          select min(price) 
+          from public.product_variants 
+          where product_id = old.product_id and is_active = true
+        ),
+        max_price = (
+          select max(price) 
+          from public.product_variants 
+          where product_id = old.product_id and is_active = true
+        )
+      where id = old.product_id;
+    end if;
+    
+    -- Update new/current product
+    update public.products 
+    set 
+      variant_count = (
+        select count(*) 
+        from public.product_variants 
+        where product_id = new.product_id
+      ),
+      active_variant_count = (
+        select count(*) 
+        from public.product_variants 
+        where product_id = new.product_id and is_active = true
+      ),
+      min_price = (
+        select min(price) 
+        from public.product_variants 
+        where product_id = new.product_id and is_active = true
+      ),
+      max_price = (
+        select max(price) 
+        from public.product_variants 
+        where product_id = new.product_id and is_active = true
+      )
+    where id = new.product_id;
+    return new;
+  end if;
+  
+  return coalesce(new, old);
+end;
+$$ language plpgsql;
+
 -- Function to update product catalog total_products count
 create or replace function public.update_catalog_product_count()
 returns trigger as $$
@@ -156,18 +287,6 @@ begin
 end;
 $$ language plpgsql;
 
--- Trigger to automatically update updated_at on products
-create trigger trigger_products_updated_at
-  before update on public.products
-  for each row
-  execute function public.handle_updated_at();
-
--- Trigger to maintain product count in catalogs
-create trigger trigger_update_catalog_product_count
-  after insert or update or delete on public.products
-  for each row
-  execute function public.update_catalog_product_count();
-
 -- Function to validate that product categories belong to the same catalog
 create or replace function public.validate_product_categories()
 returns trigger as $$
@@ -184,6 +303,18 @@ begin
   return new;
 end;
 $$ language plpgsql;
+
+-- Trigger to automatically update updated_at on products
+create trigger trigger_products_updated_at
+  before update on public.products
+  for each row
+  execute function public.handle_updated_at();
+
+-- Trigger to maintain product count in catalogs
+create trigger trigger_update_catalog_product_count
+  after insert or update or delete on public.products
+  for each row
+  execute function public.update_catalog_product_count();
 
 -- Trigger to validate product categories
 create trigger trigger_validate_product_categories
