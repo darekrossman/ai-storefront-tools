@@ -201,57 +201,105 @@ export async function createMultipleProducts(
     // Convert the schema data to database format
     const convertedData = convertToDBFormat(productsData, catalogId)
 
-    // Start a transaction to create all products and related data
-    const { data: insertedProducts, error: productsError } = await supabase
-      .from('products')
-      .insert(convertedData.products)
-      .select('id')
+    // Start a transaction-like operation to create all products and related data
+    let insertedProducts: { id: number }[] = []
+    let insertedAttributeSchemas: { id: number }[] = []
 
-    if (productsError) {
-      console.error('Error creating products:', productsError)
-      throw new Error(productsError.message)
-    }
+    try {
+      // Create products first
+      const { data: productsData, error: productsError } = await supabase
+        .from('products')
+        .insert(convertedData.products)
+        .select('id')
 
-    if (!insertedProducts || insertedProducts.length === 0) {
-      throw new Error('No products were created')
-    }
-
-    // Map inserted products to their original index for linking
-    const productMappings = insertedProducts.map((product, index) => ({
-      id: product.id,
-      index,
-    }))
-
-    // Link the attribute schemas and variants to their products
-    const { attributeSchemas, variants } = linkProductRelations(
-      convertedData,
-      productMappings,
-    )
-
-    // Insert attribute schemas if any exist
-    if (attributeSchemas.length > 0) {
-      const { error: attributesError } = await supabase
-        .from('product_attribute_schemas')
-        .insert(attributeSchemas)
-
-      if (attributesError) {
-        console.error('Error creating attribute schemas:', attributesError)
-        // Note: In a real transaction, we'd want to rollback the products
-        throw new Error(attributesError.message)
+      if (productsError) {
+        console.error('Error creating products:', productsError)
+        throw new Error(productsError.message)
       }
-    }
 
-    // Insert variants if any exist
-    if (variants.length > 0) {
-      const { error: variantsError } = await supabase
-        .from('product_variants')
-        .insert(variants)
-
-      if (variantsError) {
-        console.error('Error creating variants:', variantsError)
-        // Note: In a real transaction, we'd want to rollback the products and attributes
-        throw new Error(variantsError.message)
+      if (!productsData || productsData.length === 0) {
+        throw new Error('No products were created')
       }
+
+      insertedProducts = productsData
+
+      // Map inserted products to their original index for linking
+      const productMappings = insertedProducts.map((product, index) => ({
+        id: product.id,
+        index,
+      }))
+
+      // Link the attribute schemas and variants to their products
+      const { attributeSchemas, variants } = linkProductRelations(
+        convertedData,
+        productMappings,
+      )
+
+      // Insert attribute schemas if any exist
+      if (attributeSchemas.length > 0) {
+        const { data: attributesData, error: attributesError } = await supabase
+          .from('product_attribute_schemas')
+          .insert(attributeSchemas)
+          .select('id')
+
+        if (attributesError) {
+          console.error('Error creating attribute schemas:', attributesError)
+          throw new Error(attributesError.message)
+        }
+
+        insertedAttributeSchemas = attributesData || []
+      }
+
+      // Insert variants if any exist
+      if (variants.length > 0) {
+        const { error: variantsError } = await supabase
+          .from('product_variants')
+          .insert(variants)
+
+        if (variantsError) {
+          console.error('Error creating variants:', variantsError)
+          throw new Error(variantsError.message)
+        }
+      }
+    } catch (error) {
+      // Rollback: Clean up any created data in reverse order
+      console.log('Rolling back created data due to error...')
+
+      // Clean up product variants (they cascade delete, but just in case)
+      if (insertedProducts.length > 0) {
+        await supabase
+          .from('product_variants')
+          .delete()
+          .in(
+            'product_id',
+            insertedProducts.map((p) => p.id),
+          )
+      }
+
+      // Clean up attribute schemas
+      if (insertedAttributeSchemas.length > 0) {
+        await supabase
+          .from('product_attribute_schemas')
+          .delete()
+          .in(
+            'id',
+            insertedAttributeSchemas.map((a) => a.id),
+          )
+      }
+
+      // Clean up products (this should cascade delete variants and attributes)
+      if (insertedProducts.length > 0) {
+        await supabase
+          .from('products')
+          .delete()
+          .in(
+            'id',
+            insertedProducts.map((p) => p.id),
+          )
+      }
+
+      // Re-throw the original error
+      throw error
     }
 
     revalidatePath('/')

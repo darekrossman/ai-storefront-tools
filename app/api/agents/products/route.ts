@@ -4,6 +4,7 @@ import { getBrandAction } from '@/actions/brands'
 import { getProductCatalogAction } from '@/actions/product-catalogs'
 import { fullProductSchema } from '@/lib/products/schemas'
 import { getCategoriesAction } from '@/actions/categories'
+import { getProducts } from '@/actions/products'
 
 const systemPrompt = `You are an expert product creation specialist tasked with generating authentic, compelling products for a specific brand catalog. Your role is to create products that seamlessly align with the brand's identity, voice, tone, and positioning while fitting perfectly within the provided catalog structure and category definitions.
 
@@ -22,7 +23,13 @@ const systemPrompt = `You are an expert product creation specialist tasked with 
    - Logical product-category fit and hierarchy
    - Category-specific attributes and features
 
-3. **Product Structure**: Generate well-structured products with proper data organization:
+3. **Product Uniqueness**: Create products that are completely unique and do not duplicate existing products:
+   - **Avoid Name Conflicts**: Never use product names that already exist in the catalog
+   - **Create Original Concepts**: Generate genuinely new product ideas, not variations of existing products
+   - **Differentiate Offerings**: Ensure each new product serves a distinct purpose or market segment
+   - **Innovation Focus**: Prioritize fresh, innovative product concepts that expand the catalog meaningfully
+
+4. **Product Structure**: Generate well-structured products with proper data organization:
    - **Specifications**: Fixed technical details that don't vary (e.g., "material": "aluminum", "weight": "2.5 lbs")
    - **Base Attributes**: Default values inherited by all variants (e.g., "warranty": "2 years", "artist": "Franki", "brand": "AcmeCorp")
    - **Variation Attributes**: Customizable options that create variants (color, size, capacity, etc.)
@@ -85,6 +92,7 @@ Example variant structure:
 - Use naming conventions that feel cohesive with the brand identity
 - Avoid generic or overly technical names unless that fits the brand style
 - Consider the target audience's preferences and expectations
+- Ensure product names are varied and unique and are not too similar to existing product names.
 
 ### Pricing Strategy
 - Generate prices that reflect the brand's market positioning
@@ -108,9 +116,11 @@ For each product generated:
 4. **Thorough Specifications**: 5-10 detailed technical specifications that don't vary by variant
 5. **Meaningful Base Attributes**: 3-6 inheritable attributes like warranty, artist, brand, collection
 6. **Diverse Variation Attributes**: 1-3 attributes with mix of select, boolean, and other types as appropriate
-6a. **Variation Attribute Options**: If the attribute is a select type, provide at least 2-6 options.
+6a. **Variation Attribute Options**: If the attribute is a select type, provide at least 2-6 options. 
 7. **Complete Variants**: All logical combinations of variation attributes with strategic pricing. Variants must nclude attributes that are required.
 8. **SEO Optimization**: Proper meta_title (under 70 chars) and meta_description (under 155 chars)
+
+## VARIANTS ALWAYS MUST INCLUDE ALL REQUIRED ATTRIBUTES. If an attribute type is 'select' or 'boolean', all variants should include the attribute.
 
 ## Quality Standards
 
@@ -132,7 +142,15 @@ The user may provide specific guidance regarding:
 
 Always follow user guidance while maintaining brand authenticity and quality standards. If user requests conflict with brand positioning, prioritize brand authenticity and note any potential concerns.
 
-Generate products that customers would genuinely want to purchase, that accurately represent the brand's market position, and that create a cohesive, compelling catalog experience with rich, structured data.`
+## Existing Products Awareness
+
+You will be provided with a list of existing product names in the catalog. Use this information to:
+- **Ensure Complete Uniqueness**: Never create products with names that match or closely resemble existing products
+- **Identify Market Gaps**: Look for product categories or types that are underrepresented
+- **Maintain Catalog Coherence**: Create products that complement the existing catalog without duplicating functionality
+- **Expand Product Range**: Focus on areas where the catalog could benefit from additional offerings
+
+Generate products that customers would genuinely want to purchase, that accurately represent the brand's market position, and that create a cohesive, compelling catalog experience with rich, structured data while ensuring complete originality from existing products.`
 
 export async function POST(req: Request) {
   const body = await req.json()
@@ -154,12 +172,16 @@ export async function POST(req: Request) {
   const parentCategories = categories.filter((c) => !c.parent_category_id)
   const subcategories = categories.filter((c) => c.parent_category_id)
 
+  const existingProducts = await getProducts(catalogId)
+  const existingProductNames = existingProducts.map((product) => product.name)
+
   const { id, project_id, status, created_at, updated_at, logo_url, ...brandData } = brand
 
   const contextData = {
     brand: brandData,
     catalogName: catalog.name,
     catalogDescription: catalog.description,
+    existingProductNames: existingProductNames,
     categories: parentCategories.map((c) => ({
       category_id: c.category_id,
       name: c.name,
@@ -174,18 +196,25 @@ export async function POST(req: Request) {
     })),
   }
 
+  console.log(existingProductNames)
+
   const result = streamObject({
-    model: openai('gpt-4.1'),
+    model: openai('o4-mini-2025-04-16'),
     schema: fullProductSchema,
     system: systemPrompt,
     maxTokens: 32768,
+    temperature: 0.9,
     messages: [
       {
         role: 'user',
-        content: `For each category in the brand catalog, observe the subcategories and generate **one** product for each one.
-        
-BRAND CATALOG:
-${JSON.stringify(contextData)}`,
+        content: `## Catalog Context
+${JSON.stringify(contextData)}
+
+## Instructions
+For each category in the catalog context, observe the subcategories and generate multiple products for each subcategory.
+
+## Important
+Review the 'existingProductNames' and ensure your generated products are completely unique and do not duplicate or closely resemble any existing products.`,
       },
     ],
     onError: (error) => {

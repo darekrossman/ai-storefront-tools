@@ -34,7 +34,7 @@ export const productSchema = z.object({
   meta_description: z
     .string()
     .min(1)
-    .max(155)
+    .max(160)
     .describe('The SEO meta description of the product'),
 })
 
@@ -52,45 +52,45 @@ export const productAttributeSchema = z.object({
   attribute_type: z
     .enum(['select', 'text', 'number', 'boolean', 'color', 'url', 'email'])
     .describe('The type of the attribute'),
-  attribute_options: z
-    .array(z.string())
-    .min(0)
-    .describe(
-      'The options of the attribute. Empty array if attribute_type is not "select"',
-    ),
+  attribute_options: z.array(z.string()).min(0).describe('The options of the attribute'),
   default_value: z.string().describe('The default value of the attribute'),
   is_required: z
     .boolean()
-    .describe('Whether this attribute is required for all variants'),
+    .describe(
+      'Whether this attribute is required for all variants. "select" and "boolean" attribute types are always required. If true, all variants must include this attribute.',
+    ),
 })
 
 export const productVariantSchema = z.object({
   price: z.number().min(0).describe('Selling price for this variant'),
-  attributes: z
-    .record(
-      z.string().describe('The key of the attribute'),
-      z.string().describe('The value of the attribute'),
-    )
-    .describe(
-      'Validated attribute optionslike {"color": "red", "size": "large"}. These should match the attribute_key and attribute_type of the product attribute schema.',
-    ),
+  attributes: z.array(
+    z
+      .object({
+        attribute_key: z.string().describe('The attribute_key'),
+        attribute_value: z.string().describe('The value of the attribute option'),
+      })
+      .describe(
+        'These should match the attribute_key and attribute_type of the product attribute schema for each required attribute in the product attribute schema.',
+      ),
+  ),
+})
+
+export const productSchemaWithVariants = productSchema.extend({
+  variation_attributes: z
+    .array(productAttributeSchema)
+    .min(0)
+    .max(3)
+    .describe('The variation attributes of the product'),
+  variants: z
+    .array(productVariantSchema)
+    .min(1)
+    .describe('Variants of the product for each attribute option combination'),
 })
 
 export const fullProductSchema = z.object({
   products: z
-    .array(
-      productSchema.extend({
-        variation_attributes: z
-          .array(productAttributeSchema)
-          .min(0)
-          .max(3)
-          .describe('The variation attributes of the product'),
-        variants: z
-          .array(productVariantSchema)
-          .min(1)
-          .describe('Variants of the product for each attribute option combination'),
-      }),
-    )
+    .array(productSchemaWithVariants)
+    .min(15)
     .length(15)
     .describe('The products of the catalog'),
 })
