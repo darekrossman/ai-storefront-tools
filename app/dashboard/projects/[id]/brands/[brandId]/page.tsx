@@ -1,6 +1,7 @@
 import { notFound } from 'next/navigation'
 import { Box, Container, Flex, Stack, styled } from '@/styled-system/jsx'
 import Link from 'next/link'
+import { button } from '@/components/ui/button'
 import { getBrandAction } from '@/actions/brands'
 import { getProductCatalogsAction } from '@/actions/product-catalogs'
 import type { Brand, ProductCatalog } from '@/lib/supabase/database-types'
@@ -121,47 +122,18 @@ export default async function BrandDetailsPage({ params }: BrandDetailsPageProps
 
           {/* Actions */}
           <Flex gap={2}>
-            <Link href={`/dashboard/projects/${projectId}/brands/${brand.id}/edit`}>
-              <styled.button
-                px={4}
-                py={2}
-                bg="white"
-                color="gray.700"
-                border="1px solid"
-                borderColor="gray.300"
-                borderRadius="lg"
-                fontSize="sm"
-                fontWeight="medium"
-                cursor="pointer"
-                _hover={{
-                  bg: 'gray.50',
-                  borderColor: 'gray.400',
-                }}
-                transition="all 0.2s"
-              >
-                Edit Brand
-              </styled.button>
+            <Link
+              href={`/dashboard/projects/${projectId}/brands/${brand.id}/edit`}
+              className={button({ variant: 'secondary' })}
+            >
+              Edit Brand
             </Link>
 
             <Link
               href={`/dashboard/projects/${projectId}/catalogs/new?brandId=${brand.id}`}
+              className={button()}
             >
-              <styled.button
-                px={4}
-                py={2}
-                bg="blue.600"
-                color="white"
-                borderRadius="lg"
-                fontSize="sm"
-                fontWeight="medium"
-                cursor="pointer"
-                _hover={{
-                  bg: 'blue.700',
-                }}
-                transition="all 0.2s"
-              >
-                Create Catalog
-              </styled.button>
+              Create Catalog
             </Link>
           </Flex>
         </Flex>
@@ -187,23 +159,9 @@ export default async function BrandDetailsPage({ params }: BrandDetailsPageProps
                   </styled.h2>
                   <Link
                     href={`/dashboard/projects/${projectId}/catalogs/new?brandId=${brand.id}`}
+                    className={button({ size: 'sm' })}
                   >
-                    <styled.button
-                      px={3}
-                      py={1}
-                      bg="blue.600"
-                      color="white"
-                      borderRadius="md"
-                      fontSize="sm"
-                      fontWeight="medium"
-                      cursor="pointer"
-                      _hover={{
-                        bg: 'blue.700',
-                      }}
-                      transition="all 0.2s"
-                    >
-                      Add Catalog
-                    </styled.button>
+                    Add Catalog
                   </Link>
                 </Flex>
 
@@ -211,8 +169,8 @@ export default async function BrandDetailsPage({ params }: BrandDetailsPageProps
                   <Stack gap={3}>
                     {catalogs.map((catalog) => (
                       <Link
-                        key={catalog.id}
-                        href={`/dashboard/projects/${projectId}/catalogs/${catalog.id}`}
+                        key={catalog.catalog_id}
+                        href={`/dashboard/projects/${projectId}/catalogs/${catalog.catalog_id}`}
                       >
                         <Box
                           border="1px solid"
@@ -260,24 +218,9 @@ export default async function BrandDetailsPage({ params }: BrandDetailsPageProps
                       </styled.p>
                       <Link
                         href={`/dashboard/projects/${projectId}/catalogs/new?brandId=${brand.id}`}
+                        className={button()}
                       >
-                        <styled.button
-                          px={4}
-                          py={2}
-                          bg="blue.600"
-                          color="white"
-                          borderRadius="lg"
-                          fontSize="sm"
-                          fontWeight="medium"
-                          cursor="pointer"
-                          _hover={{
-                            bg: 'blue.700',
-                          }}
-                          transition="all 0.2s"
-                          mt={2}
-                        >
-                          Create First Catalog
-                        </styled.button>
+                        Create First Catalog
                       </Link>
                     </Stack>
                   </Box>
@@ -395,72 +338,25 @@ export default async function BrandDetailsPage({ params }: BrandDetailsPageProps
                 </styled.h3>
 
                 <Stack gap={2}>
-                  <Link href={`/dashboard/projects/${projectId}/brands/${brand.id}/edit`}>
-                    <styled.button
-                      w="full"
-                      px={3}
-                      py={2}
-                      bg="gray.50"
-                      color="gray.700"
-                      border="1px solid"
-                      borderColor="gray.200"
-                      borderRadius="md"
-                      fontSize="sm"
-                      fontWeight="medium"
-                      cursor="pointer"
-                      _hover={{
-                        bg: 'gray.100',
-                      }}
-                      transition="all 0.2s"
-                    >
-                      Edit Brand Details
-                    </styled.button>
+                  <Link
+                    href={`/dashboard/projects/${projectId}/brands/${brand.id}/edit`}
+                    className={button({ variant: 'secondary', size: 'sm' })}
+                  >
+                    Edit Brand Details
                   </Link>
 
                   <Link
                     href={`/dashboard/projects/${projectId}/catalogs/new?brandId=${brand.id}`}
+                    className={button({ variant: 'secondary', size: 'sm' })}
                   >
-                    <styled.button
-                      w="full"
-                      px={3}
-                      py={2}
-                      bg="blue.50"
-                      color="blue.700"
-                      border="1px solid"
-                      borderColor="blue.200"
-                      borderRadius="md"
-                      fontSize="sm"
-                      fontWeight="medium"
-                      cursor="pointer"
-                      _hover={{
-                        bg: 'blue.100',
-                      }}
-                      transition="all 0.2s"
-                    >
-                      Create Product Catalog
-                    </styled.button>
+                    Create Product Catalog
                   </Link>
 
-                  <Link href={`/dashboard/projects/${projectId}/brands`}>
-                    <styled.button
-                      w="full"
-                      px={3}
-                      py={2}
-                      bg="white"
-                      color="gray.600"
-                      border="1px solid"
-                      borderColor="gray.300"
-                      borderRadius="md"
-                      fontSize="sm"
-                      fontWeight="medium"
-                      cursor="pointer"
-                      _hover={{
-                        bg: 'gray.50',
-                      }}
-                      transition="all 0.2s"
-                    >
-                      Back to Brands
-                    </styled.button>
+                  <Link
+                    href={`/dashboard/projects/${projectId}/brands`}
+                    className={button({ variant: 'secondary', size: 'sm' })}
+                  >
+                    Back to Brands
                   </Link>
                 </Stack>
               </Stack>

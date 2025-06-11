@@ -3,11 +3,14 @@ import Link from 'next/link'
 import { notFound } from 'next/navigation'
 import { getProductCatalogAction } from '@/actions/product-catalogs'
 import { getProductsByCatalog } from '@/actions/products'
-import type { ProductCatalog } from '@/lib/supabase/database-types'
+import { getCategoriesAction } from '@/actions/categories'
+import type { ProductCatalog, Category } from '@/lib/supabase/database-types'
 import type { ProductWithRelations } from '@/actions/products'
 import CatalogDetailTabs from '@/components/catalogs/catalog-detail-tabs'
 import CategoriesTab from '@/components/catalogs/categories-tab'
 import ProductsTab from '@/components/catalogs/products-tab'
+import { button } from '@/components/ui/button'
+import { Badge } from '@/components/ui/badge'
 
 interface CatalogDetailsPageProps {
   params: Promise<{
@@ -26,6 +29,7 @@ export default async function CatalogDetailsPage({ params }: CatalogDetailsPageP
 
   let catalog: ProductCatalog | null = null
   let products: ProductWithRelations[] = []
+  let categories: Category[] = []
   let error: string | null = null
 
   try {
@@ -35,6 +39,7 @@ export default async function CatalogDetailsPage({ params }: CatalogDetailsPageP
     }
 
     products = await getProductsByCatalog(catalogId)
+    categories = await getCategoriesAction(catalogId)
   } catch (err) {
     error = err instanceof Error ? err.message : 'Failed to load catalog'
   }
@@ -65,118 +70,64 @@ export default async function CatalogDetailsPage({ params }: CatalogDetailsPageP
     notFound()
   }
 
-  const getStatusColor = (status: string) => {
+  const getStatusVariant = (status: string) => {
     switch (status) {
       case 'active':
-        return { bg: 'green.100', color: 'green.700' }
+        return 'active'
       case 'draft':
-        return { bg: 'yellow.100', color: 'yellow.700' }
+        return 'draft'
       case 'archived':
-        return { bg: 'gray.100', color: 'gray.700' }
+        return 'archived'
       default:
-        return { bg: 'gray.100', color: 'gray.700' }
+        return 'neutral'
     }
   }
 
-  const statusColor = getStatusColor(catalog.status)
-
   return (
     <Container py={8}>
-      {/* Header */}
-      <Stack gap={4} mb={8}>
-        <Flex justify="space-between" align="start" gap={4}>
-          <Stack gap={2} flex={1}>
+      <Stack gap={8}>
+        {/* Header */}
+        <Stack gap={4}>
+          <Flex justify="space-between" align="start" gap={4}>
             <styled.h1 fontSize="2xl" fontWeight="bold" color="gray.900">
               {catalog.name}
             </styled.h1>
-            <Flex gap={2} align="center">
-              <styled.span
-                fontSize="sm"
-                fontWeight="medium"
-                px={3}
-                py={1}
-                borderRadius="md"
-                bg={statusColor.bg}
-                color={statusColor.color}
+
+            <Flex gap={2}>
+              <Link
+                href={`/dashboard/projects/${projectId}/catalogs/${catalogId}/edit`}
+                className={button({ variant: 'secondary', size: 'xs' })}
               >
-                {catalog.status}
-              </styled.span>
-              <styled.span fontSize="sm" color="gray.500">
-                •
-              </styled.span>
-              <styled.span fontSize="sm" color="gray.600">
-                {products.length} {products.length === 1 ? 'product' : 'products'}
-              </styled.span>
+                Edit
+              </Link>
             </Flex>
-          </Stack>
-
-          <Flex gap={2}>
-            <Link
-              href={`/dashboard/projects/${projectId}/catalogs/${catalogId}/products/new`}
-            >
-              <styled.button
-                px={4}
-                py={2}
-                bg="blue.600"
-                color="white"
-                borderRadius="lg"
-                fontSize="sm"
-                fontWeight="medium"
-                cursor="pointer"
-                _hover={{
-                  bg: 'blue.700',
-                }}
-                transition="all 0.2s"
-              >
-                Add Product
-              </styled.button>
-            </Link>
-            <Link href={`/dashboard/projects/${projectId}/catalogs/${catalogId}/edit`}>
-              <styled.button
-                px={4}
-                py={2}
-                border="1px solid"
-                borderColor="gray.300"
-                bg="white"
-                color="gray.700"
-                borderRadius="lg"
-                fontSize="sm"
-                fontWeight="medium"
-                cursor="pointer"
-                _hover={{
-                  bg: 'gray.50',
-                  borderColor: 'gray.400',
-                }}
-                transition="all 0.2s"
-              >
-                Edit Catalog
-              </styled.button>
-            </Link>
           </Flex>
-        </Flex>
 
-        {/* Description */}
-        {catalog.description && (
-          <Box
-            bg="white"
-            border="1px solid"
-            borderColor="gray.200"
-            borderRadius="lg"
-            p={4}
-          >
+          {/* <Flex gap={2} align="center">
+            <Badge variant={getStatusVariant(catalog.status)}>{catalog.status}</Badge>
+          </Flex> */}
+
+          {/* Description */}
+          {catalog.description && (
             <styled.p fontSize="sm" color="gray.600" lineHeight="relaxed">
               {catalog.description}
             </styled.p>
-          </Box>
-        )}
-      </Stack>
+          )}
+        </Stack>
 
-      {/* Tabbed Content */}
-      <CatalogDetailTabs
-        productsCount={products.length}
-        categoriesTab={<CategoriesTab catalogId={catalogId} projectId={projectId} />}
-        productsTab={<ProductsTab catalogId={catalogId} projectId={projectId} />}
-      />
+        {/* Tabbed Content */}
+        <CatalogDetailTabs
+          productsCount={products.length}
+          categoriesTab={
+            <CategoriesTab
+              catalogId={catalogId}
+              projectId={projectId}
+              categories={categories}
+            />
+          }
+          productsTab={<ProductsTab catalogId={catalogId} projectId={projectId} />}
+        />
+      </Stack>
     </Container>
   )
 }

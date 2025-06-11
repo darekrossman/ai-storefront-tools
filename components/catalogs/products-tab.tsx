@@ -2,6 +2,7 @@ import { Box, Flex, Stack, styled } from '@/styled-system/jsx'
 import Link from 'next/link'
 import { getProductsByCatalog } from '@/actions/products'
 import type { ProductWithRelations } from '@/actions/products'
+import { button } from '@/components/ui/button'
 
 interface ProductsTabProps {
   catalogId: string
@@ -49,23 +50,9 @@ export default async function ProductsTab({ catalogId, projectId }: ProductsTabP
         {products.length > 0 && (
           <Link
             href={`/dashboard/projects/${projectId}/catalogs/${catalogId}/products/new`}
+            className={button()}
           >
-            <styled.button
-              px={4}
-              py={2}
-              bg="blue.600"
-              color="white"
-              borderRadius="lg"
-              fontSize="sm"
-              fontWeight="medium"
-              cursor="pointer"
-              _hover={{
-                bg: 'blue.700',
-              }}
-              transition="all 0.2s"
-            >
-              Add Product
-            </styled.button>
+            Add Product
           </Link>
         )}
       </Flex>
@@ -107,23 +94,9 @@ export default async function ProductsTab({ catalogId, projectId }: ProductsTabP
 
             <Link
               href={`/dashboard/projects/${projectId}/catalogs/${catalogId}/products/new`}
+              className={button()}
             >
-              <styled.button
-                px={6}
-                py={3}
-                bg="blue.600"
-                color="white"
-                borderRadius="lg"
-                fontSize="sm"
-                fontWeight="medium"
-                cursor="pointer"
-                _hover={{
-                  bg: 'blue.700',
-                }}
-                transition="all 0.2s"
-              >
-                Add Your First Product
-              </styled.button>
+              Add Your First Product
             </Link>
           </Stack>
         </Box>
@@ -399,26 +372,11 @@ function ProductTableRow({ product, projectId }: ProductTableRowProps) {
       {/* Actions */}
       <styled.td px={6} py={4}>
         <Flex gap={2} justify="end">
-          <Link href={`/dashboard/projects/${projectId}/products/${product.id}`}>
-            <styled.button
-              px={3}
-              py={1}
-              fontSize="xs"
-              fontWeight="medium"
-              color="gray.600"
-              bg="white"
-              border="1px solid"
-              borderColor="gray.300"
-              borderRadius="md"
-              cursor="pointer"
-              _hover={{
-                bg: 'gray.50',
-                borderColor: 'gray.400',
-              }}
-              transition="all 0.2s"
-            >
-              View
-            </styled.button>
+          <Link
+            href={`/dashboard/projects/${projectId}/products/${product.id}`}
+            className={button({ variant: 'secondary', size: 'sm' })}
+          >
+            View
           </Link>
         </Flex>
       </styled.td>

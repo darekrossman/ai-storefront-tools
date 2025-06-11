@@ -24,10 +24,13 @@ export const button = cva({
         },
       },
       secondary: {
-        bg: 'gray.500',
-        color: 'white',
+        bg: 'transparent',
+        border: '1px solid',
+        borderColor: 'gray.300',
+        color: 'gray.700',
         _hover: {
-          bg: 'gray.600',
+          bg: 'gray.100',
+          borderColor: 'gray.400',
         },
       },
       danger: {
@@ -42,6 +45,7 @@ export const button = cva({
       lg: { h: '11', px: '4', fontSize: 'sm' },
       md: { h: '9', px: '4', fontSize: 'sm' },
       sm: { h: '7', px: '3', fontSize: 'xs' },
+      xs: { h: '6', px: '2', fontSize: 'xs' },
     },
   },
   defaultVariants: {

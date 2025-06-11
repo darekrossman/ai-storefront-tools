@@ -1,8 +1,9 @@
 import { openai } from '@ai-sdk/openai'
-import { streamObject } from 'ai'
+import { generateObject, streamObject } from 'ai'
 import { catalogStructuredOutputSchemas } from '@/lib/catalog/schemas'
 import { getBrandAction } from '@/actions/brands'
 import { createClient } from '@/lib/supabase/server'
+import { convertToDBFormat } from '@/lib/catalog/helpers'
 
 const systemPrompt = `You are an AI Product Catalog Strategy Expert specializing in creating comprehensive product catalogs and category hierarchies for brands across all industries.
 
@@ -121,9 +122,7 @@ export async function POST(req: Request) {
 
   const { id, project_id, status, created_at, updated_at, logo_url, ...brandData } = brand
 
-  console.log(brandData)
-
-  const result = streamObject({
+  const result = await generateObject({
     model: openai('gpt-4.1'),
     schema: catalogStructuredOutputSchemas,
     system: systemPrompt,
@@ -135,5 +134,11 @@ export async function POST(req: Request) {
     ],
   })
 
-  return result.toTextStreamResponse()
+  const { catalog, categories } = convertToDBFormat(result.object, brandId)
+
+  await supabase.from('product_catalogs').insert(catalog)
+  await supabase.from('categories').insert(categories)
+
+  return Response.json({ success: true })
+  // return result.toTextStreamResponse()
 }
