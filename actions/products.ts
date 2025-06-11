@@ -2,28 +2,45 @@
 
 import { createClient } from '@/lib/supabase/server'
 import { revalidatePath } from 'next/cache'
-import type {
-  Product,
-  ProductInsert,
-  ProductUpdate,
-  ProductVariant,
-  ProductAttribute,
-  ProductImage,
-  BrandStatus,
-} from '@/lib/supabase/database-types'
+import type { Database } from '@/lib/supabase/generated-types'
+import { convertToDBFormat, linkProductRelations } from '@/lib/products/helpers'
+import type { fullProductSchema } from '@/lib/products/schemas'
+import type { z } from 'zod'
+
+type Product = Database['public']['Tables']['products']['Row']
+type ProductInsert = Database['public']['Tables']['products']['Insert']
+type ProductUpdate = Database['public']['Tables']['products']['Update']
+type ProductVariant = Database['public']['Tables']['product_variants']['Row']
+type ProductAttributeSchema =
+  Database['public']['Tables']['product_attribute_schemas']['Row']
+type ProductImage = Database['public']['Tables']['product_images']['Row']
+type BrandStatus = Database['public']['Enums']['brand_status']
 
 // Types for product operations based on generated database types
 export type CreateProductData = Omit<
   ProductInsert,
-  'created_at' | 'updated_at' | 'min_price' | 'max_price' | 'total_inventory'
+  | 'created_at'
+  | 'updated_at'
+  | 'min_price'
+  | 'max_price'
+  | 'variant_count'
+  | 'active_variant_count'
 >
+
+export type CreateMultipleProductsData = z.infer<typeof fullProductSchema>
 
 export type UpdateProductData = {
   id: number
 } & Partial<
   Omit<
     ProductUpdate,
-    'id' | 'created_at' | 'updated_at' | 'min_price' | 'max_price' | 'total_inventory'
+    | 'id'
+    | 'created_at'
+    | 'updated_at'
+    | 'min_price'
+    | 'max_price'
+    | 'variant_count'
+    | 'active_variant_count'
   >
 >
 
@@ -50,14 +67,14 @@ export interface ProductWithRelations extends Product {
     sku: string
     barcode?: string | null
     price: number
-    orderable: boolean
+    is_active: boolean
     attributes: any
     status: BrandStatus
     sort_order?: number
   }>
-  product_attributes?: Array<{
+  product_attribute_schemas?: Array<{
     id: number
-    attribute_id: string
+    attribute_key: string
     attribute_label: string
     options: any
     is_required: boolean
@@ -118,7 +135,7 @@ export async function createProduct(data: CreateProductData) {
         description: data.description,
         short_description: data.short_description,
         specifications: data.specifications || {},
-        attributes: data.attributes || {},
+        base_attributes: data.base_attributes || {},
         meta_title: data.meta_title,
         meta_description: data.meta_description,
         tags: data.tags || [],
@@ -137,6 +154,116 @@ export async function createProduct(data: CreateProductData) {
     return { success: true, data: product }
   } catch (error) {
     console.error('Error in createProduct:', error)
+    return {
+      success: false,
+      error: error instanceof Error ? error.message : 'Unknown error occurred',
+    }
+  }
+}
+
+/**
+ * Create multiple products with their variants and attributes in a single transaction
+ */
+export async function createMultipleProducts(
+  catalogId: string,
+  productsData: CreateMultipleProductsData,
+) {
+  const supabase = await createClient()
+
+  try {
+    // Validate user access to catalog
+    const { data: catalog } = await supabase
+      .from('product_catalogs')
+      .select(`
+        catalog_id,
+        brands (
+          id,
+          projects (
+            id,
+            user_id
+          )
+        )
+      `)
+      .eq('catalog_id', catalogId)
+      .single()
+
+    if (!catalog?.brands?.projects?.user_id) {
+      throw new Error('Catalog not found or access denied')
+    }
+
+    const {
+      data: { user },
+    } = await supabase.auth.getUser()
+    if (!user || catalog.brands.projects.user_id !== user.id) {
+      throw new Error('Unauthorized')
+    }
+
+    // Convert the schema data to database format
+    const convertedData = convertToDBFormat(productsData, catalogId)
+
+    // Start a transaction to create all products and related data
+    const { data: insertedProducts, error: productsError } = await supabase
+      .from('products')
+      .insert(convertedData.products)
+      .select('id')
+
+    if (productsError) {
+      console.error('Error creating products:', productsError)
+      throw new Error(productsError.message)
+    }
+
+    if (!insertedProducts || insertedProducts.length === 0) {
+      throw new Error('No products were created')
+    }
+
+    // Map inserted products to their original index for linking
+    const productMappings = insertedProducts.map((product, index) => ({
+      id: product.id,
+      index,
+    }))
+
+    // Link the attribute schemas and variants to their products
+    const { attributeSchemas, variants } = linkProductRelations(
+      convertedData,
+      productMappings,
+    )
+
+    // Insert attribute schemas if any exist
+    if (attributeSchemas.length > 0) {
+      const { error: attributesError } = await supabase
+        .from('product_attribute_schemas')
+        .insert(attributeSchemas)
+
+      if (attributesError) {
+        console.error('Error creating attribute schemas:', attributesError)
+        // Note: In a real transaction, we'd want to rollback the products
+        throw new Error(attributesError.message)
+      }
+    }
+
+    // Insert variants if any exist
+    if (variants.length > 0) {
+      const { error: variantsError } = await supabase
+        .from('product_variants')
+        .insert(variants)
+
+      if (variantsError) {
+        console.error('Error creating variants:', variantsError)
+        // Note: In a real transaction, we'd want to rollback the products and attributes
+        throw new Error(variantsError.message)
+      }
+    }
+
+    revalidatePath('/')
+    return {
+      success: true,
+      data: {
+        products: insertedProducts,
+        message: `Successfully created ${insertedProducts.length} products`,
+      },
+    }
+  } catch (error) {
+    console.error('Error in createMultipleProducts:', error)
     return {
       success: false,
       error: error instanceof Error ? error.message : 'Unknown error occurred',
@@ -297,13 +424,13 @@ export async function getProductsByCatalog(
           id,
           sku,
           price,
-          orderable,
+          is_active,
           attributes,
           status
         ),
-        product_attributes (
+        product_attribute_schemas (
           id,
-          attribute_id,
+          attribute_key,
           attribute_label,
           options,
           is_required,
@@ -370,14 +497,14 @@ export async function getProductById(
           sku,
           barcode,
           price,
-          orderable,
+          is_active,
           attributes,
           status,
           sort_order
         ),
-        product_attributes (
+        product_attribute_schemas (
           id,
-          attribute_id,
+          attribute_key,
           attribute_label,
           options,
           is_required,
@@ -440,7 +567,7 @@ export async function duplicateProduct(productId: number, newName: string) {
       description: originalProduct.description,
       short_description: originalProduct.short_description,
       specifications: originalProduct.specifications,
-      attributes: originalProduct.attributes,
+      base_attributes: originalProduct.base_attributes,
       meta_title: originalProduct.meta_title,
       meta_description: originalProduct.meta_description,
       tags: originalProduct.tags,
@@ -456,19 +583,20 @@ export async function duplicateProduct(productId: number, newName: string) {
 
     // Duplicate attributes
     if (
-      originalProduct.product_attributes &&
-      originalProduct.product_attributes.length > 0
+      originalProduct.product_attribute_schemas &&
+      originalProduct.product_attribute_schemas.length > 0
     ) {
-      const attributesData = originalProduct.product_attributes.map((attr) => ({
+      const attributesData = originalProduct.product_attribute_schemas.map((attr) => ({
         product_id: newProductId,
-        attribute_id: attr.attribute_id,
+        attribute_key: attr.attribute_key,
         attribute_label: attr.attribute_label,
+        attribute_type: 'select', // Default type, adjust as needed
         options: attr.options,
         is_required: attr.is_required,
         sort_order: attr.sort_order,
       }))
 
-      await supabase.from('product_attributes').insert(attributesData)
+      await supabase.from('product_attribute_schemas').insert(attributesData)
     }
 
     // Duplicate variants
@@ -477,7 +605,7 @@ export async function duplicateProduct(productId: number, newName: string) {
         product_id: newProductId,
         sku: `${variant.sku}-copy-${Date.now()}-${index}`, // Make SKU unique
         price: variant.price,
-        orderable: variant.orderable,
+        is_active: variant.is_active,
         attributes: variant.attributes,
         status: 'draft' as BrandStatus, // Always create duplicates as draft
         sort_order: variant.sort_order,

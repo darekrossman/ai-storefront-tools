@@ -2,21 +2,24 @@
 
 import { createClient } from '@/lib/supabase/server'
 import { revalidatePath } from 'next/cache'
-import type {
-  ProductAttribute,
-  ProductAttributeInsert,
-  ProductAttributeUpdate,
-  ProductVariant,
-} from '@/lib/supabase/database-types'
+import type { Database } from '@/lib/supabase/generated-types'
+
+type ProductAttributeSchema =
+  Database['public']['Tables']['product_attribute_schemas']['Row']
+type ProductAttributeSchemaInsert =
+  Database['public']['Tables']['product_attribute_schemas']['Insert']
+type ProductAttributeSchemaUpdate =
+  Database['public']['Tables']['product_attribute_schemas']['Update']
+type ProductVariant = Database['public']['Tables']['product_variants']['Row']
 
 // Types for attribute operations based on generated database types
 export type CreateAttributeData = Omit<
-  ProductAttributeInsert,
+  ProductAttributeSchemaInsert,
   'created_at' | 'updated_at'
 >
 
 export type UpdateAttributeData = Partial<
-  Omit<ProductAttributeUpdate, 'id' | 'created_at' | 'updated_at'>
+  Omit<ProductAttributeSchemaUpdate, 'id' | 'created_at' | 'updated_at'>
 > & {
   id: number
 }
@@ -58,27 +61,32 @@ export async function createProductAttribute(data: CreateAttributeData) {
       throw new Error('Unauthorized')
     }
 
-    // Validate attribute_id uniqueness for this product
+    // Validate attribute_key uniqueness for this product
     const { data: existingAttribute } = await supabase
-      .from('product_attributes')
+      .from('product_attribute_schemas')
       .select('id')
       .eq('product_id', data.product_id)
-      .eq('attribute_id', data.attribute_id)
+      .eq('attribute_key', data.attribute_key)
       .single()
 
     if (existingAttribute) {
-      throw new Error('Attribute ID already exists for this product')
+      throw new Error('Attribute key already exists for this product')
     }
 
     // Create the attribute
     const { data: attribute, error } = await supabase
-      .from('product_attributes')
+      .from('product_attribute_schemas')
       .insert({
         product_id: data.product_id,
-        attribute_id: data.attribute_id,
+        attribute_key: data.attribute_key,
         attribute_label: data.attribute_label,
-        options: data.options,
+        attribute_type: data.attribute_type,
+        options: data.options || [],
+        default_value: data.default_value,
         is_required: data.is_required || false,
+        is_variant_defining: data.is_variant_defining ?? true,
+        validation_rules: data.validation_rules || {},
+        help_text: data.help_text,
         sort_order: data.sort_order || 0,
       })
       .select()
@@ -109,10 +117,10 @@ export async function updateProductAttribute(data: UpdateAttributeData) {
   try {
     // Validate user access
     const { data: attribute } = await supabase
-      .from('product_attributes')
+      .from('product_attribute_schemas')
       .select(`
         id,
-        attribute_id,
+        attribute_key,
         products (
           id,
           product_catalogs (
@@ -144,18 +152,18 @@ export async function updateProductAttribute(data: UpdateAttributeData) {
       throw new Error('Unauthorized')
     }
 
-    // Validate attribute_id uniqueness if changing it
-    if (data.attribute_id && data.attribute_id !== attribute.attribute_id) {
+    // Validate attribute_key uniqueness if changing it
+    if (data.attribute_key && data.attribute_key !== attribute.attribute_key) {
       const { data: existingAttribute } = await supabase
-        .from('product_attributes')
+        .from('product_attribute_schemas')
         .select('id')
         .eq('product_id', data.product_id!)
-        .eq('attribute_id', data.attribute_id)
+        .eq('attribute_key', data.attribute_key)
         .neq('id', data.id)
         .single()
 
       if (existingAttribute) {
-        throw new Error('Attribute ID already exists for this product')
+        throw new Error('Attribute key already exists for this product')
       }
     }
 
@@ -163,7 +171,7 @@ export async function updateProductAttribute(data: UpdateAttributeData) {
     const { id, ...updateData } = data
 
     const { data: updatedAttribute, error } = await supabase
-      .from('product_attributes')
+      .from('product_attribute_schemas')
       .update(updateData)
       .eq('id', data.id)
       .select()
@@ -194,9 +202,10 @@ export async function deleteProductAttribute(attributeId: number) {
   try {
     // Validate user access
     const { data: attribute } = await supabase
-      .from('product_attributes')
+      .from('product_attribute_schemas')
       .select(`
         id,
+        attribute_key,
         products (
           id,
           product_catalogs (
@@ -237,7 +246,9 @@ export async function deleteProductAttribute(attributeId: number) {
     const attributeInUse = variantsUsingAttribute?.some(
       (variant) =>
         variant.attributes &&
-        Object.keys(variant.attributes as Record<string, any>).length > 0,
+        typeof variant.attributes === 'object' &&
+        variant.attributes !== null &&
+        attribute.attribute_key in (variant.attributes as Record<string, any>),
     )
 
     if (attributeInUse) {
@@ -246,7 +257,7 @@ export async function deleteProductAttribute(attributeId: number) {
 
     // Delete the attribute
     const { error } = await supabase
-      .from('product_attributes')
+      .from('product_attribute_schemas')
       .delete()
       .eq('id', attributeId)
 
@@ -271,12 +282,12 @@ export async function deleteProductAttribute(attributeId: number) {
  */
 export async function getProductAttributes(
   productId: number,
-): Promise<ProductAttribute[]> {
+): Promise<ProductAttributeSchema[]> {
   const supabase = await createClient()
 
   try {
     const { data: attributes, error } = await supabase
-      .from('product_attributes')
+      .from('product_attribute_schemas')
       .select('*')
       .eq('product_id', productId)
       .order('sort_order')
@@ -299,12 +310,12 @@ export async function getProductAttributes(
  */
 export async function getProductAttributeById(
   attributeId: number,
-): Promise<ProductAttribute | null> {
+): Promise<ProductAttributeSchema | null> {
   const supabase = await createClient()
 
   try {
     const { data: attribute, error } = await supabase
-      .from('product_attributes')
+      .from('product_attribute_schemas')
       .select('*')
       .eq('id', attributeId)
       .single()
@@ -332,7 +343,7 @@ export async function updateAttributeOrder(
   try {
     // Update each attribute's sort order
     const updates = attributeOrders.map(({ id, sort_order }) =>
-      supabase.from('product_attributes').update({ sort_order }).eq('id', id),
+      supabase.from('product_attribute_schemas').update({ sort_order }).eq('id', id),
     )
 
     const results = await Promise.all(updates)
@@ -360,14 +371,14 @@ export async function updateAttributeOrder(
  */
 export async function addAttributeOption(
   attributeId: number,
-  option: { id: string; label: string },
+  option: { value: string; label: string },
 ) {
   const supabase = await createClient()
 
   try {
     // Get current attribute
     const { data: attribute, error: fetchError } = await supabase
-      .from('product_attributes')
+      .from('product_attribute_schemas')
       .select('*')
       .eq('id', attributeId)
       .single()
@@ -376,19 +387,21 @@ export async function addAttributeOption(
       throw new Error('Attribute not found')
     }
 
-    // Check if option ID already exists
-    const existingOptions = attribute.options as Array<{ id: string; label: string }>
-    const optionExists = existingOptions.some((existing) => existing.id === option.id)
+    // Check if option value already exists
+    const existingOptions = attribute.options as Array<{ value: string; label: string }>
+    const optionExists = existingOptions.some(
+      (existing) => existing.value === option.value,
+    )
 
     if (optionExists) {
-      throw new Error('Option ID already exists')
+      throw new Error('Option value already exists')
     }
 
     // Add the new option
     const updatedOptions = [...existingOptions, option]
 
     const { error } = await supabase
-      .from('product_attributes')
+      .from('product_attribute_schemas')
       .update({ options: updatedOptions })
       .eq('id', attributeId)
 
@@ -411,13 +424,13 @@ export async function addAttributeOption(
 /**
  * Remove option from an existing attribute
  */
-export async function removeAttributeOption(attributeId: number, optionId: string) {
+export async function removeAttributeOption(attributeId: number, optionValue: string) {
   const supabase = await createClient()
 
   try {
     // Get current attribute
     const { data: attribute, error: fetchError } = await supabase
-      .from('product_attributes')
+      .from('product_attribute_schemas')
       .select('*')
       .eq('id', attributeId)
       .single()
@@ -427,8 +440,10 @@ export async function removeAttributeOption(attributeId: number, optionId: strin
     }
 
     // Remove the option
-    const existingOptions = attribute.options as Array<{ id: string; label: string }>
-    const updatedOptions = existingOptions.filter((option) => option.id !== optionId)
+    const existingOptions = attribute.options as Array<{ value: string; label: string }>
+    const updatedOptions = existingOptions.filter(
+      (option) => option.value !== optionValue,
+    )
 
     if (updatedOptions.length === existingOptions.length) {
       throw new Error('Option not found')
@@ -442,7 +457,7 @@ export async function removeAttributeOption(attributeId: number, optionId: strin
 
     const optionInUse = variants?.some((variant) => {
       const attrs = variant.attributes as Record<string, string>
-      return attrs && attrs[attribute.attribute_id] === optionId
+      return attrs && attrs[attribute.attribute_key] === optionValue
     })
 
     if (optionInUse) {
@@ -450,7 +465,7 @@ export async function removeAttributeOption(attributeId: number, optionId: strin
     }
 
     const { error } = await supabase
-      .from('product_attributes')
+      .from('product_attribute_schemas')
       .update({ options: updatedOptions })
       .eq('id', attributeId)
 
@@ -483,8 +498,8 @@ export async function getAttributeCombinations(
     const combinations: Record<string, string[]> = {}
 
     attributes.forEach((attr) => {
-      const options = attr.options as Array<{ id: string; label: string }>
-      combinations[attr.attribute_id] = options.map((option) => option.id)
+      const options = attr.options as Array<{ value: string; label: string }>
+      combinations[attr.attribute_key] = options.map((option) => option.value)
     })
 
     return combinations
@@ -527,4 +542,56 @@ export async function generateVariantCombinations(
 
   generateCombination({}, 0)
   return combinations
+}
+
+/**
+ * Get product attribute schema using database function
+ */
+export async function getProductAttributeSchema(productId: number) {
+  const supabase = await createClient()
+
+  try {
+    const { data, error } = await supabase.rpc('get_product_attribute_schema', {
+      p_product_id: productId,
+    })
+
+    if (error) {
+      console.error('Error fetching attribute schema:', error)
+      throw new Error(error.message)
+    }
+
+    return data || {}
+  } catch (error) {
+    console.error('Error in getProductAttributeSchema:', error)
+    return {}
+  }
+}
+
+/**
+ * Validate variant attributes using database function
+ */
+export async function validateAttributeValues(
+  productId: number,
+  attributeValues: Record<string, any>,
+) {
+  const supabase = await createClient()
+
+  try {
+    const { data, error } = await supabase.rpc('validate_attribute_values', {
+      p_product_id: productId,
+      p_attribute_values: attributeValues,
+    })
+
+    if (error) {
+      throw new Error(error.message)
+    }
+
+    return { success: true, valid: data }
+  } catch (error) {
+    console.error('Error in validateAttributeValues:', error)
+    return {
+      success: false,
+      error: error instanceof Error ? error.message : 'Unknown error occurred',
+    }
+  }
 }

@@ -1,19 +1,20 @@
-import { Box, Stack, styled } from '@/styled-system/jsx'
+import { Box, Container, Stack, styled } from '@/styled-system/jsx'
 import { notFound } from 'next/navigation'
 import { getProductCatalogAction } from '@/actions/product-catalogs'
 import { getCategoriesAction } from '@/actions/categories'
 import CreateProductForm from '@/components/products/create-product-form'
+import ProductsGeneration from '@/components/products/products-generation'
 
 interface NewProductPageProps {
-  params: {
+  params: Promise<{
     id: string
     catalogId: string
-  }
+  }>
 }
 
 export default async function NewProductPage({ params }: NewProductPageProps) {
-  const projectId = parseInt(params.id)
-  const catalogId = params.catalogId
+  const { id, catalogId } = await params
+  const projectId = parseInt(id)
 
   if (isNaN(projectId)) {
     notFound()
@@ -70,7 +71,7 @@ export default async function NewProductPage({ params }: NewProductPageProps) {
   }
 
   return (
-    <Box>
+    <Container py={8}>
       {/* Breadcrumb */}
       <Stack gap={2} mb={6}>
         <styled.p fontSize="sm" color="gray.600">
@@ -80,11 +81,12 @@ export default async function NewProductPage({ params }: NewProductPageProps) {
       </Stack>
 
       {/* Create Product Form */}
-      <CreateProductForm
+      {/* <CreateProductForm
         projectId={projectId}
         catalogId={catalogId}
         categories={categories}
-      />
-    </Box>
+      /> */}
+      <ProductsGeneration catalogId={catalogId} projectId={projectId} />
+    </Container>
   )
 }

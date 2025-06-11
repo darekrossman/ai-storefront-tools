@@ -2,12 +2,12 @@
 
 import { createClient } from '@/lib/supabase/server'
 import { revalidatePath } from 'next/cache'
-import type {
-  ProductVariant,
-  ProductVariantInsert,
-  ProductVariantUpdate,
-  BrandStatus,
-} from '@/lib/supabase/database-types'
+import type { Database } from '@/lib/supabase/generated-types'
+
+type ProductVariant = Database['public']['Tables']['product_variants']['Row']
+type ProductVariantInsert = Database['public']['Tables']['product_variants']['Insert']
+type ProductVariantUpdate = Database['public']['Tables']['product_variants']['Update']
+type BrandStatus = Database['public']['Enums']['brand_status']
 
 // Types for variant operations based on generated database types
 export type CreateVariantData = Omit<ProductVariantInsert, 'created_at' | 'updated_at'>
@@ -72,8 +72,15 @@ export async function createProductVariant(data: CreateVariantData) {
         sku: data.sku,
         barcode: data.barcode,
         price: data.price,
-        orderable: data.orderable ?? true,
-        attributes: data.attributes,
+        compare_at_price: data.compare_at_price,
+        cost_per_item: data.cost_per_item,
+        attributes: data.attributes || {},
+        inventory_count: data.inventory_count || 0,
+        inventory_policy: data.inventory_policy || 'deny',
+        inventory_tracked: data.inventory_tracked ?? true,
+        is_active: data.is_active ?? true,
+        weight: data.weight,
+        weight_unit: data.weight_unit || 'kg',
         status: data.status || 'draft',
         sort_order: data.sort_order || 0,
       })
@@ -391,7 +398,7 @@ export async function validateVariantAttributes(
   try {
     // Get product attribute definitions
     const { data: productAttributes, error } = await supabase
-      .from('product_attributes')
+      .from('product_attribute_schemas')
       .select('*')
       .eq('product_id', productId)
 
@@ -403,22 +410,22 @@ export async function validateVariantAttributes(
 
     // Check required attributes
     productAttributes?.forEach((attr) => {
-      if (attr.is_required && !attributes[attr.attribute_id]) {
+      if (attr.is_required && !attributes[attr.attribute_key]) {
         errors.push(`Required attribute "${attr.attribute_label}" is missing`)
       }
     })
 
     // Check valid values
     Object.entries(attributes).forEach(([key, value]) => {
-      const attrDef = productAttributes?.find((attr) => attr.attribute_id === key)
+      const attrDef = productAttributes?.find((attr) => attr.attribute_key === key)
 
       if (!attrDef) {
         errors.push(`Attribute "${key}" is not defined for this product`)
         return
       }
 
-      const validOptions = attrDef.options as Array<{ id: string; label: string }>
-      const isValidValue = validOptions.some((option) => option.id === value)
+      const validOptions = attrDef.options as Array<{ value: string; label: string }>
+      const isValidValue = validOptions.some((option) => option.value === value)
 
       if (!isValidValue) {
         errors.push(`Invalid value "${value}" for attribute "${attrDef.attribute_label}"`)
@@ -435,5 +442,59 @@ export async function validateVariantAttributes(
       isValid: false,
       errors: ['Failed to validate attributes'],
     }
+  }
+}
+
+/**
+ * Get variant display name using database function
+ */
+export async function getVariantDisplayName(
+  variantId: number,
+  includeProductName = false,
+): Promise<string> {
+  const supabase = await createClient()
+
+  try {
+    const { data, error } = await supabase.rpc('get_variant_display_name', {
+      p_variant_id: variantId,
+      p_include_product_name: includeProductName,
+    })
+
+    if (error) {
+      console.error('Error getting variant display name:', error)
+      throw new Error(error.message)
+    }
+
+    return data || `Variant #${variantId}`
+  } catch (error) {
+    console.error('Error in getVariantDisplayName:', error)
+    return `Variant #${variantId}`
+  }
+}
+
+/**
+ * Get effective attributes (base + variant) using database function
+ */
+export async function getEffectiveAttributes(
+  productId: number,
+  variantAttributes: Record<string, any> = {},
+) {
+  const supabase = await createClient()
+
+  try {
+    const { data, error } = await supabase.rpc('get_effective_attributes', {
+      p_product_id: productId,
+      p_variant_attributes: variantAttributes,
+    })
+
+    if (error) {
+      console.error('Error getting effective attributes:', error)
+      throw new Error(error.message)
+    }
+
+    return data || {}
+  } catch (error) {
+    console.error('Error in getEffectiveAttributes:', error)
+    return {}
   }
 }

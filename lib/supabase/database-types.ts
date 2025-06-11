@@ -17,7 +17,7 @@ export type Brand = Tables<'brands'>
 export type ProductCatalog = Tables<'product_catalogs'>
 export type Category = Tables<'categories'>
 export type Product = Tables<'products'>
-export type ProductAttribute = Tables<'product_attributes'>
+export type ProductAttributeSchema = Tables<'product_attribute_schemas'>
 export type ProductImage = Tables<'product_images'>
 export type ProductVariant = Tables<'product_variants'>
 
@@ -28,7 +28,7 @@ export type BrandInsert = TablesInsert<'brands'>
 export type ProductCatalogInsert = TablesInsert<'product_catalogs'>
 export type CategoryInsert = TablesInsert<'categories'>
 export type ProductInsert = TablesInsert<'products'>
-export type ProductAttributeInsert = TablesInsert<'product_attributes'>
+export type ProductAttributeSchemaInsert = TablesInsert<'product_attribute_schemas'>
 export type ProductImageInsert = TablesInsert<'product_images'>
 export type ProductVariantInsert = TablesInsert<'product_variants'>
 
@@ -39,7 +39,7 @@ export type BrandUpdate = TablesUpdate<'brands'>
 export type ProductCatalogUpdate = TablesUpdate<'product_catalogs'>
 export type CategoryUpdate = TablesUpdate<'categories'>
 export type ProductUpdate = TablesUpdate<'products'>
-export type ProductAttributeUpdate = TablesUpdate<'product_attributes'>
+export type ProductAttributeSchemaUpdate = TablesUpdate<'product_attribute_schemas'>
 export type ProductImageUpdate = TablesUpdate<'product_images'>
 export type ProductVariantUpdate = TablesUpdate<'product_variants'>
 
