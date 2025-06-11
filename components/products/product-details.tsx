@@ -1,6 +1,8 @@
 import { Box, Flex, Stack, styled } from '@/styled-system/jsx'
 import Link from 'next/link'
 import type { ProductWithRelations } from '@/actions/products'
+import { Button, button } from '@/components/ui/button'
+import ProductImageGenerator from './product-image-generator'
 
 interface ProductDetailsProps {
   product: ProductWithRelations
@@ -23,12 +25,12 @@ export default function ProductDetails({ product, projectId }: ProductDetailsPro
 
   const statusColor = getStatusColor(product.status)
   const variants = product.product_variants || []
-  const attributes = product.product_attributes || []
+  const attributes = product.product_attribute_schemas || []
   const images = product.product_images || []
 
   // Group images by type
   const imagesByType = images.reduce(
-    (acc, image) => {
+    (acc: Record<string, typeof images>, image) => {
       const type = image.type || 'gallery'
       if (!acc[type]) {
         acc[type] = []
@@ -96,44 +98,15 @@ export default function ProductDetails({ product, projectId }: ProductDetailsPro
           <Flex gap={2}>
             <Link
               href={`/dashboard/projects/${projectId}/products/${product.id}/variants`}
+              className={button({ variant: 'primary', size: 'sm' })}
             >
-              <styled.button
-                px={4}
-                py={2}
-                bg="green.600"
-                color="white"
-                borderRadius="lg"
-                fontSize="sm"
-                fontWeight="medium"
-                cursor="pointer"
-                _hover={{
-                  bg: 'green.700',
-                }}
-                transition="all 0.2s"
-              >
-                Manage Variants
-              </styled.button>
+              Manage Variants
             </Link>
-            <Link href={`/dashboard/projects/${projectId}/products/${product.id}/edit`}>
-              <styled.button
-                px={4}
-                py={2}
-                border="1px solid"
-                borderColor="gray.300"
-                bg="white"
-                color="gray.700"
-                borderRadius="lg"
-                fontSize="sm"
-                fontWeight="medium"
-                cursor="pointer"
-                _hover={{
-                  bg: 'gray.50',
-                  borderColor: 'gray.400',
-                }}
-                transition="all 0.2s"
-              >
-                Edit Product
-              </styled.button>
+            <Link
+              href={`/dashboard/projects/${projectId}/products/${product.id}/edit`}
+              className={button({ variant: 'secondary', size: 'sm' })}
+            >
+              Edit Product
             </Link>
           </Flex>
         </Flex>
@@ -146,11 +119,6 @@ export default function ProductDetails({ product, projectId }: ProductDetailsPro
                 ? `$${product.min_price}`
                 : `$${product.min_price} - $${product.max_price}`}
             </styled.div>
-            {product.total_inventory !== null && (
-              <styled.div fontSize="sm" color="gray.600">
-                {product.total_inventory} units in stock
-              </styled.div>
-            )}
           </Box>
         )}
       </Stack>
@@ -218,6 +186,10 @@ export default function ProductDetails({ product, projectId }: ProductDetailsPro
             </Box>
           )}
 
+          <Box>
+            <ProductImageGenerator product={product} />
+          </Box>
+
           {/* Gallery Images */}
           {imagesByType.gallery && imagesByType.gallery.length > 0 && (
             <Box
@@ -240,23 +212,25 @@ export default function ProductDetails({ product, projectId }: ProductDetailsPro
                   }}
                   gap={4}
                 >
-                  {imagesByType.gallery.map((image) => (
-                    <Box
-                      key={image.id}
-                      h={24}
-                      bg="gray.100"
-                      borderRadius="md"
-                      overflow="hidden"
-                    >
-                      <styled.img
-                        src={image.url}
-                        alt={image.alt_text || ''}
-                        w="full"
-                        h="full"
-                        objectFit="cover"
-                      />
-                    </Box>
-                  ))}
+                  {imagesByType.gallery.map(
+                    (image: NonNullable<ProductWithRelations['product_images']>[0]) => (
+                      <Box
+                        key={image.id}
+                        h={24}
+                        bg="gray.100"
+                        borderRadius="md"
+                        overflow="hidden"
+                      >
+                        <styled.img
+                          src={image.url}
+                          alt={image.alt_text || ''}
+                          w="full"
+                          h="full"
+                          objectFit="cover"
+                        />
+                      </Box>
+                    ),
+                  )}
                 </Box>
               </Stack>
             </Box>
@@ -279,44 +253,52 @@ export default function ProductDetails({ product, projectId }: ProductDetailsPro
                   Attributes ({attributes.length})
                 </styled.h3>
                 <Stack gap={3}>
-                  {attributes.map((attribute) => (
-                    <Box key={attribute.id}>
-                      <Flex justify="space-between" align="center" mb={2}>
-                        <styled.div fontSize="sm" fontWeight="medium" color="gray.700">
-                          {attribute.attribute_label}
-                        </styled.div>
-                        {attribute.is_required && (
-                          <styled.span
-                            fontSize="xs"
-                            px={2}
-                            py={0.5}
-                            bg="red.100"
-                            color="red.700"
-                            borderRadius="sm"
-                          >
-                            Required
-                          </styled.span>
-                        )}
-                      </Flex>
-                      <Flex gap={2} wrap="wrap">
-                        {attribute.options &&
-                          Array.isArray(attribute.options) &&
-                          attribute.options.map((option: any, index: number) => (
+                  {attributes.map(
+                    (
+                      attribute: NonNullable<
+                        ProductWithRelations['product_attribute_schemas']
+                      >[0],
+                    ) => (
+                      <Box key={attribute.id}>
+                        <Flex justify="space-between" align="center" mb={2}>
+                          <styled.div fontSize="sm" fontWeight="medium" color="gray.700">
+                            {attribute.attribute_label}
+                          </styled.div>
+                          {attribute.is_required && (
                             <styled.span
-                              key={index}
                               fontSize="xs"
                               px={2}
-                              py={1}
-                              bg="gray.100"
-                              color="gray.700"
+                              py={0.5}
+                              bg="red.100"
+                              color="red.700"
                               borderRadius="sm"
                             >
-                              {typeof option === 'object' ? option.label : option}
+                              Required
                             </styled.span>
-                          ))}
-                      </Flex>
-                    </Box>
-                  ))}
+                          )}
+                        </Flex>
+                        <Flex gap={2} wrap="wrap">
+                          {attribute.options &&
+                            Array.isArray(attribute.options) &&
+                            attribute.options.map((option: unknown, index: number) => (
+                              <styled.span
+                                key={index}
+                                fontSize="xs"
+                                px={2}
+                                py={1}
+                                bg="gray.100"
+                                color="gray.700"
+                                borderRadius="sm"
+                              >
+                                {typeof option === 'object' && option && 'label' in option
+                                  ? (option as { label: string }).label
+                                  : String(option)}
+                              </styled.span>
+                            ))}
+                        </Flex>
+                      </Box>
+                    ),
+                  )}
                 </Stack>
               </Stack>
             </Box>
@@ -337,22 +319,9 @@ export default function ProductDetails({ product, projectId }: ProductDetailsPro
                 </styled.h3>
                 <Link
                   href={`/dashboard/projects/${projectId}/products/${product.id}/variants`}
+                  className={button({ variant: 'primary', size: 'xs' })}
                 >
-                  <styled.button
-                    px={3}
-                    py={1}
-                    fontSize="xs"
-                    bg="green.600"
-                    color="white"
-                    borderRadius="md"
-                    cursor="pointer"
-                    _hover={{
-                      bg: 'green.700',
-                    }}
-                    transition="all 0.2s"
-                  >
-                    Manage
-                  </styled.button>
+                  Manage
                 </Link>
               </Flex>
 
@@ -370,60 +339,70 @@ export default function ProductDetails({ product, projectId }: ProductDetailsPro
                 </Box>
               ) : (
                 <Stack gap={3}>
-                  {variants.slice(0, 5).map((variant) => (
-                    <Box
-                      key={variant.id}
-                      p={3}
-                      border="1px solid"
-                      borderColor="gray.200"
-                      borderRadius="md"
-                    >
-                      <Flex justify="space-between" align="start" gap={3}>
-                        <Stack gap={1} flex={1}>
-                          <styled.div fontSize="sm" fontWeight="medium" color="gray.900">
-                            {variant.sku}
-                          </styled.div>
-                          <styled.div
-                            fontSize="lg"
-                            fontWeight="semibold"
-                            color="gray.900"
-                          >
-                            ${variant.price}
-                          </styled.div>
-                          {variant.attributes &&
-                            typeof variant.attributes === 'object' && (
-                              <Flex gap={1} wrap="wrap">
-                                {Object.entries(variant.attributes).map(
-                                  ([key, value]) => (
-                                    <styled.span
-                                      key={key}
-                                      fontSize="xs"
-                                      px={2}
-                                      py={0.5}
-                                      bg="blue.50"
-                                      color="blue.700"
-                                      borderRadius="sm"
-                                    >
-                                      {key}: {String(value)}
-                                    </styled.span>
-                                  ),
-                                )}
-                              </Flex>
-                            )}
-                        </Stack>
-                        <styled.span
-                          fontSize="xs"
-                          px={2}
-                          py={1}
-                          bg={variant.orderable ? 'green.100' : 'red.100'}
-                          color={variant.orderable ? 'green.700' : 'red.700'}
-                          borderRadius="sm"
+                  {variants
+                    .slice(0, 5)
+                    .map(
+                      (
+                        variant: NonNullable<ProductWithRelations['product_variants']>[0],
+                      ) => (
+                        <Box
+                          key={variant.id}
+                          p={3}
+                          border="1px solid"
+                          borderColor="gray.200"
+                          borderRadius="md"
                         >
-                          {variant.orderable ? 'Available' : 'Unavailable'}
-                        </styled.span>
-                      </Flex>
-                    </Box>
-                  ))}
+                          <Flex justify="space-between" align="start" gap={3}>
+                            <Stack gap={1} flex={1}>
+                              <styled.div
+                                fontSize="sm"
+                                fontWeight="medium"
+                                color="gray.900"
+                              >
+                                {variant.sku}
+                              </styled.div>
+                              <styled.div
+                                fontSize="lg"
+                                fontWeight="semibold"
+                                color="gray.900"
+                              >
+                                ${variant.price}
+                              </styled.div>
+                              {variant.attributes &&
+                                typeof variant.attributes === 'object' && (
+                                  <Flex gap={1} wrap="wrap">
+                                    {Object.entries(variant.attributes).map(
+                                      ([key, value]) => (
+                                        <styled.span
+                                          key={key}
+                                          fontSize="xs"
+                                          px={2}
+                                          py={0.5}
+                                          bg="blue.50"
+                                          color="blue.700"
+                                          borderRadius="sm"
+                                        >
+                                          {key}: {String(value)}
+                                        </styled.span>
+                                      ),
+                                    )}
+                                  </Flex>
+                                )}
+                            </Stack>
+                            <styled.span
+                              fontSize="xs"
+                              px={2}
+                              py={1}
+                              bg={variant.is_active ? 'green.100' : 'red.100'}
+                              color={variant.is_active ? 'green.700' : 'red.700'}
+                              borderRadius="sm"
+                            >
+                              {variant.is_active ? 'Available' : 'Unavailable'}
+                            </styled.span>
+                          </Flex>
+                        </Box>
+                      ),
+                    )}
 
                   {variants.length > 5 && (
                     <styled.p fontSize="sm" color="gray.500" textAlign="center">
@@ -479,7 +458,7 @@ export default function ProductDetails({ product, projectId }: ProductDetailsPro
                       Tags
                     </styled.label>
                     <Flex gap={1} wrap="wrap">
-                      {product.tags.map((tag, index) => (
+                      {product.tags.map((tag: string, index: number) => (
                         <styled.span
                           key={index}
                           fontSize="xs"

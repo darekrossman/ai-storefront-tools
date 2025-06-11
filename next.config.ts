@@ -1,5 +1,10 @@
 export default {
   devIndicators: false,
+  experimental: {
+    serverActions: {
+      bodySizeLimit: '3mb',
+    },
+  },
   images: {
     formats: ['image/avif', 'image/webp'],
     remotePatterns: [
