@@ -18,9 +18,9 @@ export type Database = {
       graphql: {
         Args: {
           query?: string
-          operationName?: string
-          extensions?: Json
           variables?: Json
+          extensions?: Json
+          operationName?: string
         }
         Returns: Json
       }
@@ -231,43 +231,58 @@ export type Database = {
           },
         ]
       }
-      product_attributes: {
+      product_attribute_schemas: {
         Row: {
-          attribute_id: string
+          attribute_key: string
           attribute_label: string
+          attribute_type: string
           created_at: string
+          default_value: Json | null
+          help_text: string | null
           id: number
           is_required: boolean
-          options: Json
+          is_variant_defining: boolean
+          options: Json | null
           product_id: number
           sort_order: number
           updated_at: string
+          validation_rules: Json | null
         }
         Insert: {
-          attribute_id: string
+          attribute_key: string
           attribute_label: string
+          attribute_type: string
           created_at?: string
+          default_value?: Json | null
+          help_text?: string | null
           id?: never
           is_required?: boolean
-          options?: Json
+          is_variant_defining?: boolean
+          options?: Json | null
           product_id: number
           sort_order?: number
           updated_at?: string
+          validation_rules?: Json | null
         }
         Update: {
-          attribute_id?: string
+          attribute_key?: string
           attribute_label?: string
+          attribute_type?: string
           created_at?: string
+          default_value?: Json | null
+          help_text?: string | null
           id?: never
           is_required?: boolean
-          options?: Json
+          is_variant_defining?: boolean
+          options?: Json | null
           product_id?: number
           sort_order?: number
           updated_at?: string
+          validation_rules?: Json | null
         }
         Relationships: [
           {
-            foreignKeyName: "product_attributes_product_id_fkey"
+            foreignKeyName: "product_attribute_schemas_product_id_fkey"
             columns: ["product_id"]
             isOneToOne: false
             referencedRelation: "products"
@@ -376,41 +391,62 @@ export type Database = {
         Row: {
           attributes: Json
           barcode: string | null
+          compare_at_price: number | null
+          cost_per_item: number | null
           created_at: string
           id: number
-          orderable: boolean
+          inventory_count: number | null
+          inventory_policy: string | null
+          inventory_tracked: boolean | null
+          is_active: boolean
           price: number
           product_id: number
           sku: string
           sort_order: number
           status: Database["public"]["Enums"]["brand_status"]
           updated_at: string
+          weight: number | null
+          weight_unit: string | null
         }
         Insert: {
           attributes?: Json
           barcode?: string | null
+          compare_at_price?: number | null
+          cost_per_item?: number | null
           created_at?: string
           id?: never
-          orderable?: boolean
+          inventory_count?: number | null
+          inventory_policy?: string | null
+          inventory_tracked?: boolean | null
+          is_active?: boolean
           price: number
           product_id: number
           sku: string
           sort_order?: number
           status?: Database["public"]["Enums"]["brand_status"]
           updated_at?: string
+          weight?: number | null
+          weight_unit?: string | null
         }
         Update: {
           attributes?: Json
           barcode?: string | null
+          compare_at_price?: number | null
+          cost_per_item?: number | null
           created_at?: string
           id?: never
-          orderable?: boolean
+          inventory_count?: number | null
+          inventory_policy?: string | null
+          inventory_tracked?: boolean | null
+          is_active?: boolean
           price?: number
           product_id?: number
           sku?: string
           sort_order?: number
           status?: Database["public"]["Enums"]["brand_status"]
           updated_at?: string
+          weight?: number | null
+          weight_unit?: string | null
         }
         Relationships: [
           {
@@ -424,7 +460,8 @@ export type Database = {
       }
       products: {
         Row: {
-          attributes: Json | null
+          active_variant_count: number | null
+          base_attributes: Json
           catalog_id: string
           created_at: string
           description: string
@@ -440,11 +477,12 @@ export type Database = {
           specifications: Json
           status: Database["public"]["Enums"]["brand_status"]
           tags: string[] | null
-          total_inventory: number | null
           updated_at: string
+          variant_count: number | null
         }
         Insert: {
-          attributes?: Json | null
+          active_variant_count?: number | null
+          base_attributes?: Json
           catalog_id: string
           created_at?: string
           description: string
@@ -460,11 +498,12 @@ export type Database = {
           specifications?: Json
           status?: Database["public"]["Enums"]["brand_status"]
           tags?: string[] | null
-          total_inventory?: number | null
           updated_at?: string
+          variant_count?: number | null
         }
         Update: {
-          attributes?: Json | null
+          active_variant_count?: number | null
+          base_attributes?: Json
           catalog_id?: string
           created_at?: string
           description?: string
@@ -480,8 +519,8 @@ export type Database = {
           specifications?: Json
           status?: Database["public"]["Enums"]["brand_status"]
           tags?: string[] | null
-          total_inventory?: number | null
           updated_at?: string
+          variant_count?: number | null
         }
         Relationships: [
           {
@@ -595,7 +634,22 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
-      [_ in never]: never
+      get_effective_attributes: {
+        Args: { p_product_id: number; p_variant_attributes?: Json }
+        Returns: Json
+      }
+      get_product_attribute_schema: {
+        Args: { p_product_id: number }
+        Returns: Json
+      }
+      get_variant_display_name: {
+        Args: { p_variant_id: number; p_include_product_name?: boolean }
+        Returns: string
+      }
+      validate_attribute_values: {
+        Args: { p_product_id: number; p_attribute_values: Json }
+        Returns: boolean
+      }
     }
     Enums: {
       brand_status: "draft" | "active" | "inactive" | "archived"
