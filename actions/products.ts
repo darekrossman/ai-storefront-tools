@@ -758,3 +758,107 @@ export async function updateProductStatus(productId: number, status: BrandStatus
     }
   }
 }
+
+/**
+ * Get all products for a specific category
+ */
+export async function getProductsByCategory(
+  categoryId: string,
+): Promise<ProductWithRelations[]> {
+  const supabase = await createClient()
+
+  try {
+    const {
+      data: { user },
+    } = await supabase.auth.getUser()
+
+    if (!user) {
+      throw new Error('User not authenticated')
+    }
+
+    // First verify user owns the category
+    const { data: category } = await supabase
+      .from('categories')
+      .select(`
+        category_id,
+        catalog_id,
+        product_catalogs!inner(
+          brand_id,
+          brands!inner(
+            project_id,
+            projects!inner(user_id)
+          )
+        )
+      `)
+      .eq('category_id', categoryId)
+      .eq('product_catalogs.brands.projects.user_id', user.id)
+      .single()
+
+    if (!category) {
+      throw new Error('Category not found or access denied')
+    }
+
+    const { data: products, error } = await supabase
+      .from('products')
+      .select(`
+        *,
+        product_catalogs (
+          catalog_id,
+          name,
+          brands (
+            id,
+            name,
+            projects (
+              id,
+              name,
+              user_id
+            )
+          )
+        ),
+        categories (
+          category_id,
+          name
+        ),
+        product_variants (
+          id,
+          sku,
+          barcode,
+          price,
+          is_active,
+          attributes,
+          status,
+          sort_order
+        ),
+        product_attribute_schemas (
+          id,
+          attribute_key,
+          attribute_label,
+          options,
+          is_required,
+          sort_order
+        ),
+        product_images (
+          id,
+          url,
+          alt_text,
+          type,
+          color_id,
+          attribute_filters,
+          sort_order
+        )
+      `)
+      .eq('parent_category_id', categoryId)
+      .order('sort_order', { ascending: true })
+      .order('name', { ascending: true })
+
+    if (error) {
+      console.error('Error fetching products by category:', error)
+      throw error
+    }
+
+    return products || []
+  } catch (error) {
+    console.error('Error in getProductsByCategory:', error)
+    return []
+  }
+}

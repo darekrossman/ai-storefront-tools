@@ -1,0 +1,9 @@
+---
+description: 
+globs: 
+alwaysApply: true
+---
+# Instructions
+- do not start the dev server unless asked to do so, assume its already running
+- do not create readme or doc files without being asked to do so
+- alwasy use `pnpm` for any package manager scripts or dependencies

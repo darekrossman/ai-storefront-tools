@@ -171,6 +171,8 @@ function CategoriesTable({ categories, projectId, catalogId }: CategoriesTablePr
                   isExpanded={isExpanded}
                   onToggle={() => toggleCategory(category.category_id)}
                   level={0}
+                  projectId={projectId}
+                  catalogId={catalogId}
                 />
                 {isExpanded &&
                   childCategories.map((childCategory) => (
@@ -181,6 +183,8 @@ function CategoriesTable({ categories, projectId, catalogId }: CategoriesTablePr
                       isExpanded={false}
                       onToggle={() => {}}
                       level={1}
+                      projectId={projectId}
+                      catalogId={catalogId}
                     />
                   ))}
               </React.Fragment>
@@ -199,6 +203,8 @@ interface CategoryTableRowProps {
   isExpanded: boolean
   onToggle: () => void
   level: number
+  projectId: number
+  catalogId: string
 }
 
 function CategoryTableRow({
@@ -207,6 +213,8 @@ function CategoryTableRow({
   isExpanded,
   onToggle,
   level,
+  projectId,
+  catalogId,
 }: CategoryTableRowProps) {
   const getStatusVariant = (status: boolean) => {
     return status
@@ -259,9 +267,20 @@ function CategoryTableRow({
 
           {/* Category content */}
           <Stack gap={3} flex={1} py={3}>
-            <styled.p fontSize="sm" fontWeight="medium" color="gray.900">
-              {category.name}
-            </styled.p>
+            <Link
+              href={`/dashboard/projects/${projectId}/catalogs/${catalogId}/categories/${category.category_id}`}
+            >
+              <styled.p
+                fontSize="sm"
+                fontWeight="medium"
+                color="gray.900"
+                _hover={{ color: 'blue.600' }}
+                cursor="pointer"
+                transition="all 0.2s"
+              >
+                {category.name}
+              </styled.p>
+            </Link>
             {category.description && (
               <styled.p fontSize="xs" color="gray.500">
                 {category.description}
