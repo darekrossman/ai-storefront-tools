@@ -1,9 +1,7 @@
 import { notFound } from 'next/navigation'
 import { Container } from '@/styled-system/jsx'
 import { getProjectAction } from '@/actions/projects'
-import CreateBrandForm from '@/components/brands/create-brand-form'
 import type { Metadata } from 'next'
-import BrandChat from '@/components/brands/brand-chat'
 import CatalogGeneration from '@/components/catalogs/catalog-generation'
 
 interface CreateBrandPageProps {

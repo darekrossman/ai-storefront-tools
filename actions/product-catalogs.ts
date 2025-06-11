@@ -47,7 +47,10 @@ export const getProductCatalogsAction = async (
     throw new Error('Brand not found or access denied')
   }
 
-  const { data, error } = await supabase.from('product_catalogs').select('*')
+  const { data, error } = await supabase
+    .from('product_catalogs')
+    .select('*')
+    .eq('brand_id', brandId)
 
   if (error) {
     console.error('Error fetching product catalogs:', error)
@@ -55,6 +58,36 @@ export const getProductCatalogsAction = async (
   }
 
   return data || []
+}
+
+// Get all catalog names for the current user (across all their brands)
+export const getAllCatalogNamesAction = async (): Promise<string[]> => {
+  const supabase = await createClient()
+
+  const {
+    data: { user },
+  } = await supabase.auth.getUser()
+
+  if (!user) {
+    throw new Error('User not authenticated')
+  }
+
+  const { data, error } = await supabase
+    .from('product_catalogs')
+    .select(`
+      name,
+      brand:brands!inner(
+        project:projects!inner(user_id)
+      )
+    `)
+    .eq('brand.project.user_id', user.id)
+
+  if (error) {
+    console.error('Error fetching catalog names:', error)
+    throw error
+  }
+
+  return data?.map((catalog) => catalog.name) || []
 }
 
 // Get a single product catalog by ID

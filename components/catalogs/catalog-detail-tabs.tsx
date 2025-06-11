@@ -16,16 +16,16 @@ export default function CatalogDetailTabs({
 }: CatalogDetailTabsProps) {
   const tabItems: TabItem[] = [
     {
-      id: 'products',
-      label: `Products (${productsCount})`,
-      content: productsTab,
-    },
-    {
       id: 'categories',
       label: 'Categories',
       content: categoriesTab,
     },
+    {
+      id: 'products',
+      label: `Products (${productsCount})`,
+      content: productsTab,
+    },
   ]
 
-  return <Tabs items={tabItems} defaultTab="products" />
+  return <Tabs items={tabItems} />
 }

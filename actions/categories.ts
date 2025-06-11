@@ -194,7 +194,7 @@ export const getCategoryAction = async (categoryId: string): Promise<Category | 
 
 // Create a new category
 export const createCategoryAction = async (
-  categoryData: CreateCategoryData & { category_id: string },
+  categoryData: CreateCategoryData,
 ): Promise<Category> => {
   const supabase = await createClient()
 

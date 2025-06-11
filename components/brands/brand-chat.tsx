@@ -105,8 +105,6 @@ export default function BrandChat({
     // You might want to add a confirmation dialog here
   }
 
-  console.log(object)
-
   const renderPhase1 = () => {
     if (!object?.phase1) return null
 

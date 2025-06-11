@@ -16,10 +16,32 @@ export const catalogStructuredOutputSchemas = z.object({
       categoryStructuredOutputSchemas.extend({
         subcategories: z
           .array(categoryStructuredOutputSchemas)
-          .length(3)
           .describe('The subcategories of the category'),
       }),
     )
-    .length(5)
     .describe('The top-level categories of the catalog'),
 })
+
+// Dynamic schema generator for configurable array lengths
+export function createCatalogStructuredOutputSchemas(
+  parentCategoryCount: number,
+  subcategoryCount: number,
+) {
+  return z.object({
+    name: z.string().describe('The name of the catalog'),
+    description: z.string().describe('The description of the catalog'),
+    slug: z.string().describe('The slug of the catalog in the form of "catalog-name"'),
+
+    categories: z
+      .array(
+        categoryStructuredOutputSchemas.extend({
+          subcategories: z
+            .array(categoryStructuredOutputSchemas)
+            .length(subcategoryCount)
+            .describe('The subcategories of the category'),
+        }),
+      )
+      .length(parentCategoryCount)
+      .describe('The top-level categories of the catalog'),
+  })
+}

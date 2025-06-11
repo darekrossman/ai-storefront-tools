@@ -1,11 +1,26 @@
 import { openai } from '@ai-sdk/openai'
-import { generateObject, streamObject } from 'ai'
-import { catalogStructuredOutputSchemas } from '@/lib/catalog/schemas'
+import { streamObject } from 'ai'
+import { createCatalogStructuredOutputSchemas } from '@/lib/catalog/schemas'
 import { getBrandAction } from '@/actions/brands'
-import { createClient } from '@/lib/supabase/server'
-import { convertToDBFormat } from '@/lib/catalog/helpers'
+import { getAllCatalogNamesAction } from '@/actions/product-catalogs'
 
-const systemPrompt = `You are an AI Product Catalog Strategy Expert specializing in creating comprehensive product catalogs and category hierarchies for brands across all industries.
+function createSystemPrompt(
+  parentCategoryCount: number,
+  subcategoryCount: number,
+  existingCatalogNames: string[] = [],
+) {
+  const existingNamesSection =
+    existingCatalogNames.length > 0
+      ? `
+
+## CRITICAL: Avoid Duplicate Names
+The following catalog names already exist in the system and MUST NOT be used:
+${existingCatalogNames.map((name) => `- "${name}"`).join('\n')}
+
+You MUST create a catalog name that is completely different from any of the above names. Be creative and ensure your catalog name is unique while still being appropriate for the brand.`
+      : ''
+
+  return `You are an AI Product Catalog Strategy Expert specializing in creating comprehensive product catalogs and category hierarchies for brands across all industries.${existingNamesSection}
 
 ## Your Role
 You create strategic product catalogs that reflect brand identity, target market needs, and competitive positioning. Your catalogs serve as the foundation for product development, marketing strategies, and customer experience design.
@@ -37,8 +52,8 @@ When analyzing the provided brand data, pay special attention to:
 ## Catalog Creation Guidelines
 
 ### Catalog Structure Requirements
-- **Exactly 5 top-level categories** - each addressing distinct customer needs
-- **Exactly 3 subcategories per top-level category** - providing focused product groupings
+- **Exactly ${parentCategoryCount} top-level categories** - each addressing distinct customer needs
+- **Exactly ${subcategoryCount} subcategories per top-level category** - providing focused product groupings
 - **Strategic category hierarchy** - organized by customer journey, usage, or brand pillars
 
 ### Category Naming Standards
@@ -98,21 +113,15 @@ Consider usage frequency, gift occasions, or family dynamics
 ## Your Task
 Analyze the provided brand data comprehensively, then create a strategic product catalog with:
 - 1 main catalog with name, description, and slug
-- 5 top-level categories, each with name, description, and slug  
-- 3 subcategories per top-level category, each with name, description, and slug
+- ${parentCategoryCount} top-level categories, each with name, description, and slug  
+- ${subcategoryCount} subcategories per top-level category, each with name, description, and slug
 
 Focus on creating a catalog that authentically represents the brand while serving real customer needs in the identified market space.`
+}
 
 export async function POST(req: Request) {
   const body = await req.json()
-  const { messages, brandId } = body
-
-  const supabase = await createClient()
-
-  await supabase.auth.signInWithPassword({
-    email: 'darek@subpopular.dev',
-    password: 'test123',
-  })
+  const { brandId, parentCategoryCount, subcategoryCount } = body
 
   const brand = await getBrandAction(brandId)
 
@@ -122,9 +131,25 @@ export async function POST(req: Request) {
 
   const { id, project_id, status, created_at, updated_at, logo_url, ...brandData } = brand
 
-  const result = await generateObject({
+  // Get existing catalog names to prevent duplicates
+  const existingCatalogNames = await getAllCatalogNamesAction()
+
+  // Create dynamic schema based on the provided parameters
+  const dynamicSchema = createCatalogStructuredOutputSchemas(
+    parentCategoryCount ?? 5,
+    subcategoryCount ?? 3,
+  )
+
+  // Create dynamic system prompt with the provided parameters and existing catalog names
+  const systemPrompt = createSystemPrompt(
+    parentCategoryCount || 5,
+    subcategoryCount || 3,
+    existingCatalogNames,
+  )
+
+  const result = streamObject({
     model: openai('gpt-4.1'),
-    schema: catalogStructuredOutputSchemas,
+    schema: dynamicSchema,
     system: systemPrompt,
     messages: [
       {
@@ -134,11 +159,5 @@ export async function POST(req: Request) {
     ],
   })
 
-  const { catalog, categories } = convertToDBFormat(result.object, brandId)
-
-  await supabase.from('product_catalogs').insert(catalog)
-  await supabase.from('categories').insert(categories)
-
-  return Response.json({ success: true })
-  // return result.toTextStreamResponse()
+  return result.toTextStreamResponse()
 }
