@@ -2,10 +2,16 @@ import OpenAI from 'openai'
 import { fal } from '@fal-ai/client'
 
 export async function POST(request: Request) {
-  const { prompt, image_url }: { prompt: string; image_url?: string } =
+  const {
+    prompt,
+    promptOverride,
+    image_url,
+  }: { prompt: string; promptOverride?: string; image_url?: string } =
     await request.json()
 
-  const fullPrompt = `## Product Info
+  const fullPrompt =
+    promptOverride ||
+    `## Product Info
 ${JSON.stringify(prompt)}
 
 ## Instructions
@@ -13,7 +19,7 @@ Create a vivid, stunning rendition of the product given the information you are 
 `
 
   // const result = await generateWithOpenAI(fullPrompt)
-  const result = await generateWithFal(fullPrompt)
+  const result = await generateWithFal(fullPrompt, image_url)
 
   return Response.json(result)
 }
@@ -30,7 +36,6 @@ async function generateWithOpenAI(prompt: string) {
     quality: 'medium',
     size: '1024x1024',
     moderation: 'low',
-
     prompt,
   })
 
@@ -44,8 +49,11 @@ async function generateWithOpenAI(prompt: string) {
 async function generateWithFal(prompt: string, image_url?: string) {
   const genModel = 'fal-ai/flux-pro/kontext/max/text-to-image'
   const editModel = 'fal-ai/flux-pro/kontext'
+  const model = image_url ? editModel : genModel
 
-  const result = await fal.subscribe(image_url ? editModel : genModel, {
+  console.log(prompt, model)
+
+  const result = await fal.subscribe(model, {
     input: {
       prompt,
       negative_prompt: '',
@@ -54,8 +62,8 @@ async function generateWithFal(prompt: string, image_url?: string) {
         width: 1024,
       },
       aspect_ratio: '1:1',
-      num_inference_steps: 24,
-      guidance_scale: 7,
+      // num_inference_steps: 24,
+      guidance_scale: 20,
       num_images: 1,
       enable_safety_checker: false,
       output_format: 'png',

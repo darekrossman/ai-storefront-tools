@@ -25,6 +25,9 @@ export default defineConfig({
       textBoxTrim: 'trim-both',
       textWrap: 'pretty',
     },
+    input: {
+      textBox: 'none!important',
+    },
     button: {
       cursor: 'pointer',
     },

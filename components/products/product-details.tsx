@@ -1,15 +1,42 @@
+'use client'
+
 import { Box, Flex, Stack, styled } from '@/styled-system/jsx'
 import Link from 'next/link'
 import type { ProductWithRelations } from '@/actions/products'
 import { Button, button } from '@/components/ui/button'
 import ProductImageGenerator from './product-image-generator'
+import Modal from '@/components/ui/modal'
+import { useState } from 'react'
 
 interface ProductDetailsProps {
   product: ProductWithRelations
   projectId: number
 }
 
+type SelectedImageType = {
+  id: string
+  url: string
+  alt_text?: string
+}
+
 export default function ProductDetails({ product, projectId }: ProductDetailsProps) {
+  const [isModalOpen, setIsModalOpen] = useState(false)
+  const [selectedImage, setSelectedImage] = useState<SelectedImageType | null>(null)
+
+  const handleImageClick = (image: SelectedImageType) => {
+    setSelectedImage(image)
+    setIsModalOpen(true)
+  }
+
+  const handleModalClose = () => {
+    setIsModalOpen(false)
+    setSelectedImage(null)
+  }
+
+  const handleEditComplete = () => {
+    handleModalClose()
+  }
+
   const getStatusColor = (status: string) => {
     switch (status) {
       case 'active':
@@ -153,6 +180,16 @@ export default function ProductDetails({ product, projectId }: ProductDetailsPro
                   borderRadius="md"
                   overflow="hidden"
                   position="relative"
+                  cursor="pointer"
+                  transition="all 0.2s"
+                  _hover={{ transform: 'scale(1.02)', shadow: 'md' }}
+                  onClick={() =>
+                    handleImageClick({
+                      id: String(heroImage.id),
+                      url: heroImage.url,
+                      alt_text: heroImage.alt_text || undefined,
+                    })
+                  }
                 >
                   <styled.img
                     src={heroImage.url}
@@ -220,6 +257,16 @@ export default function ProductDetails({ product, projectId }: ProductDetailsPro
                         bg="gray.100"
                         borderRadius="md"
                         overflow="hidden"
+                        cursor="pointer"
+                        transition="all 0.2s"
+                        _hover={{ transform: 'scale(1.05)', shadow: 'md' }}
+                        onClick={() =>
+                          handleImageClick({
+                            id: String(image.id),
+                            url: image.url,
+                            alt_text: image.alt_text || undefined,
+                          })
+                        }
                       >
                         <styled.img
                           src={image.url}
@@ -479,6 +526,23 @@ export default function ProductDetails({ product, projectId }: ProductDetailsPro
           )}
         </Stack>
       </Box>
+
+      {/* Image Edit Modal */}
+      <Modal
+        isOpen={isModalOpen}
+        onClose={handleModalClose}
+        title="Edit Product Image"
+        size="xl"
+      >
+        {selectedImage && (
+          <ProductImageGenerator
+            product={product}
+            mode="edit"
+            selectedImage={selectedImage}
+            onEditComplete={handleEditComplete}
+          />
+        )}
+      </Modal>
     </Box>
   )
 }
