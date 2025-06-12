@@ -3,7 +3,7 @@
 -- =====================================================
 -- Purpose: Container for product catalogs within brands
 -- Dependencies: Requires public.brands table
--- RLS: User can only access catalogs from their own brands/projects
+-- RLS: User can only access catalogs from their own brands
 -- Alignment: Supports multiple ProductCatalogSchema per brand
 -- =====================================================
 
@@ -56,8 +56,7 @@ create policy "Users can view catalogs from their own brands"
     brand_id in (
       select brands.id 
       from public.brands 
-      join public.projects on brands.project_id = projects.id 
-      where projects.user_id = auth.uid()
+      where brands.user_id = auth.uid()
     )
   );
 
@@ -70,8 +69,7 @@ create policy "Users can insert catalogs into their own brands"
     brand_id in (
       select brands.id 
       from public.brands 
-      join public.projects on brands.project_id = projects.id 
-      where projects.user_id = auth.uid()
+      where brands.user_id = auth.uid()
     )
   );
 
@@ -84,8 +82,7 @@ create policy "Users can update catalogs from their own brands"
     brand_id in (
       select brands.id 
       from public.brands 
-      join public.projects on brands.project_id = projects.id 
-      where projects.user_id = auth.uid()
+      where brands.user_id = auth.uid()
     )
   );
 
@@ -98,8 +95,7 @@ create policy "Users can delete catalogs from their own brands"
     brand_id in (
       select brands.id 
       from public.brands 
-      join public.projects on brands.project_id = projects.id 
-      where projects.user_id = auth.uid()
+      where brands.user_id = auth.uid()
     )
   );
 

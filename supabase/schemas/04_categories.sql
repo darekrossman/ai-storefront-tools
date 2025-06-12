@@ -64,8 +64,7 @@ create policy "Users can view categories from their own catalogs"
       select product_catalogs.catalog_id 
       from public.product_catalogs 
       join public.brands on product_catalogs.brand_id = brands.id
-      join public.projects on brands.project_id = projects.id 
-      where projects.user_id = auth.uid()
+      where brands.user_id = auth.uid()
     )
   );
 
@@ -79,8 +78,7 @@ create policy "Users can insert categories into their own catalogs"
       select product_catalogs.catalog_id 
       from public.product_catalogs 
       join public.brands on product_catalogs.brand_id = brands.id
-      join public.projects on brands.project_id = projects.id 
-      where projects.user_id = auth.uid()
+      where brands.user_id = auth.uid()
     )
   );
 
@@ -94,8 +92,7 @@ create policy "Users can update categories from their own catalogs"
       select product_catalogs.catalog_id 
       from public.product_catalogs 
       join public.brands on product_catalogs.brand_id = brands.id
-      join public.projects on brands.project_id = projects.id 
-      where projects.user_id = auth.uid()
+      where brands.user_id = auth.uid()
     )
   );
 
@@ -109,8 +106,7 @@ create policy "Users can delete categories from their own catalogs"
       select product_catalogs.catalog_id 
       from public.product_catalogs 
       join public.brands on product_catalogs.brand_id = brands.id
-      join public.projects on brands.project_id = projects.id 
-      where projects.user_id = auth.uid()
+      where brands.user_id = auth.uid()
     )
   );
 

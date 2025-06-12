@@ -59,8 +59,7 @@ do $$ begin
           select products.id from public.products
           join public.product_catalogs on products.catalog_id = product_catalogs.catalog_id
           join public.brands on product_catalogs.brand_id = brands.id
-          join public.projects on brands.project_id = projects.id
-          where projects.user_id = auth.uid()
+          where brands.user_id = auth.uid()
         )
       );
 exception
@@ -77,8 +76,7 @@ do $$ begin
           select products.id from public.products
           join public.product_catalogs on products.catalog_id = product_catalogs.catalog_id
           join public.brands on product_catalogs.brand_id = brands.id
-          join public.projects on brands.project_id = projects.id
-          where projects.user_id = auth.uid()
+          where brands.user_id = auth.uid()
         )
       );
 exception
@@ -95,8 +93,7 @@ do $$ begin
           select products.id from public.products
           join public.product_catalogs on products.catalog_id = product_catalogs.catalog_id
           join public.brands on product_catalogs.brand_id = brands.id
-          join public.projects on brands.project_id = projects.id
-          where projects.user_id = auth.uid()
+          where brands.user_id = auth.uid()
         )
       );
 exception
@@ -113,8 +110,7 @@ do $$ begin
           select products.id from public.products
           join public.product_catalogs on products.catalog_id = product_catalogs.catalog_id
           join public.brands on product_catalogs.brand_id = brands.id
-          join public.projects on brands.project_id = projects.id
-          where projects.user_id = auth.uid()
+          where brands.user_id = auth.uid()
         )
       );
 exception

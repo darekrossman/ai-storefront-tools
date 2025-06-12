@@ -1,4 +1,4 @@
 {
   "adapter": "pg",
-  "projectDescription": "This project is about managing a catalog of products from different brands and categories, including their attributes, variants, and images. It also includes managing user profiles and projects."
+  "projectDescription": "This project is about managing an e-commerce platform where users can browse and purchase products from different brands and categories. It includes functionality for managing product attributes, catalogs, images, variants, profiles, users, and a waitlist for products."
 }

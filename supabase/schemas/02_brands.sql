@@ -1,9 +1,9 @@
 -- =====================================================
 -- Brands Table Schema  
 -- =====================================================
--- Purpose: Store complete brand identity data for projects
--- Dependencies: Requires public.projects table
--- RLS: User can only access brands from their own projects
+-- Purpose: Store complete brand identity data (now top-level entity)
+-- Dependencies: Requires auth.users table
+-- RLS: User can only access their own brands
 -- Structure: Fully relational design with no JSONB columns
 -- =====================================================
 
@@ -24,7 +24,7 @@ end $$;
 -- Main brands table with core identity and flattened simple structures
 create table public.brands (
   id bigint generated always as identity primary key,
-  project_id bigint not null references public.projects (id) on delete cascade,
+  user_id uuid not null references auth.users (id) on delete cascade,
   
   -- Core Brand Identity
   name text not null,
@@ -82,7 +82,7 @@ create table public.brands (
   updated_at timestamptz not null default now()
 );
 
-comment on table public.brands is 'Complete brand identity data with fully structured relational design. No JSONB columns for better type safety and performance.';
+comment on table public.brands is 'Complete brand identity data with fully structured relational design. Top-level entity directly owned by users.';
 
 -- Add column comments for clarity
 comment on column public.brands.target_age_range is 'Target demographic age range (e.g., "25-35", "18-24")';
@@ -123,7 +123,7 @@ comment on column public.brands.imagery_mood is 'Imagery mood (e.g., "Profession
 comment on column public.brands.imagery_guidelines is 'Array of imagery usage guidelines';
 
 -- Add indexes for performance
-create index idx_brands_project_id on public.brands (project_id);
+create index idx_brands_user_id on public.brands (user_id);
 create index idx_brands_status on public.brands (status);
 create index idx_brands_created_at_desc on public.brands (created_at desc);
 create index idx_brands_name on public.brands (name);
@@ -147,48 +147,40 @@ create index idx_brands_imagery_guidelines_gin on public.brands using gin (image
 -- Enable Row Level Security
 alter table public.brands enable row level security;
 
--- RLS Policy: Users can view brands from their own projects
-create policy "Users can view brands from their own projects"
+-- RLS Policy: Users can view their own brands
+create policy "Users can view their own brands"
   on public.brands
   for select
   to authenticated
   using (
-    project_id in (
-      select id from public.projects where user_id = auth.uid()
-    )
+    user_id = auth.uid()
   );
 
--- RLS Policy: Users can insert brands into their own projects  
-create policy "Users can insert brands into their own projects"
+-- RLS Policy: Users can insert their own brands  
+create policy "Users can insert their own brands"
   on public.brands
   for insert
   to authenticated
   with check (
-    project_id in (
-      select id from public.projects where user_id = auth.uid()
-    )
+    user_id = auth.uid()
   );
 
--- RLS Policy: Users can update brands from their own projects
-create policy "Users can update brands from their own projects"
+-- RLS Policy: Users can update their own brands
+create policy "Users can update their own brands"
   on public.brands
   for update
   to authenticated
   using (
-    project_id in (
-      select id from public.projects where user_id = auth.uid()
-    )
+    user_id = auth.uid()
   );
 
--- RLS Policy: Users can delete brands from their own projects
-create policy "Users can delete brands from their own projects"
+-- RLS Policy: Users can delete their own brands
+create policy "Users can delete their own brands"
   on public.brands
   for delete
   to authenticated
   using (
-    project_id in (
-      select id from public.projects where user_id = auth.uid()
-    )
+    user_id = auth.uid()
   );
 
 -- Trigger to automatically update updated_at on brands
