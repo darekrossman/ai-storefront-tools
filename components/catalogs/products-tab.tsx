@@ -3,13 +3,14 @@ import Link from 'next/link'
 import { getProductsByCatalog } from '@/actions/products'
 import type { ProductWithRelations } from '@/actions/products'
 import { button } from '@/components/ui/button'
+import { useBrand } from '../brand-context'
 
 interface ProductsTabProps {
   catalogId: string
-  projectId: number
 }
 
-export default async function ProductsTab({ catalogId, projectId }: ProductsTabProps) {
+export default async function ProductsTab({ catalogId }: ProductsTabProps) {
+  const { brandId } = useBrand()
   let products: ProductWithRelations[] = []
   let error: string | null = null
 
@@ -49,7 +50,7 @@ export default async function ProductsTab({ catalogId, projectId }: ProductsTabP
         </styled.h2>
         {products.length > 0 && (
           <Link
-            href={`/dashboard/projects/${projectId}/catalogs/${catalogId}/products/new`}
+            href={`/dashboard/brands/${brandId}/catalogs/${catalogId}/products/new`}
             className={button()}
           >
             Add Product
@@ -93,7 +94,7 @@ export default async function ProductsTab({ catalogId, projectId }: ProductsTabP
             </Stack>
 
             <Link
-              href={`/dashboard/projects/${projectId}/catalogs/${catalogId}/products/new`}
+              href={`/dashboard/brands/${brandId}/catalogs/${catalogId}/products/new`}
               className={button()}
             >
               Add Your First Product
@@ -213,11 +214,7 @@ export default async function ProductsTab({ catalogId, projectId }: ProductsTabP
             </styled.thead>
             <styled.tbody>
               {products.map((product) => (
-                <ProductTableRow
-                  key={product.id}
-                  product={product}
-                  projectId={projectId}
-                />
+                <ProductTableRow key={product.id} product={product} />
               ))}
             </styled.tbody>
           </styled.table>
@@ -230,10 +227,10 @@ export default async function ProductsTab({ catalogId, projectId }: ProductsTabP
 // Product Table Row Component
 interface ProductTableRowProps {
   product: ProductWithRelations
-  projectId: number
 }
 
-function ProductTableRow({ product, projectId }: ProductTableRowProps) {
+function ProductTableRow({ product }: ProductTableRowProps) {
+  const { brandId } = useBrand()
   const getStatusColor = (status: string) => {
     switch (status) {
       case 'active':
@@ -282,7 +279,7 @@ function ProductTableRow({ product, projectId }: ProductTableRowProps) {
       {/* Product Name & Description */}
       <styled.td px={6} py={4}>
         <Stack gap={1}>
-          <Link href={`/dashboard/projects/${projectId}/products/${product.id}`}>
+          <Link href={`/dashboard/brands/${brandId}/products/${product.id}`}>
             <styled.span
               fontSize="sm"
               fontWeight="medium"
@@ -373,7 +370,7 @@ function ProductTableRow({ product, projectId }: ProductTableRowProps) {
       <styled.td px={6} py={4}>
         <Flex gap={2} justify="end">
           <Link
-            href={`/dashboard/projects/${projectId}/products/${product.id}`}
+            href={`/dashboard/brands/${brandId}/products/${product.id}`}
             className={button({ variant: 'secondary', size: 'sm' })}
           >
             View

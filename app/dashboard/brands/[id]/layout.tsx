@@ -1,6 +1,7 @@
 import { notFound, redirect } from 'next/navigation'
 import { createClient } from '@/lib/supabase/server'
 import { Box } from '@/styled-system/jsx'
+import { BrandContextProvider } from '@/components/brand-context'
 
 interface BrandLayoutProps {
   children: React.ReactNode
@@ -41,8 +42,8 @@ export default async function BrandLayout({ children, params }: BrandLayoutProps
   }
 
   return (
-    <>
-      <Box minH="calc(100vh - 140px)">{children}</Box>
-    </>
+    <BrandContextProvider brand={{ brandId: brand.id, brandName: brand.name }}>
+      {children}
+    </BrandContextProvider>
   )
 }

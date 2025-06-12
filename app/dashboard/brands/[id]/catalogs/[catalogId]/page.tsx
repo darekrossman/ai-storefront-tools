@@ -21,9 +21,9 @@ interface CatalogDetailsPageProps {
 
 export default async function CatalogDetailsPage({ params }: CatalogDetailsPageProps) {
   const { id, catalogId } = await params
-  const projectId = parseInt(id)
+  const brandId = parseInt(id)
 
-  if (isNaN(projectId)) {
+  if (isNaN(brandId)) {
     notFound()
   }
 
@@ -95,7 +95,7 @@ export default async function CatalogDetailsPage({ params }: CatalogDetailsPageP
 
             <Flex gap={2}>
               <Link
-                href={`/dashboard/projects/${projectId}/catalogs/${catalogId}/edit`}
+                href={`/dashboard/brands/${brandId}/catalogs/${catalogId}/edit`}
                 className={button({ variant: 'secondary', size: 'xs' })}
               >
                 Edit
@@ -118,14 +118,8 @@ export default async function CatalogDetailsPage({ params }: CatalogDetailsPageP
         {/* Tabbed Content */}
         <CatalogDetailTabs
           productsCount={products.length}
-          categoriesTab={
-            <CategoriesTab
-              catalogId={catalogId}
-              projectId={projectId}
-              categories={categories}
-            />
-          }
-          productsTab={<ProductsTab catalogId={catalogId} projectId={projectId} />}
+          categoriesTab={<CategoriesTab catalogId={catalogId} categories={categories} />}
+          productsTab={<ProductsTab catalogId={catalogId} />}
         />
       </Stack>
     </Container>

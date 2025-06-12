@@ -11,9 +11,11 @@ import { z } from 'zod'
 import { createProductCatalogAction } from '@/actions/product-catalogs'
 import { createCategoryAction } from '@/actions'
 import { useRouter } from 'next/navigation'
+import { useBrand } from '../brand-context'
 
-export default function CatalogGeneration({ brand }: { brand: Brand }) {
+export default function CatalogGeneration() {
   const router = useRouter()
+  const { brandId } = useBrand()
   const [formData, setFormData] = useState({
     parentCategoryCount: 5,
     subcategoryCount: 3,
@@ -29,7 +31,7 @@ export default function CatalogGeneration({ brand }: { brand: Brand }) {
 
     // Submit the form data to the AI agent
     submit({
-      brandId: brand.id.toString(),
+      brandId,
       parentCategoryCount: formData.parentCategoryCount,
       subcategoryCount: formData.subcategoryCount,
     })
@@ -39,7 +41,7 @@ export default function CatalogGeneration({ brand }: { brand: Brand }) {
     if (!object) return
     const { catalog, categories } = convertToDBFormat(
       object as z.infer<typeof catalogStructuredOutputSchemas>,
-      brand.id,
+      brandId,
     )
 
     try {
@@ -52,7 +54,7 @@ export default function CatalogGeneration({ brand }: { brand: Brand }) {
         categories.filter((c) => c.parent_category_id).map(createCategoryAction),
       )
 
-      router.push(`/dashboard/brands/${brand.id}/catalogs/${createdCatalog.catalog_id}`)
+      router.push(`/dashboard/brands/${brandId}/catalogs/${createdCatalog.catalog_id}`)
     } catch (error) {
       console.error('Error saving catalog:', error)
     }

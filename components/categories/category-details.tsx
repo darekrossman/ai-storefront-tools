@@ -10,20 +10,20 @@ import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
 import { getSubcategoriesAction } from '@/actions/categories'
 import { getProductsByCategory } from '@/actions/products'
+import { useBrand } from '../brand-context'
 
 interface CategoryDetailsProps {
   category: Category
   products: ProductWithRelations[]
-  projectId: number
   catalogId: string
 }
 
 export default function CategoryDetails({
   category,
   products,
-  projectId,
   catalogId,
 }: CategoryDetailsProps) {
+  const { brandId } = useBrand()
   const [subcategories, setSubcategories] = useState<Category[]>([])
   const [expandedSubcategories, setExpandedSubcategories] = useState<Set<string>>(
     new Set(),
@@ -95,12 +95,12 @@ export default function CategoryDetails({
         {/* Breadcrumb */}
         <Stack gap={2}>
           <Flex align="center" gap={2} fontSize="sm" color="gray.600">
-            <Link href={`/dashboard/projects/${projectId}`} className="hover-underline">
-              Project
+            <Link href={`/dashboard/brands/${brandId}`} className="hover-underline">
+              Brand
             </Link>
             <styled.span color="gray.400">/</styled.span>
             <Link
-              href={`/dashboard/projects/${projectId}/catalogs/${catalogId}`}
+              href={`/dashboard/brands/${brandId}/catalogs/${catalogId}`}
               className="hover-underline"
             >
               Catalog
@@ -131,13 +131,13 @@ export default function CategoryDetails({
 
           <Flex gap={2} flexShrink={0}>
             <Link
-              href={`/dashboard/projects/${projectId}/catalogs/${catalogId}/categories/${category.category_id}/edit`}
+              href={`/dashboard/brands/${brandId}/catalogs/${catalogId}/categories/${category.category_id}/edit`}
               className={button({ variant: 'secondary', size: 'sm' })}
             >
               Edit Category
             </Link>
             <Link
-              href={`/dashboard/projects/${projectId}/catalogs/${catalogId}/products/new?category=${category.category_id}`}
+              href={`/dashboard/brands/${brandId}/catalogs/${catalogId}/products/new?category=${category.category_id}`}
               className={button({ size: 'sm' })}
             >
               Add Product
@@ -196,7 +196,7 @@ export default function CategoryDetails({
           </styled.h2>
 
           <Link
-            href={`/dashboard/projects/${projectId}/catalogs/${catalogId}/categories/new?parent=${category.category_id}`}
+            href={`/dashboard/brands/${brandId}/catalogs/${catalogId}/categories/new?parent=${category.category_id}`}
             className={button({ variant: 'secondary', size: 'sm' })}
           >
             Add Subcategory
@@ -240,13 +240,13 @@ export default function CategoryDetails({
 
               <Flex gap={2}>
                 <Link
-                  href={`/dashboard/projects/${projectId}/catalogs/${catalogId}/categories/new?parent=${category.category_id}`}
+                  href={`/dashboard/brands/${brandId}/catalogs/${catalogId}/categories/new?parent=${category.category_id}`}
                   className={button({ variant: 'secondary' })}
                 >
                   Add Subcategory
                 </Link>
                 <Link
-                  href={`/dashboard/projects/${projectId}/catalogs/${catalogId}/products/new?category=${category.category_id}`}
+                  href={`/dashboard/brands/${brandId}/catalogs/${catalogId}/products/new?category=${category.category_id}`}
                   className={button()}
                 >
                   Add Product
@@ -264,7 +264,6 @@ export default function CategoryDetails({
                 isExpanded={true}
                 onToggle={() => {}}
                 hasToggle={false}
-                projectId={projectId}
                 catalogId={catalogId}
                 categoryId={category.category_id}
               />
@@ -286,7 +285,6 @@ export default function CategoryDetails({
                   isLoading={isLoading}
                   onToggle={() => toggleSubcategory(subcategory.category_id)}
                   hasToggle={true}
-                  projectId={projectId}
                   catalogId={catalogId}
                   categoryId={subcategory.category_id}
                 />
@@ -302,11 +300,11 @@ export default function CategoryDetails({
 // Product List Item for list view
 interface ProductListItemProps {
   product: ProductWithRelations
-  projectId: number
   catalogId: string
 }
 
-function ProductListItem({ product, projectId, catalogId }: ProductListItemProps) {
+function ProductListItem({ product, catalogId }: ProductListItemProps) {
+  const { brandId } = useBrand()
   const getStatusVariant = (status: string) => {
     switch (status) {
       case 'active':
@@ -323,7 +321,7 @@ function ProductListItem({ product, projectId, catalogId }: ProductListItemProps
   const statusInfo = getStatusVariant(product.status)
 
   return (
-    <Link href={`/dashboard/projects/${projectId}/products/${product.id}`}>
+    <Link href={`/dashboard/brands/${brandId}/products/${product.id}`}>
       <Box
         bg="white"
         border="1px solid"
@@ -384,7 +382,6 @@ interface SubcategoryProductSectionProps {
   isLoading?: boolean
   onToggle: () => void
   hasToggle: boolean
-  projectId: number
   catalogId: string
   categoryId: string
 }
@@ -397,10 +394,10 @@ function SubcategoryProductSection({
   isLoading = false,
   onToggle,
   hasToggle,
-  projectId,
   catalogId,
   categoryId,
 }: SubcategoryProductSectionProps) {
+  const { brandId } = useBrand()
   return (
     <Box
       bg="white"
@@ -446,13 +443,13 @@ function SubcategoryProductSection({
 
           <Flex gap={2} flexShrink={0}>
             <Link
-              href={`/dashboard/projects/${projectId}/catalogs/${catalogId}/products/new?category=${categoryId}`}
+              href={`/dashboard/brands/${brandId}/catalogs/${catalogId}/products/new?category=${categoryId}`}
               className={button({ variant: 'secondary', size: 'xs' })}
             >
               Add Product
             </Link>
             <Link
-              href={`/dashboard/projects/${projectId}/catalogs/${catalogId}/categories/${categoryId}`}
+              href={`/dashboard/brands/${brandId}/catalogs/${catalogId}/categories/${categoryId}`}
               className={button({ variant: 'secondary', size: 'xs' })}
             >
               View Category
@@ -480,7 +477,7 @@ function SubcategoryProductSection({
                   No products in this {hasToggle ? 'subcategory' : 'category'} yet
                 </styled.p>
                 <Link
-                  href={`/dashboard/projects/${projectId}/catalogs/${catalogId}/products/new?category=${categoryId}`}
+                  href={`/dashboard/brands/${brandId}/catalogs/${catalogId}/products/new?category=${categoryId}`}
                   className={button({ size: 'xs' })}
                 >
                   Add First Product
@@ -493,7 +490,6 @@ function SubcategoryProductSection({
                 <CompactProductRow
                   key={product.id}
                   product={product}
-                  projectId={projectId}
                   isLast={index === products.length - 1}
                 />
               ))}
@@ -508,11 +504,11 @@ function SubcategoryProductSection({
 // Compact Product Row Component
 interface CompactProductRowProps {
   product: ProductWithRelations
-  projectId: number
   isLast: boolean
 }
 
-function CompactProductRow({ product, projectId, isLast }: CompactProductRowProps) {
+function CompactProductRow({ product, isLast }: CompactProductRowProps) {
+  const { brandId } = useBrand()
   const getStatusColor = (status: string) => {
     switch (status) {
       case 'active':
@@ -531,7 +527,7 @@ function CompactProductRow({ product, projectId, isLast }: CompactProductRowProp
   const heroImage = product.product_images?.find((img) => img.type === 'hero')
 
   return (
-    <Link href={`/dashboard/projects/${projectId}/products/${product.id}`}>
+    <Link href={`/dashboard/brands/${brandId}/products/${product.id}`}>
       <Box
         p={4}
         borderBottom={!isLast ? '1px solid' : 'none'}

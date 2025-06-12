@@ -9,18 +9,16 @@ import type { Category } from '@/lib/supabase/database-types'
 import { button } from '@/components/ui/button'
 import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
+import { useBrand } from '../brand-context'
 
 interface CategoriesTabProps {
   catalogId: string
-  projectId: number
   categories: Category[]
 }
 
-export default function CategoriesTab({
-  catalogId,
-  projectId,
-  categories,
-}: CategoriesTabProps) {
+export default function CategoriesTab({ catalogId, categories }: CategoriesTabProps) {
+  const { brandId } = useBrand()
+
   return (
     <Stack gap={6}>
       <Flex justify="space-between" align="center">
@@ -28,7 +26,7 @@ export default function CategoriesTab({
           Categories
         </styled.h2>
         <Link
-          href={`/dashboard/projects/${projectId}/catalogs/${catalogId}/categories/new`}
+          href={`/dashboard/brands/${brandId}/catalogs/${catalogId}/categories/new`}
           className={button()}
         >
           Add Category
@@ -71,7 +69,7 @@ export default function CategoriesTab({
             </Stack>
 
             <Link
-              href={`/dashboard/projects/${projectId}/catalogs/${catalogId}/categories/new`}
+              href={`/dashboard/brands/${brandId}/catalogs/${catalogId}/categories/new`}
               className={button()}
             >
               Create Your First Category
@@ -79,11 +77,7 @@ export default function CategoriesTab({
           </Stack>
         </Box>
       ) : (
-        <CategoriesTable
-          categories={categories}
-          projectId={projectId}
-          catalogId={catalogId}
-        />
+        <CategoriesTable categories={categories} catalogId={catalogId} />
       )}
     </Stack>
   )
@@ -92,11 +86,11 @@ export default function CategoriesTab({
 // Categories Table Component with Hierarchical Structure
 interface CategoriesTableProps {
   categories: Category[]
-  projectId: number
   catalogId: string
 }
 
-function CategoriesTable({ categories, projectId, catalogId }: CategoriesTableProps) {
+function CategoriesTable({ categories, catalogId }: CategoriesTableProps) {
+  const { brandId } = useBrand()
   const [expandedCategories, setExpandedCategories] = useState<Set<string>>(new Set())
 
   // Organize categories into hierarchy
@@ -171,7 +165,6 @@ function CategoriesTable({ categories, projectId, catalogId }: CategoriesTablePr
                   isExpanded={isExpanded}
                   onToggle={() => toggleCategory(category.category_id)}
                   level={0}
-                  projectId={projectId}
                   catalogId={catalogId}
                 />
                 {isExpanded &&
@@ -183,7 +176,6 @@ function CategoriesTable({ categories, projectId, catalogId }: CategoriesTablePr
                       isExpanded={false}
                       onToggle={() => {}}
                       level={1}
-                      projectId={projectId}
                       catalogId={catalogId}
                     />
                   ))}
@@ -203,7 +195,6 @@ interface CategoryTableRowProps {
   isExpanded: boolean
   onToggle: () => void
   level: number
-  projectId: number
   catalogId: string
 }
 
@@ -213,9 +204,9 @@ function CategoryTableRow({
   isExpanded,
   onToggle,
   level,
-  projectId,
   catalogId,
 }: CategoryTableRowProps) {
+  const { brandId } = useBrand()
   const getStatusVariant = (status: boolean) => {
     return status
       ? { variant: 'success' as const, text: 'Active' }
@@ -268,7 +259,7 @@ function CategoryTableRow({
           {/* Category content */}
           <Stack gap={3} flex={1} py={3}>
             <Link
-              href={`/dashboard/projects/${projectId}/catalogs/${catalogId}/categories/${category.category_id}`}
+              href={`/dashboard/brands/${brandId}/catalogs/${catalogId}/categories/${category.category_id}`}
             >
               <styled.p
                 fontSize="sm"

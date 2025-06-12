@@ -16,9 +16,9 @@ interface CategoryDetailsPageProps {
 
 export default async function CategoryDetailsPage({ params }: CategoryDetailsPageProps) {
   const { id, catalogId, categoryId } = await params
-  const projectId = parseInt(id)
-
-  if (isNaN(projectId)) {
+  const brandId = parseInt(id)
+  console.log(id, catalogId, categoryId)
+  if (isNaN(brandId)) {
     notFound()
   }
 
@@ -70,12 +70,7 @@ export default async function CategoryDetailsPage({ params }: CategoryDetailsPag
 
   return (
     <Container py={8}>
-      <CategoryDetails
-        category={category}
-        products={products}
-        projectId={projectId}
-        catalogId={catalogId}
-      />
+      <CategoryDetails category={category} products={products} catalogId={catalogId} />
     </Container>
   )
 }

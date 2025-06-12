@@ -43,7 +43,7 @@ export default async function CreateCatalogPage({ params }: CreateCatalogPagePro
 
   return (
     <Container py={8}>
-      <CatalogGeneration brand={brand} />
+      <CatalogGeneration />
     </Container>
   )
 }
