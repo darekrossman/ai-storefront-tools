@@ -23,7 +23,7 @@ export async function createProductVariant(data: CreateVariantData) {
   const supabase = await createClient()
 
   try {
-    // Validate user access to product
+    // Validate user access to product through brand ownership
     const { data: product } = await supabase
       .from('products')
       .select(`
@@ -32,24 +32,21 @@ export async function createProductVariant(data: CreateVariantData) {
           id,
           brands (
             id,
-            projects (
-              id,
-              user_id
-            )
+            user_id
           )
         )
       `)
       .eq('id', data.product_id)
       .single()
 
-    if (!product?.product_catalogs?.brands?.projects?.user_id) {
+    if (!product?.product_catalogs?.brands?.user_id) {
       throw new Error('Product not found or access denied')
     }
 
     const {
       data: { user },
     } = await supabase.auth.getUser()
-    if (!user || product.product_catalogs.brands.projects.user_id !== user.id) {
+    if (!user || product.product_catalogs.brands.user_id !== user.id) {
       throw new Error('Unauthorized')
     }
 
@@ -110,7 +107,7 @@ export async function updateProductVariant(data: UpdateVariantData) {
   const supabase = await createClient()
 
   try {
-    // Validate user access
+    // Validate user access through brand ownership
     const { data: variant } = await supabase
       .from('product_variants')
       .select(`
@@ -122,10 +119,7 @@ export async function updateProductVariant(data: UpdateVariantData) {
             id,
             brands (
               id,
-              projects (
-                id,
-                user_id
-              )
+              user_id
             )
           )
         )
@@ -133,14 +127,14 @@ export async function updateProductVariant(data: UpdateVariantData) {
       .eq('id', data.id)
       .single()
 
-    if (!variant?.products?.product_catalogs?.brands?.projects?.user_id) {
+    if (!variant?.products?.product_catalogs?.brands?.user_id) {
       throw new Error('Variant not found or access denied')
     }
 
     const {
       data: { user },
     } = await supabase.auth.getUser()
-    if (!user || variant.products.product_catalogs.brands.projects.user_id !== user.id) {
+    if (!user || variant.products.product_catalogs.brands.user_id !== user.id) {
       throw new Error('Unauthorized')
     }
 
@@ -191,7 +185,7 @@ export async function deleteProductVariant(variantId: number) {
   const supabase = await createClient()
 
   try {
-    // Validate user access
+    // Validate user access through brand ownership
     const { data: variant } = await supabase
       .from('product_variants')
       .select(`
@@ -202,10 +196,7 @@ export async function deleteProductVariant(variantId: number) {
             id,
             brands (
               id,
-              projects (
-                id,
-                user_id
-              )
+              user_id
             )
           )
         )
@@ -213,14 +204,14 @@ export async function deleteProductVariant(variantId: number) {
       .eq('id', variantId)
       .single()
 
-    if (!variant?.products?.product_catalogs?.brands?.projects?.user_id) {
+    if (!variant?.products?.product_catalogs?.brands?.user_id) {
       throw new Error('Variant not found or access denied')
     }
 
     const {
       data: { user },
     } = await supabase.auth.getUser()
-    if (!user || variant.products.product_catalogs.brands.projects.user_id !== user.id) {
+    if (!user || variant.products.product_catalogs.brands.user_id !== user.id) {
       throw new Error('Unauthorized')
     }
 

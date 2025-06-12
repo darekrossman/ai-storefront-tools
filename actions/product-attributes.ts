@@ -31,7 +31,7 @@ export async function createProductAttribute(data: CreateAttributeData) {
   const supabase = await createClient()
 
   try {
-    // Validate user access to product
+    // Validate user access to product through brand ownership
     const { data: product } = await supabase
       .from('products')
       .select(`
@@ -40,24 +40,21 @@ export async function createProductAttribute(data: CreateAttributeData) {
           id,
           brands (
             id,
-            projects (
-              id,
-              user_id
-            )
+            user_id
           )
         )
       `)
       .eq('id', data.product_id)
       .single()
 
-    if (!product?.product_catalogs?.brands?.projects?.user_id) {
+    if (!product?.product_catalogs?.brands?.user_id) {
       throw new Error('Product not found or access denied')
     }
 
     const {
       data: { user },
     } = await supabase.auth.getUser()
-    if (!user || product.product_catalogs.brands.projects.user_id !== user.id) {
+    if (!user || product.product_catalogs.brands.user_id !== user.id) {
       throw new Error('Unauthorized')
     }
 
@@ -115,7 +112,7 @@ export async function updateProductAttribute(data: UpdateAttributeData) {
   const supabase = await createClient()
 
   try {
-    // Validate user access
+    // Validate user access through brand ownership
     const { data: attribute } = await supabase
       .from('product_attribute_schemas')
       .select(`
@@ -127,10 +124,7 @@ export async function updateProductAttribute(data: UpdateAttributeData) {
             id,
             brands (
               id,
-              projects (
-                id,
-                user_id
-              )
+              user_id
             )
           )
         )
@@ -138,17 +132,14 @@ export async function updateProductAttribute(data: UpdateAttributeData) {
       .eq('id', data.id)
       .single()
 
-    if (!attribute?.products?.product_catalogs?.brands?.projects?.user_id) {
+    if (!attribute?.products?.product_catalogs?.brands?.user_id) {
       throw new Error('Attribute not found or access denied')
     }
 
     const {
       data: { user },
     } = await supabase.auth.getUser()
-    if (
-      !user ||
-      attribute.products.product_catalogs.brands.projects.user_id !== user.id
-    ) {
+    if (!user || attribute.products.product_catalogs.brands.user_id !== user.id) {
       throw new Error('Unauthorized')
     }
 
@@ -200,7 +191,7 @@ export async function deleteProductAttribute(attributeId: number) {
   const supabase = await createClient()
 
   try {
-    // Validate user access
+    // Validate user access through brand ownership
     const { data: attribute } = await supabase
       .from('product_attribute_schemas')
       .select(`
@@ -212,10 +203,7 @@ export async function deleteProductAttribute(attributeId: number) {
             id,
             brands (
               id,
-              projects (
-                id,
-                user_id
-              )
+              user_id
             )
           )
         )
@@ -223,17 +211,14 @@ export async function deleteProductAttribute(attributeId: number) {
       .eq('id', attributeId)
       .single()
 
-    if (!attribute?.products?.product_catalogs?.brands?.projects?.user_id) {
+    if (!attribute?.products?.product_catalogs?.brands?.user_id) {
       throw new Error('Attribute not found or access denied')
     }
 
     const {
       data: { user },
     } = await supabase.auth.getUser()
-    if (
-      !user ||
-      attribute.products.product_catalogs.brands.projects.user_id !== user.id
-    ) {
+    if (!user || attribute.products.product_catalogs.brands.user_id !== user.id) {
       throw new Error('Unauthorized')
     }
 

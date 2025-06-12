@@ -13,7 +13,6 @@ type UploadResult = {
 }
 
 export async function uploadBrandLogoAction(
-  projectId: number,
   brandId: number,
   formData: FormData,
 ): Promise<UploadResult> {
@@ -25,7 +24,6 @@ export async function uploadBrandLogoAction(
 }
 
 export async function deleteBrandLogoAction(
-  projectId: number,
   brandId: number,
   logoUrl: string,
 ): Promise<UploadResult> {

@@ -24,17 +24,15 @@ export const getCategoriesAction = async (catalogId: string): Promise<Category[]
     throw new Error('User not authenticated')
   }
 
-  // First verify user owns the catalog
+  // First verify user owns the catalog through brand ownership
   const { data: catalog } = await supabase
     .from('product_catalogs')
     .select(`
       catalog_id,
-      brand:brands!inner(
-        project:projects!inner(user_id)
-      )
+      brand:brands!inner(user_id)
     `)
     .eq('catalog_id', catalogId)
-    .eq('brand.project.user_id', user.id)
+    .eq('brand.user_id', user.id)
     .single()
 
   if (!catalog) {
@@ -70,17 +68,15 @@ export const getTopLevelCategoriesAction = async (
     throw new Error('User not authenticated')
   }
 
-  // First verify user owns the catalog
+  // First verify user owns the catalog through brand ownership
   const { data: catalog } = await supabase
     .from('product_catalogs')
     .select(`
       catalog_id,
-      brand:brands!inner(
-        project:projects!inner(user_id)
-      )
+      brand:brands!inner(user_id)
     `)
     .eq('catalog_id', catalogId)
-    .eq('brand.project.user_id', user.id)
+    .eq('brand.user_id', user.id)
     .single()
 
   if (!catalog) {
@@ -118,19 +114,17 @@ export const getSubcategoriesAction = async (
     throw new Error('User not authenticated')
   }
 
-  // First verify user owns the parent category
+  // First verify user owns the parent category through brand ownership
   const { data: parentCategory } = await supabase
     .from('categories')
     .select(`
       category_id,
       catalog:product_catalogs!inner(
-        brand:brands!inner(
-          project:projects!inner(user_id)
-        )
+        brand:brands!inner(user_id)
       )
     `)
     .eq('category_id', parentCategoryId)
-    .eq('catalog.brand.project.user_id', user.id)
+    .eq('catalog.brand.user_id', user.id)
     .single()
 
   if (!parentCategory) {
@@ -170,13 +164,11 @@ export const getCategoryAction = async (categoryId: string): Promise<Category | 
     .select(`
       *,
       catalog:product_catalogs!inner(
-        brand:brands!inner(
-          project:projects!inner(user_id)
-        )
+        brand:brands!inner(user_id)
       )
     `)
     .eq('category_id', categoryId)
-    .eq('catalog.brand.project.user_id', user.id)
+    .eq('catalog.brand.user_id', user.id)
     .single()
 
   if (error) {
@@ -206,17 +198,15 @@ export const createCategoryAction = async (
     throw new Error('User not authenticated')
   }
 
-  // First verify user owns the catalog
+  // First verify user owns the catalog through brand ownership
   const { data: catalog } = await supabase
     .from('product_catalogs')
     .select(`
       catalog_id,
-      brand:brands!inner(
-        project:projects!inner(user_id)
-      )
+      brand:brands!inner(user_id)
     `)
     .eq('catalog_id', categoryData.catalog_id)
-    .eq('brand.project.user_id', user.id)
+    .eq('brand.user_id', user.id)
     .single()
 
   if (!catalog) {
@@ -277,19 +267,17 @@ export const updateCategoryAction = async (
     throw new Error('User not authenticated')
   }
 
-  // First verify user owns the category
+  // First verify user owns the category through brand ownership
   const { data: categoryCheck } = await supabase
     .from('categories')
     .select(`
       catalog_id,
       catalog:product_catalogs!inner(
-        brand:brands!inner(
-          project:projects!inner(user_id)
-        )
+        brand:brands!inner(user_id)
       )
     `)
     .eq('category_id', categoryId)
-    .eq('catalog.brand.project.user_id', user.id)
+    .eq('catalog.brand.user_id', user.id)
     .single()
 
   if (!categoryCheck) {
@@ -356,13 +344,11 @@ export const deleteCategoryAction = async (categoryId: string): Promise<void> =>
     .select(`
       catalog_id,
       catalog:product_catalogs!inner(
-        brand:brands!inner(
-          project:projects!inner(user_id)
-        )
+        brand:brands!inner(user_id)
       )
     `)
     .eq('category_id', categoryId)
-    .eq('catalog.brand.project.user_id', user.id)
+    .eq('catalog.brand.user_id', user.id)
     .single()
 
   if (!category) {

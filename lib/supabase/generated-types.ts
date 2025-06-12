@@ -17,10 +17,10 @@ export type Database = {
     Functions: {
       graphql: {
         Args: {
-          query?: string
-          variables?: Json
           extensions?: Json
           operationName?: string
+          query?: string
+          variables?: Json
         }
         Returns: Json
       }
@@ -57,7 +57,6 @@ export type Database = {
           name: string
           personality_traits: string[] | null
           price_point: Database["public"]["Enums"]["price_point"] | null
-          project_id: number
           status: Database["public"]["Enums"]["brand_status"]
           tagline: string | null
           target_age_range: string | null
@@ -74,6 +73,7 @@ export type Database = {
           typography_primary: string | null
           typography_secondary: string | null
           updated_at: string
+          user_id: string
           values: string[] | null
           vision: string | null
         }
@@ -99,7 +99,6 @@ export type Database = {
           name: string
           personality_traits?: string[] | null
           price_point?: Database["public"]["Enums"]["price_point"] | null
-          project_id: number
           status?: Database["public"]["Enums"]["brand_status"]
           tagline?: string | null
           target_age_range?: string | null
@@ -116,6 +115,7 @@ export type Database = {
           typography_primary?: string | null
           typography_secondary?: string | null
           updated_at?: string
+          user_id: string
           values?: string[] | null
           vision?: string | null
         }
@@ -141,7 +141,6 @@ export type Database = {
           name?: string
           personality_traits?: string[] | null
           price_point?: Database["public"]["Enums"]["price_point"] | null
-          project_id?: number
           status?: Database["public"]["Enums"]["brand_status"]
           tagline?: string | null
           target_age_range?: string | null
@@ -158,18 +157,11 @@ export type Database = {
           typography_primary?: string | null
           typography_secondary?: string | null
           updated_at?: string
+          user_id?: string
           values?: string[] | null
           vision?: string | null
         }
-        Relationships: [
-          {
-            foreignKeyName: "brands_project_id_fkey"
-            columns: ["project_id"]
-            isOneToOne: false
-            referencedRelation: "projects"
-            referencedColumns: ["id"]
-          },
-        ]
+        Relationships: []
       }
       categories: {
         Row: {
@@ -566,39 +558,6 @@ export type Database = {
         }
         Relationships: []
       }
-      projects: {
-        Row: {
-          created_at: string
-          description: string | null
-          id: number
-          name: string
-          settings: Json | null
-          status: Database["public"]["Enums"]["session_status"]
-          updated_at: string
-          user_id: string
-        }
-        Insert: {
-          created_at?: string
-          description?: string | null
-          id?: never
-          name: string
-          settings?: Json | null
-          status?: Database["public"]["Enums"]["session_status"]
-          updated_at?: string
-          user_id: string
-        }
-        Update: {
-          created_at?: string
-          description?: string | null
-          id?: never
-          name?: string
-          settings?: Json | null
-          status?: Database["public"]["Enums"]["session_status"]
-          updated_at?: string
-          user_id?: string
-        }
-        Relationships: []
-      }
       waitlist: {
         Row: {
           created_at: string
@@ -643,18 +602,17 @@ export type Database = {
         Returns: Json
       }
       get_variant_display_name: {
-        Args: { p_variant_id: number; p_include_product_name?: boolean }
+        Args: { p_include_product_name?: boolean; p_variant_id: number }
         Returns: string
       }
       validate_attribute_values: {
-        Args: { p_product_id: number; p_attribute_values: Json }
+        Args: { p_attribute_values: Json; p_product_id: number }
         Returns: boolean
       }
     }
     Enums: {
       brand_status: "draft" | "active" | "inactive" | "archived"
       price_point: "luxury" | "premium" | "mid-market" | "value" | "budget"
-      session_status: "active" | "completed" | "archived"
     }
     CompositeTypes: {
       [_ in never]: never
@@ -775,7 +733,6 @@ export const Constants = {
     Enums: {
       brand_status: ["draft", "active", "inactive", "archived"],
       price_point: ["luxury", "premium", "mid-market", "value", "budget"],
-      session_status: ["active", "completed", "archived"],
     },
   },
 } as const

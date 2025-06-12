@@ -4,17 +4,14 @@ import { Box, Flex, Stack, styled } from '@/styled-system/jsx'
 import Link from 'next/link'
 import type { Brand } from '@/lib/supabase/database-types'
 import { deleteBrandAction } from '@/actions/brands'
-import { deleteBrandLogoAction } from '@/actions/storage'
 
 interface BrandCardProps {
   brand: Brand
-  projectId: number
 }
 
 function getLogoUrl(brand: Brand): string | null {
-  // The visual_identity field doesn't exist in the database schema
   // TODO: Implement logo URL retrieval from actual storage/brand fields
-  return null
+  return brand.logo_url || null
 }
 
 function getStatusColor(status: string) {
@@ -30,7 +27,7 @@ function getStatusColor(status: string) {
   }
 }
 
-export default function BrandCard({ brand, projectId }: BrandCardProps) {
+export default function BrandCard({ brand }: BrandCardProps) {
   const logoUrl = getLogoUrl(brand)
   const statusColor = getStatusColor(brand.status)
 
@@ -107,7 +104,7 @@ export default function BrandCard({ brand, projectId }: BrandCardProps) {
           {/* Actions */}
           <Flex gap={1} flexShrink={0}>
             {/* Edit Link styled as button */}
-            <Link href={`/dashboard/projects/${projectId}/brands/${brand.id}/edit`}>
+            <Link href={`/dashboard/brands/${brand.id}/edit`}>
               <styled.div
                 px={2}
                 py={1}
@@ -165,7 +162,7 @@ export default function BrandCard({ brand, projectId }: BrandCardProps) {
       </Box>
 
       {/* Content */}
-      <Link href={`/dashboard/projects/${projectId}/brands/${brand.id}`}>
+      <Link href={`/dashboard/brands/${brand.id}`}>
         <Box p={4} cursor="pointer">
           <Stack gap={3}>
             {/* Tagline */}

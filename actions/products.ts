@@ -51,11 +51,7 @@ export interface ProductWithRelations extends Product {
     brands?: {
       id: number
       name: string
-      projects?: {
-        id: number
-        name: string
-        user_id: string
-      }
+      user_id?: string
     }
   }
   categories?: {
@@ -98,30 +94,27 @@ export async function createProduct(data: CreateProductData) {
   const supabase = await createClient()
 
   try {
-    // Validate user access to catalog
+    // Validate user access to catalog through brand ownership
     const { data: catalog } = await supabase
       .from('product_catalogs')
       .select(`
         catalog_id,
         brands (
           id,
-          projects (
-            id,
-            user_id
-          )
+          user_id
         )
       `)
       .eq('catalog_id', data.catalog_id)
       .single()
 
-    if (!catalog?.brands?.projects?.user_id) {
+    if (!catalog?.brands?.user_id) {
       throw new Error('Catalog not found or access denied')
     }
 
     const {
       data: { user },
     } = await supabase.auth.getUser()
-    if (!user || catalog.brands.projects.user_id !== user.id) {
+    if (!user || catalog.brands.user_id !== user.id) {
       throw new Error('Unauthorized')
     }
 
@@ -171,30 +164,27 @@ export async function createMultipleProducts(
   const supabase = await createClient()
 
   try {
-    // Validate user access to catalog
+    // Validate user access to catalog through brand ownership
     const { data: catalog } = await supabase
       .from('product_catalogs')
       .select(`
         catalog_id,
         brands (
           id,
-          projects (
-            id,
-            user_id
-          )
+          user_id
         )
       `)
       .eq('catalog_id', catalogId)
       .single()
 
-    if (!catalog?.brands?.projects?.user_id) {
+    if (!catalog?.brands?.user_id) {
       throw new Error('Catalog not found or access denied')
     }
 
     const {
       data: { user },
     } = await supabase.auth.getUser()
-    if (!user || catalog.brands.projects.user_id !== user.id) {
+    if (!user || catalog.brands.user_id !== user.id) {
       throw new Error('Unauthorized')
     }
 
@@ -326,7 +316,7 @@ export async function updateProduct(data: UpdateProductData) {
   const supabase = await createClient()
 
   try {
-    // Validate user access
+    // Validate user access through brand ownership
     const { data: product } = await supabase
       .from('products')
       .select(`
@@ -335,24 +325,21 @@ export async function updateProduct(data: UpdateProductData) {
           catalog_id,
           brands (
             id,
-            projects (
-              id,
-              user_id
-            )
+            user_id
           )
         )
       `)
       .eq('id', data.id)
       .single()
 
-    if (!product?.product_catalogs?.brands?.projects?.user_id) {
+    if (!product?.product_catalogs?.brands?.user_id) {
       throw new Error('Product not found or access denied')
     }
 
     const {
       data: { user },
     } = await supabase.auth.getUser()
-    if (!user || product.product_catalogs.brands.projects.user_id !== user.id) {
+    if (!user || product.product_catalogs.brands.user_id !== user.id) {
       throw new Error('Unauthorized')
     }
 
@@ -389,7 +376,7 @@ export async function deleteProduct(productId: number) {
   const supabase = await createClient()
 
   try {
-    // Validate user access
+    // Validate user access through brand ownership
     const { data: product } = await supabase
       .from('products')
       .select(`
@@ -398,24 +385,21 @@ export async function deleteProduct(productId: number) {
           catalog_id,
           brands (
             id,
-            projects (
-              id,
-              user_id
-            )
+            user_id
           )
         )
       `)
       .eq('id', productId)
       .single()
 
-    if (!product?.product_catalogs?.brands?.projects?.user_id) {
+    if (!product?.product_catalogs?.brands?.user_id) {
       throw new Error('Product not found or access denied')
     }
 
     const {
       data: { user },
     } = await supabase.auth.getUser()
-    if (!user || product.product_catalogs.brands.projects.user_id !== user.id) {
+    if (!user || product.product_catalogs.brands.user_id !== user.id) {
       throw new Error('Unauthorized')
     }
 
@@ -457,11 +441,7 @@ export async function getProductsByCatalog(
           brands (
             id,
             name,
-            projects (
-              id,
-              name,
-              user_id
-            )
+            user_id
           )
         ),
         categories (
@@ -529,11 +509,7 @@ export async function getProductById(
           brands (
             id,
             name,
-            projects (
-              id,
-              name,
-              user_id
-            )
+            user_id
           )
         ),
         categories (
@@ -596,14 +572,11 @@ export async function duplicateProduct(productId: number, newName: string) {
       throw new Error('Product not found')
     }
 
-    // Validate user access
+    // Validate user access through brand ownership
     const {
       data: { user },
     } = await supabase.auth.getUser()
-    if (
-      !user ||
-      originalProduct.product_catalogs?.brands?.projects?.user_id !== user.id
-    ) {
+    if (!user || originalProduct.product_catalogs?.brands?.user_id !== user.id) {
       throw new Error('Unauthorized')
     }
 
@@ -706,7 +679,7 @@ export async function updateProductStatus(productId: number, status: BrandStatus
   const supabase = await createClient()
 
   try {
-    // Validate user access
+    // Validate user access through brand ownership
     const { data: product } = await supabase
       .from('products')
       .select(`
@@ -715,24 +688,21 @@ export async function updateProductStatus(productId: number, status: BrandStatus
           catalog_id,
           brands (
             id,
-            projects (
-              id,
-              user_id
-            )
+            user_id
           )
         )
       `)
       .eq('id', productId)
       .single()
 
-    if (!product?.product_catalogs?.brands?.projects?.user_id) {
+    if (!product?.product_catalogs?.brands?.user_id) {
       throw new Error('Product not found or access denied')
     }
 
     const {
       data: { user },
     } = await supabase.auth.getUser()
-    if (!user || product.product_catalogs.brands.projects.user_id !== user.id) {
+    if (!user || product.product_catalogs.brands.user_id !== user.id) {
       throw new Error('Unauthorized')
     }
 
@@ -776,7 +746,7 @@ export async function getProductsByCategory(
       throw new Error('User not authenticated')
     }
 
-    // First verify user owns the category
+    // First verify user owns the category through brand ownership
     const { data: category } = await supabase
       .from('categories')
       .select(`
@@ -784,14 +754,11 @@ export async function getProductsByCategory(
         catalog_id,
         product_catalogs!inner(
           brand_id,
-          brands!inner(
-            project_id,
-            projects!inner(user_id)
-          )
+          brands!inner(user_id)
         )
       `)
       .eq('category_id', categoryId)
-      .eq('product_catalogs.brands.projects.user_id', user.id)
+      .eq('product_catalogs.brands.user_id', user.id)
       .single()
 
     if (!category) {
@@ -808,11 +775,7 @@ export async function getProductsByCategory(
           brands (
             id,
             name,
-            projects (
-              id,
-              name,
-              user_id
-            )
+            user_id
           )
         ),
         categories (

@@ -1,7 +1,7 @@
 'use client'
 
 import { brandStructuredOutputSchemas } from '@/lib/brand/schemas'
-import { useChat, experimental_useObject as useObject } from '@ai-sdk/react'
+import { experimental_useObject as useObject } from '@ai-sdk/react'
 import { Box, Flex, Stack, styled } from '@/styled-system/jsx'
 import { Button } from '@/components/ui/button'
 import { Input } from '../ui/input'
@@ -9,6 +9,8 @@ import { useRef, useState } from 'react'
 import { convertToDBFormat } from '@/lib/brand/helpers'
 import { createBrandAction } from '@/actions/brands'
 import { useRouter } from 'next/navigation'
+import { useUser } from '../user-context'
+import { z } from 'zod'
 
 const api = '/api/agents/brand'
 
@@ -19,24 +21,8 @@ type SelectionState = {
   phase4Selection?: number
 }
 
-type Project = {
-  id: number
-  name: string
-  description: string | null
-  status: 'active' | 'completed' | 'archived'
-  created_at: string
-  updated_at: string
-  user_id: string
-  settings: any
-}
-
-export default function BrandChat({
-  projectId,
-  project,
-}: {
-  projectId: number
-  project: Project
-}) {
+export default function BrandChat() {
+  const { userId } = useUser()
   const [messages, setMessages] = useState<Message[]>([])
   const [selections, setSelections] = useState<SelectionState>({})
   const [isSaving, setIsSaving] = useState(false)
@@ -61,19 +47,19 @@ export default function BrandChat({
     switch (phase) {
       case 'phase1Selection':
         selectedOption = object?.phase1?.brandOptions?.[selectedIndex]
-        nextMessage = `I choose ${JSON.stringify(selectedOption)}`
+        nextMessage = JSON.stringify({ phase: 1, selectedOption })
         break
       case 'phase2Selection':
         selectedOption = object?.phase2?.positioningOptions?.[selectedIndex]
-        nextMessage = `I choose ${JSON.stringify(selectedOption)}`
+        nextMessage = JSON.stringify({ phase: 2, selectedOption })
         break
       case 'phase3Selection':
         selectedOption = object?.phase3?.personalityOptions?.[selectedIndex]
-        nextMessage = `I choose ${JSON.stringify(selectedOption)}`
+        nextMessage = JSON.stringify({ phase: 3, selectedOption })
         break
       case 'phase4Selection':
         selectedOption = object?.phase4?.visualOptions?.[selectedIndex]
-        nextMessage = `I choose ${JSON.stringify(selectedOption)}`
+        nextMessage = JSON.stringify({ phase: 4, selectedOption })
         break
     }
 
@@ -83,16 +69,15 @@ export default function BrandChat({
   }
 
   const handleSave = async () => {
-    if (!object?.phase5?.comprehensiveStrategy) return
+    const data = object?.phase5 as z.infer<typeof brandStructuredOutputSchemas>['phase5']
 
     setIsSaving(true)
     try {
-      const brandData = convertToDBFormat(object.phase5 as any, projectId)
+      const brandData = convertToDBFormat(data, userId)
       const newBrand = await createBrandAction(brandData)
-      router.push(`/dashboard/projects/${projectId}/brands/${newBrand.id}`)
+      router.push(`/dashboard/brands/${newBrand.id}`)
     } catch (error) {
       console.error('Error saving brand:', error)
-      // You might want to show an error message to the user here
     } finally {
       setIsSaving(false)
     }
@@ -102,7 +87,6 @@ export default function BrandChat({
     // Reset the component to initial state
     setMessages([])
     setSelections({})
-    // You might want to add a confirmation dialog here
   }
 
   const renderPhase1 = () => {
@@ -174,7 +158,6 @@ export default function BrandChat({
 
   const renderPhase2 = () => {
     if (!object?.phase2) return null
-    console.log('phase2', object.phase2)
 
     return (
       <Stack gap={6}>
@@ -1180,13 +1163,7 @@ export default function BrandChat({
               }}
             >
               <Stack gap={4}>
-                <Input
-                  ref={inputRef}
-                  defaultValue={
-                    project.description ? `${project.name} - ${project.description}` : ''
-                  }
-                  placeholder="Describe your business or product idea..."
-                />
+                <Input ref={inputRef} placeholder="Describe your brand..." />
                 <Button type="submit">Generate Brand Options</Button>
               </Stack>
             </form>

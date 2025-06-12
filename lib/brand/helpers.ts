@@ -1,11 +1,11 @@
-import type { Brand as DBBrand } from '@/lib/supabase/database-types'
+import { BrandInsert } from '../supabase/database-types'
 import { brandStructuredOutputSchemas } from './schemas'
 import { z } from 'zod'
 
 export function convertToDBFormat(
   structuredOutput: z.infer<typeof brandStructuredOutputSchemas>['phase5'],
-  projectId: number,
-): Omit<DBBrand, 'id' | 'created_at' | 'updated_at'> {
+  userId: string,
+): BrandInsert {
   const strategy = structuredOutput?.comprehensiveStrategy
 
   if (!strategy) {
@@ -13,7 +13,7 @@ export function convertToDBFormat(
   }
 
   return {
-    project_id: projectId,
+    user_id: userId,
     name: strategy.brandFoundation.name,
     tagline: strategy.brandFoundation.tagline,
     mission: strategy.brandFoundation.mission,
@@ -64,6 +64,6 @@ export function convertToDBFormat(
     imagery_mood: strategy.visualIdentity.imagery.mood,
     imagery_guidelines: strategy.visualIdentity.imagery.guidelines,
 
-    status: 'draft' as const,
+    status: 'active' as const,
   }
 }

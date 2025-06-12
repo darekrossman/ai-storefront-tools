@@ -54,8 +54,10 @@ export async function POST(req: Request) {
 
   const { messages } = body
 
+  console.log('messages', messages)
+
   const result = streamObject({
-    model: openai('gpt-4.1'),
+    model: openai('gpt-4.1-mini-2025-04-14'),
     schema: brandStructuredOutputSchemas,
     system: systemPrompt,
     messages,

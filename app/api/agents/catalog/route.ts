@@ -129,7 +129,7 @@ export async function POST(req: Request) {
     return Response.json({ error: 'Brand not found' }, { status: 404 })
   }
 
-  const { id, project_id, status, created_at, updated_at, logo_url, ...brandData } = brand
+  const { id, user_id, status, created_at, updated_at, logo_url, ...brandData } = brand
 
   // Get existing catalog names to prevent duplicates
   const existingCatalogNames = await getAllCatalogNamesAction()

@@ -2,10 +2,9 @@
 
 import { convertToDBFormat } from '@/lib/catalog/helpers'
 import { catalogStructuredOutputSchemas } from '@/lib/catalog/schemas'
-import type { Project, Brand } from '@/lib/supabase/database-types'
+import type { Brand } from '@/lib/supabase/database-types'
 import { experimental_useObject as useObject } from '@ai-sdk/react'
-import { useState, useEffect } from 'react'
-import { getBrandsAction } from '@/actions/brands'
+import { useState } from 'react'
 import { Button } from '@/components/ui/button'
 import { Box, Container, Stack, styled } from '@/styled-system/jsx'
 import { z } from 'zod'
@@ -13,12 +12,9 @@ import { createProductCatalogAction } from '@/actions/product-catalogs'
 import { createCategoryAction } from '@/actions'
 import { useRouter } from 'next/navigation'
 
-export default function CatalogGeneration({ project }: { project: Project }) {
+export default function CatalogGeneration({ brand }: { brand: Brand }) {
   const router = useRouter()
-  const [brands, setBrands] = useState<Brand[]>([])
-  const [loading, setLoading] = useState(true)
   const [formData, setFormData] = useState({
-    brandId: '',
     parentCategoryCount: 5,
     subcategoryCount: 3,
   })
@@ -28,41 +24,22 @@ export default function CatalogGeneration({ project }: { project: Project }) {
     schema: catalogStructuredOutputSchemas,
   })
 
-  useEffect(() => {
-    const fetchBrands = async () => {
-      try {
-        const projectBrands = await getBrandsAction(project.id)
-        setBrands(projectBrands)
-      } catch (error) {
-        console.error('Error fetching brands:', error)
-      } finally {
-        setLoading(false)
-      }
-    }
-
-    fetchBrands()
-  }, [project.id])
-
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault()
-    if (!formData.brandId) {
-      alert('Please select a brand')
-      return
-    }
 
     // Submit the form data to the AI agent
     submit({
-      brandId: formData.brandId,
+      brandId: brand.id.toString(),
       parentCategoryCount: formData.parentCategoryCount,
       subcategoryCount: formData.subcategoryCount,
     })
   }
 
   const handleSave = async () => {
-    if (!object || !formData.brandId) return
+    if (!object) return
     const { catalog, categories } = convertToDBFormat(
       object as z.infer<typeof catalogStructuredOutputSchemas>,
-      parseInt(formData.brandId),
+      brand.id,
     )
 
     try {
@@ -75,27 +52,10 @@ export default function CatalogGeneration({ project }: { project: Project }) {
         categories.filter((c) => c.parent_category_id).map(createCategoryAction),
       )
 
-      router.push(
-        `/dashboard/projects/${project.id}/catalogs/${createdCatalog.catalog_id}`,
-      )
+      router.push(`/dashboard/brands/${brand.id}/catalogs/${createdCatalog.catalog_id}`)
     } catch (error) {
       console.error('Error saving catalog:', error)
     }
-  }
-
-  if (loading) {
-    return (
-      <Box
-        bg="white"
-        border="1px solid"
-        borderColor="gray.200"
-        borderRadius="lg"
-        p={6}
-        textAlign="center"
-      >
-        <styled.p color="gray.600">Loading brands...</styled.p>
-      </Box>
-    )
   }
 
   if (isLoading) {
@@ -278,50 +238,6 @@ export default function CatalogGeneration({ project }: { project: Project }) {
 
           <form onSubmit={handleSubmit}>
             <Stack gap={4}>
-              {/* Brand Selection */}
-              <Stack gap={2}>
-                <styled.label
-                  htmlFor="brandId"
-                  fontSize="sm"
-                  fontWeight="medium"
-                  color="gray.700"
-                >
-                  Brand *
-                </styled.label>
-                <styled.select
-                  id="brandId"
-                  value={formData.brandId}
-                  onChange={(e) =>
-                    setFormData((prev) => ({ ...prev, brandId: e.target.value }))
-                  }
-                  px={3}
-                  py={2}
-                  border="1px solid"
-                  borderColor="gray.300"
-                  borderRadius="md"
-                  fontSize="sm"
-                  _focus={{
-                    borderColor: 'blue.500',
-                    outline: 'none',
-                    ring: '2px',
-                    ringColor: 'blue.200',
-                  }}
-                  disabled={isLoading}
-                >
-                  <option value="">Select a brand</option>
-                  {brands.map((brand) => (
-                    <option key={brand.id} value={brand.id}>
-                      {brand.name}
-                    </option>
-                  ))}
-                </styled.select>
-                {brands.length === 0 && (
-                  <styled.p fontSize="xs" color="red.600">
-                    No brands found. Please create a brand first.
-                  </styled.p>
-                )}
-              </Stack>
-
               {/* Parent Category Count */}
               <Stack gap={2}>
                 <styled.label
@@ -399,10 +315,7 @@ export default function CatalogGeneration({ project }: { project: Project }) {
               </Stack>
 
               {/* Submit Button */}
-              <Button
-                type="submit"
-                disabled={isLoading || !formData.brandId || brands.length === 0}
-              >
+              <Button type="submit" disabled={isLoading}>
                 Generate Catalog
               </Button>
             </Stack>

@@ -1,17 +1,33 @@
 import { createClient } from '@/lib/supabase/server'
-import { getProjectsAction } from '@/actions/projects'
+import { redirect } from 'next/navigation'
 import { Box, Container, Flex, Stack, styled } from '@/styled-system/jsx'
 import Link from 'next/link'
-import ProjectList from '@/components/projects/project-list'
+import { button } from '@/components/ui/button'
 
 export default async function DashboardPage() {
   const supabase = await createClient()
+
   const {
     data: { user },
+    error: userError,
   } = await supabase.auth.getUser()
 
-  // Get user's projects
-  const projects = await getProjectsAction()
+  if (userError || !user) {
+    redirect('/login')
+  }
+
+  // Get user's brands
+  const { data: brands, error: brandsError } = await supabase
+    .from('brands')
+    .select('*')
+    .eq('user_id', user.id)
+    .order('created_at', { ascending: false })
+
+  if (brandsError) {
+    console.error('Error fetching brands:', brandsError)
+  }
+
+  const brandCount = brands?.length || 0
 
   return (
     <Container py={8}>
@@ -26,35 +42,22 @@ export default async function DashboardPage() {
             Welcome back{user?.email ? `, ${user.email.split('@')[0]}` : ''}!
           </styled.h1>
           <styled.p fontSize="lg" color="gray.600">
-            Manage your projects and create new storefronts with AI assistance.
+            Manage your brands and create new storefronts with AI assistance.
           </styled.p>
         </Stack>
 
-        {/* Create New Project Button */}
+        {/* Create New Brand Button */}
         <Flex justify="flex-start">
-          <Link href="/dashboard/projects/new">
-            <styled.div
-              px={6}
-              py={3}
-              fontSize="md"
-              fontWeight="semibold"
-              color="white"
-              bg="blue.600"
-              borderRadius="lg"
-              cursor="pointer"
-              _hover={{
-                bg: 'blue.700',
-              }}
-              transition="all 0.2s"
-              display="inline-block"
-            >
-              Create New Project
-            </styled.div>
+          <Link
+            href="/dashboard/brands/new"
+            className={button({ variant: 'primary', size: 'lg' })}
+          >
+            Create New Brand
           </Link>
         </Flex>
       </Stack>
 
-      {/* Projects Section */}
+      {/* Brands Section */}
       <Stack gap={6}>
         <Flex justify="space-between" align="center">
           <styled.h2
@@ -62,15 +65,15 @@ export default async function DashboardPage() {
             fontWeight="semibold"
             color="gray.900"
           >
-            Your Projects
+            Your Brands
           </styled.h2>
           <styled.span fontSize="sm" color="gray.500">
-            {projects.length} project{projects.length !== 1 ? 's' : ''}
+            {brandCount} brand{brandCount !== 1 ? 's' : ''}
           </styled.span>
         </Flex>
 
-        {/* Projects List */}
-        {projects.length === 0 ? (
+        {/* Brands List */}
+        {brandCount === 0 ? (
           /* Empty State */
           <Box
             bg="white"
@@ -91,42 +94,105 @@ export default async function DashboardPage() {
                 justifyContent="center"
               >
                 <styled.span fontSize="2xl" color="gray.400">
-                  📁
+                  🏷️
                 </styled.span>
               </styled.div>
               <Stack gap={2}>
                 <styled.h3 fontSize="lg" fontWeight="semibold" color="gray.900">
-                  No projects yet
+                  No brands yet
                 </styled.h3>
                 <styled.p fontSize="md" color="gray.600" maxW="md">
-                  Get started by creating your first project. You'll be able to generate
+                  Get started by creating your first brand. You'll be able to generate
                   brand identities, product catalogs, and marketing assets with AI.
                 </styled.p>
               </Stack>
-              <Link href="/dashboard/projects/new">
-                <styled.div
-                  px={6}
-                  py={3}
-                  fontSize="md"
-                  fontWeight="semibold"
-                  color="white"
-                  bg="blue.600"
-                  borderRadius="lg"
-                  cursor="pointer"
-                  _hover={{
-                    bg: 'blue.700',
-                  }}
-                  transition="all 0.2s"
-                  display="inline-block"
-                >
-                  Create Your First Project
-                </styled.div>
+              <Link
+                href="/dashboard/brands/new"
+                className={button({ variant: 'primary' })}
+              >
+                Create Your First Brand
               </Link>
             </Stack>
           </Box>
         ) : (
-          /* Projects Grid */
-          <ProjectList projects={projects} />
+          /* Brands Grid */
+          <styled.div
+            display="grid"
+            gridTemplateColumns="repeat(auto-fill, minmax(320px, 1fr))"
+            gap={6}
+          >
+            {brands?.map((brand) => (
+              <Link key={brand.id} href={`/dashboard/brands/${brand.id}`}>
+                <styled.div
+                  bg="white"
+                  border="1px solid"
+                  borderColor="gray.200"
+                  borderRadius="lg"
+                  p={6}
+                  cursor="pointer"
+                  _hover={{ borderColor: 'gray.300', shadow: 'sm' }}
+                  transition="all 0.2s"
+                >
+                  <styled.div mb={4}>
+                    <styled.h3
+                      fontSize="xl"
+                      fontWeight="semibold"
+                      color="gray.900"
+                      mb={2}
+                    >
+                      {brand.name}
+                    </styled.h3>
+                    {brand.tagline && (
+                      <styled.p fontSize="sm" color="gray.600" mb={3}>
+                        {brand.tagline}
+                      </styled.p>
+                    )}
+                    {brand.category && (
+                      <styled.span
+                        display="inline-block"
+                        bg="blue.50"
+                        color="blue.700"
+                        px={2}
+                        py={1}
+                        borderRadius="md"
+                        fontSize="xs"
+                        fontWeight="medium"
+                      >
+                        {brand.category}
+                      </styled.span>
+                    )}
+                  </styled.div>
+
+                  <styled.div
+                    display="flex"
+                    justifyContent="space-between"
+                    alignItems="center"
+                    borderTop="1px solid"
+                    borderColor="gray.100"
+                    pt={4}
+                  >
+                    <styled.div fontSize="sm" color="gray.500">
+                      {brand.status === 'draft' && (
+                        <styled.span color="yellow.600">Draft</styled.span>
+                      )}
+                      {brand.status === 'active' && (
+                        <styled.span color="green.600">Active</styled.span>
+                      )}
+                      {brand.status === 'inactive' && (
+                        <styled.span color="gray.600">Inactive</styled.span>
+                      )}
+                      {brand.status === 'archived' && (
+                        <styled.span color="red.600">Archived</styled.span>
+                      )}
+                    </styled.div>
+                    <styled.div fontSize="sm" color="gray.500">
+                      {new Date(brand.created_at).toLocaleDateString()}
+                    </styled.div>
+                  </styled.div>
+                </styled.div>
+              </Link>
+            ))}
+          </styled.div>
         )}
       </Stack>
     </Container>

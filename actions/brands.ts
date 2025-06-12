@@ -12,8 +12,8 @@ type BrandUpdate = TablesUpdate<'brands'>
 export type CreateBrandData = Omit<BrandInsert, 'id' | 'created_at' | 'updated_at'>
 export type UpdateBrandData = Omit<BrandUpdate, 'id' | 'created_at' | 'updated_at'>
 
-// Get all brands for a specific project
-export const getBrandsAction = async (projectId: number): Promise<Brand[]> => {
+// Get all brands for the authenticated user
+export const getBrandsAction = async (): Promise<Brand[]> => {
   const supabase = await createClient()
 
   const {
@@ -24,22 +24,10 @@ export const getBrandsAction = async (projectId: number): Promise<Brand[]> => {
     throw new Error('User not authenticated')
   }
 
-  // First verify user owns the project
-  const { data: project } = await supabase
-    .from('projects')
-    .select('id')
-    .eq('id', projectId)
-    .eq('user_id', user.id)
-    .single()
-
-  if (!project) {
-    throw new Error('Project not found or access denied')
-  }
-
   const { data, error } = await supabase
     .from('brands')
     .select('*')
-    .eq('project_id', projectId)
+    .eq('user_id', user.id)
     .order('created_at', { ascending: false })
 
   if (error) {
@@ -64,12 +52,9 @@ export const getBrandAction = async (brandId: number): Promise<Brand | null> => 
 
   const { data, error } = await supabase
     .from('brands')
-    .select(`
-      *,
-      project:projects!inner(user_id)
-    `)
+    .select('*')
     .eq('id', brandId)
-    .eq('project.user_id', user.id)
+    .eq('user_id', user.id)
     .single()
 
   if (error) {
@@ -80,9 +65,7 @@ export const getBrandAction = async (brandId: number): Promise<Brand | null> => 
     throw error
   }
 
-  // Remove the nested project data from response
-  const { project, ...brand } = data
-  return brand
+  return data
 }
 
 // Create a new brand
@@ -97,21 +80,12 @@ export const createBrandAction = async (brandData: CreateBrandData): Promise<Bra
     throw new Error('User not authenticated')
   }
 
-  // First verify user owns the project
-  const { data: project } = await supabase
-    .from('projects')
-    .select('id')
-    .eq('id', brandData.project_id)
-    .eq('user_id', user.id)
-    .single()
-
-  if (!project) {
-    throw new Error('Project not found or access denied')
-  }
-
   const { data, error } = await supabase
     .from('brands')
-    .insert(brandData)
+    .insert({
+      ...brandData,
+      user_id: user.id,
+    })
     .select()
     .single()
 
@@ -120,7 +94,7 @@ export const createBrandAction = async (brandData: CreateBrandData): Promise<Bra
     throw error
   }
 
-  revalidatePath(`/projects/${brandData.project_id}/brands`)
+  revalidatePath('/dashboard/brands')
   return data
 }
 
@@ -142,12 +116,9 @@ export const updateBrandAction = async (
   // First verify user owns the brand
   const { data: brandCheck } = await supabase
     .from('brands')
-    .select(`
-      project_id,
-      project:projects!inner(user_id)
-    `)
+    .select('id')
     .eq('id', brandId)
-    .eq('project.user_id', user.id)
+    .eq('user_id', user.id)
     .single()
 
   if (!brandCheck) {
@@ -169,8 +140,8 @@ export const updateBrandAction = async (
     throw error
   }
 
-  revalidatePath(`/projects/${data.project_id}/brands`)
-  revalidatePath(`/brands/${brandId}`)
+  revalidatePath('/dashboard/brands')
+  revalidatePath(`/dashboard/brands/${brandId}`)
   return data
 }
 
@@ -186,15 +157,12 @@ export const deleteBrandAction = async (brandId: number): Promise<void> => {
     throw new Error('User not authenticated')
   }
 
-  // Get project_id before deletion for revalidation
+  // First verify user owns the brand
   const { data: brand } = await supabase
     .from('brands')
-    .select(`
-      project_id,
-      project:projects!inner(user_id)
-    `)
+    .select('id')
     .eq('id', brandId)
-    .eq('project.user_id', user.id)
+    .eq('user_id', user.id)
     .single()
 
   if (!brand) {
@@ -208,5 +176,5 @@ export const deleteBrandAction = async (brandId: number): Promise<void> => {
     throw error
   }
 
-  revalidatePath(`/projects/${brand.project_id}/brands`)
+  revalidatePath('/dashboard/brands')
 }

@@ -35,12 +35,9 @@ export const getProductCatalogsAction = async (
   // First verify user owns the brand
   const { data: brand } = await supabase
     .from('brands')
-    .select(`
-      id,
-      project:projects!inner(user_id)
-    `)
+    .select('id')
     .eq('id', brandId)
-    .eq('project.user_id', user.id)
+    .eq('user_id', user.id)
     .single()
 
   if (!brand) {
@@ -76,11 +73,9 @@ export const getAllCatalogNamesAction = async (): Promise<string[]> => {
     .from('product_catalogs')
     .select(`
       name,
-      brand:brands!inner(
-        project:projects!inner(user_id)
-      )
+      brand:brands!inner(user_id)
     `)
-    .eq('brand.project.user_id', user.id)
+    .eq('brand.user_id', user.id)
 
   if (error) {
     console.error('Error fetching catalog names:', error)
@@ -108,12 +103,10 @@ export const getProductCatalogAction = async (
     .from('product_catalogs')
     .select(`
       *,
-      brand:brands!inner(
-        project:projects!inner(user_id)
-      )
+      brand:brands!inner(user_id)
     `)
     .eq('catalog_id', catalogId)
-    .eq('brand.project.user_id', user.id)
+    .eq('brand.user_id', user.id)
     .single()
 
   if (error) {
@@ -146,12 +139,9 @@ export const createProductCatalogAction = async (
   // First verify user owns the brand
   const { data: brand } = await supabase
     .from('brands')
-    .select(`
-      id,
-      project:projects!inner(user_id)
-    `)
+    .select('id')
     .eq('id', catalogData.brand_id)
-    .eq('project.user_id', user.id)
+    .eq('user_id', user.id)
     .single()
 
   if (!brand) {
@@ -177,7 +167,7 @@ export const createProductCatalogAction = async (
     throw error
   }
 
-  revalidatePath(`/brands/${catalogData.brand_id}/catalogs`)
+  revalidatePath(`/dashboard/brands/${catalogData.brand_id}/catalogs`)
   return data
 }
 
@@ -196,17 +186,15 @@ export const updateProductCatalogAction = async (
     throw new Error('User not authenticated')
   }
 
-  // First verify user owns the catalog
+  // First verify user owns the catalog through brand ownership
   const { data: catalogCheck } = await supabase
     .from('product_catalogs')
     .select(`
       brand_id,
-      brand:brands!inner(
-        project:projects!inner(user_id)
-      )
+      brand:brands!inner(user_id)
     `)
     .eq('catalog_id', catalogId)
-    .eq('brand.project.user_id', user.id)
+    .eq('brand.user_id', user.id)
     .single()
 
   if (!catalogCheck) {
@@ -228,7 +216,7 @@ export const updateProductCatalogAction = async (
     throw error
   }
 
-  revalidatePath(`/brands/${data.brand_id}/catalogs`)
+  revalidatePath(`/dashboard/brands/${data.brand_id}/catalogs`)
   revalidatePath(`/catalogs/${catalogId}`)
   return data
 }
@@ -250,12 +238,10 @@ export const deleteProductCatalogAction = async (catalogId: string): Promise<voi
     .from('product_catalogs')
     .select(`
       brand_id,
-      brand:brands!inner(
-        project:projects!inner(user_id)
-      )
+      brand:brands!inner(user_id)
     `)
     .eq('catalog_id', catalogId)
-    .eq('brand.project.user_id', user.id)
+    .eq('brand.user_id', user.id)
     .single()
 
   if (!catalog) {
@@ -272,5 +258,5 @@ export const deleteProductCatalogAction = async (catalogId: string): Promise<voi
     throw error
   }
 
-  revalidatePath(`/brands/${catalog.brand_id}/catalogs`)
+  revalidatePath(`/dashboard/brands/${catalog.brand_id}/catalogs`)
 }

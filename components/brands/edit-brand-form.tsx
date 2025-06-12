@@ -9,7 +9,6 @@ import type { Brand } from '@/lib/supabase/database-types'
 
 interface EditBrandFormProps {
   brand: Brand
-  projectId: number
 }
 
 type FormState = {
@@ -24,7 +23,6 @@ async function submitUpdateBrandForm(
 ): Promise<FormState> {
   try {
     const brandId = parseInt(formData.get('brandId') as string)
-    const projectId = parseInt(formData.get('projectId') as string)
 
     // Extract form values
     const name = formData.get('name') as string
@@ -73,7 +71,7 @@ async function submitUpdateBrandForm(
   }
 }
 
-export default function EditBrandForm({ brand, projectId }: EditBrandFormProps) {
+export default function EditBrandForm({ brand }: EditBrandFormProps) {
   const router = useRouter()
   const [state, formAction, isPending] = useActionState(submitUpdateBrandForm, {})
   const [logoPreview, setLogoPreview] = useState<string | null>(null)
@@ -85,7 +83,7 @@ export default function EditBrandForm({ brand, projectId }: EditBrandFormProps) 
   if (state.success) {
     // Redirect after successful update
     setTimeout(() => {
-      router.push(`/dashboard/projects/${projectId}/brands/${brand.id}`)
+      router.push(`/dashboard/brands/${brand.id}`)
     }, 2000)
   }
 
@@ -126,7 +124,6 @@ export default function EditBrandForm({ brand, projectId }: EditBrandFormProps) 
     <Box maxW="2xl" mx="auto">
       <form action={formAction}>
         <input type="hidden" name="brandId" value={brand.id} />
-        <input type="hidden" name="projectId" value={projectId} />
         <input type="hidden" name="removeLogo" value={removeLogo.toString()} />
 
         <Stack gap={8}>

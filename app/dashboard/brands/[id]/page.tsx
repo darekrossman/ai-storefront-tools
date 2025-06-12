@@ -1,36 +1,66 @@
-import { notFound } from 'next/navigation'
+import { notFound, redirect } from 'next/navigation'
 import { Box, Container, Flex, Stack, styled } from '@/styled-system/jsx'
 import Link from 'next/link'
-import { getProjectAction, getProjectStatsAction } from '@/actions/projects'
-import ProjectActions from '@/components/projects/project-actions'
+import { createClient } from '@/lib/supabase/server'
+import { button } from '@/components/ui/button'
 
-interface ProjectPageProps {
+interface BrandPageProps {
   params: Promise<{
     id: string
   }>
 }
 
-export default async function ProjectPage({ params }: ProjectPageProps) {
+export default async function BrandPage({ params }: BrandPageProps) {
   const { id } = await params
-  const projectId = parseInt(id)
+  const brandId = parseInt(id)
 
-  if (isNaN(projectId)) {
+  if (isNaN(brandId)) {
     notFound()
   }
 
-  const project = await getProjectAction(projectId)
+  const supabase = await createClient()
 
-  if (!project) {
+  const {
+    data: { user },
+    error: userError,
+  } = await supabase.auth.getUser()
+
+  if (userError || !user) {
+    redirect('/login')
+  }
+
+  // Get brand data
+  const { data: brand, error: brandError } = await supabase
+    .from('brands')
+    .select('*')
+    .eq('id', brandId)
+    .eq('user_id', user.id)
+    .single()
+
+  if (brandError || !brand) {
     notFound()
   }
 
-  // Get project statistics
-  const stats = await getProjectStatsAction(projectId)
+  // Get brand statistics
+  const { data: catalogs } = await supabase
+    .from('product_catalogs')
+    .select('catalog_id')
+    .eq('brand_id', brandId)
+
+  const { data: products } = await supabase
+    .from('products')
+    .select('id, catalog_id')
+    .in('catalog_id', catalogs?.map((c) => c.catalog_id) || [])
+
+  const stats = {
+    catalogsCount: catalogs?.length || 0,
+    productsCount: products?.length || 0,
+  }
 
   return (
     <Container py={8}>
       <Stack gap={8}>
-        {/* Project Header */}
+        {/* Brand Header */}
         <Flex justify="space-between" align="start" gap={4}>
           <Stack gap={2}>
             <styled.h1
@@ -38,53 +68,32 @@ export default async function ProjectPage({ params }: ProjectPageProps) {
               fontWeight="bold"
               color="gray.900"
             >
-              {project.name}
+              {brand.name}
             </styled.h1>
-            {project.description && (
+            {brand.tagline && (
               <styled.p fontSize="lg" color="gray.600" lineHeight="relaxed">
-                {project.description}
+                {brand.tagline}
               </styled.p>
             )}
           </Stack>
 
-          <ProjectActions project={project} />
+          <Flex gap={2}>
+            <Link
+              href={`/dashboard/brands/${brandId}/edit`}
+              className={button({ variant: 'secondary' })}
+            >
+              Edit Brand
+            </Link>
+          </Flex>
         </Flex>
 
         {/* Quick Stats Cards */}
         <Box
           display="grid"
-          gridTemplateColumns={{ base: '1fr', sm: 'repeat(3, 1fr)' }}
+          gridTemplateColumns={{ base: '1fr', sm: 'repeat(2, 1fr)' }}
           gap={4}
         >
-          <Link href={`/dashboard/projects/${projectId}/brands`}>
-            <Box
-              bg="white"
-              border="1px solid"
-              borderColor="gray.200"
-              borderRadius="lg"
-              p={6}
-              cursor="pointer"
-              transition="all 0.2s"
-              _hover={{
-                borderColor: 'blue.300',
-                shadow: 'sm',
-              }}
-            >
-              <Stack gap={2}>
-                <styled.div fontSize="2xl" fontWeight="bold" color="blue.600">
-                  {stats.brandsCount}
-                </styled.div>
-                <styled.div fontSize="sm" fontWeight="medium" color="gray.900">
-                  Brands
-                </styled.div>
-                <styled.div fontSize="xs" color="gray.600">
-                  Manage brand identities
-                </styled.div>
-              </Stack>
-            </Box>
-          </Link>
-
-          <Link href={`/dashboard/projects/${projectId}/catalogs`}>
+          <Link href={`/dashboard/brands/${brandId}/catalogs`}>
             <Box
               bg="white"
               border="1px solid"
@@ -103,7 +112,7 @@ export default async function ProjectPage({ params }: ProjectPageProps) {
                   {stats.catalogsCount}
                 </styled.div>
                 <styled.div fontSize="sm" fontWeight="medium" color="gray.900">
-                  Catalogs
+                  Product Catalogs
                 </styled.div>
                 <styled.div fontSize="xs" color="gray.600">
                   Product collections
@@ -112,7 +121,7 @@ export default async function ProjectPage({ params }: ProjectPageProps) {
             </Box>
           </Link>
 
-          <Link href={`/dashboard/projects/${projectId}/products`}>
+          <Link href={`/dashboard/brands/${brandId}/products`}>
             <Box
               bg="white"
               border="1px solid"
@@ -141,11 +150,11 @@ export default async function ProjectPage({ params }: ProjectPageProps) {
           </Link>
         </Box>
 
-        {/* Project Details */}
+        {/* Brand Details */}
         <Box bg="white" border="1px solid" borderColor="gray.200" borderRadius="lg" p={6}>
           <Stack gap={6}>
             <styled.h2 fontSize="xl" fontWeight="semibold" color="gray.900">
-              Project Details
+              Brand Details
             </styled.h2>
 
             <Box
@@ -168,12 +177,29 @@ export default async function ProjectPage({ params }: ProjectPageProps) {
                       display="block"
                       mb={1}
                     >
-                      Name
+                      Brand Name
                     </styled.label>
                     <styled.p fontSize="sm" color="gray.900">
-                      {project.name}
+                      {brand.name}
                     </styled.p>
                   </Box>
+
+                  {brand.category && (
+                    <Box>
+                      <styled.label
+                        fontSize="sm"
+                        fontWeight="medium"
+                        color="gray.700"
+                        display="block"
+                        mb={1}
+                      >
+                        Category
+                      </styled.label>
+                      <styled.p fontSize="sm" color="gray.900">
+                        {brand.category}
+                      </styled.p>
+                    </Box>
+                  )}
 
                   <Box>
                     <styled.label
@@ -190,15 +216,27 @@ export default async function ProjectPage({ params }: ProjectPageProps) {
                       fontWeight="medium"
                       px={2}
                       py={1}
-                      bg="gray.100"
+                      bg={
+                        brand.status === 'active'
+                          ? 'green.100'
+                          : brand.status === 'draft'
+                            ? 'yellow.100'
+                            : 'gray.100'
+                      }
+                      color={
+                        brand.status === 'active'
+                          ? 'green.700'
+                          : brand.status === 'draft'
+                            ? 'yellow.700'
+                            : 'gray.700'
+                      }
                       borderRadius="md"
-                      color="gray.700"
                     >
-                      {project.status || 'Active'}
+                      {brand.status}
                     </styled.span>
                   </Box>
 
-                  {project.description && (
+                  {brand.mission && (
                     <Box>
                       <styled.label
                         fontSize="sm"
@@ -207,10 +245,10 @@ export default async function ProjectPage({ params }: ProjectPageProps) {
                         display="block"
                         mb={1}
                       >
-                        Description
+                        Mission
                       </styled.label>
                       <styled.p fontSize="sm" color="gray.900" lineHeight="relaxed">
-                        {project.description}
+                        {brand.mission}
                       </styled.p>
                     </Box>
                   )}
@@ -235,7 +273,7 @@ export default async function ProjectPage({ params }: ProjectPageProps) {
                       Created
                     </styled.label>
                     <styled.p fontSize="sm" color="gray.900">
-                      {new Date(project.created_at).toLocaleDateString('en-US', {
+                      {new Date(brand.created_at).toLocaleDateString('en-US', {
                         year: 'numeric',
                         month: 'long',
                         day: 'numeric',
@@ -256,7 +294,7 @@ export default async function ProjectPage({ params }: ProjectPageProps) {
                       Last Updated
                     </styled.label>
                     <styled.p fontSize="sm" color="gray.900">
-                      {new Date(project.updated_at).toLocaleDateString('en-US', {
+                      {new Date(brand.updated_at).toLocaleDateString('en-US', {
                         year: 'numeric',
                         month: 'long',
                         day: 'numeric',
@@ -274,10 +312,10 @@ export default async function ProjectPage({ params }: ProjectPageProps) {
                       display="block"
                       mb={1}
                     >
-                      Project ID
+                      Brand ID
                     </styled.label>
                     <styled.p fontSize="sm" color="gray.500">
-                      {project.id}
+                      {brand.id}
                     </styled.p>
                   </Box>
                 </Stack>
@@ -298,31 +336,7 @@ export default async function ProjectPage({ params }: ProjectPageProps) {
               gridTemplateColumns={{ base: '1fr', md: 'repeat(2, 1fr)' }}
               gap={4}
             >
-              <Link href={`/dashboard/projects/${projectId}/brands/new`}>
-                <Box
-                  border="1px solid"
-                  borderColor="gray.200"
-                  borderRadius="md"
-                  p={4}
-                  cursor="pointer"
-                  transition="all 0.2s"
-                  _hover={{
-                    borderColor: 'blue.300',
-                    bg: 'blue.50',
-                  }}
-                >
-                  <Stack gap={2}>
-                    <styled.div fontSize="sm" fontWeight="medium" color="gray.900">
-                      Create New Brand
-                    </styled.div>
-                    <styled.div fontSize="xs" color="gray.600">
-                      Define brand identity and guidelines
-                    </styled.div>
-                  </Stack>
-                </Box>
-              </Link>
-
-              <Link href={`/dashboard/projects/${projectId}/catalogs/new`}>
+              <Link href={`/dashboard/brands/${brandId}/catalogs/new`}>
                 <Box
                   border="1px solid"
                   borderColor="gray.200"
@@ -345,9 +359,33 @@ export default async function ProjectPage({ params }: ProjectPageProps) {
                   </Stack>
                 </Box>
               </Link>
+
+              <Link href={`/dashboard/brands/${brandId}/products/new`}>
+                <Box
+                  border="1px solid"
+                  borderColor="gray.200"
+                  borderRadius="md"
+                  p={4}
+                  cursor="pointer"
+                  transition="all 0.2s"
+                  _hover={{
+                    borderColor: 'purple.300',
+                    bg: 'purple.50',
+                  }}
+                >
+                  <Stack gap={2}>
+                    <styled.div fontSize="sm" fontWeight="medium" color="gray.900">
+                      Add Product
+                    </styled.div>
+                    <styled.div fontSize="xs" color="gray.600">
+                      Add a product to this brand
+                    </styled.div>
+                  </Stack>
+                </Box>
+              </Link>
             </Box>
 
-            {stats.brandsCount === 0 && (
+            {stats.catalogsCount === 0 && (
               <Box
                 bg="blue.50"
                 border="1px solid"
@@ -360,8 +398,8 @@ export default async function ProjectPage({ params }: ProjectPageProps) {
                     Get Started
                   </styled.div>
                   <styled.div fontSize="xs" color="blue.700">
-                    Create your first brand to begin organizing products and building your
-                    catalog.
+                    Create your first product catalog to begin organizing products for
+                    this brand.
                   </styled.div>
                 </Stack>
               </Box>
