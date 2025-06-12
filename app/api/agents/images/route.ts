@@ -1,4 +1,4 @@
-import OpenAI from 'openai'
+import OpenAI, { toFile } from 'openai'
 import { fal } from '@fal-ai/client'
 
 export async function POST(request: Request) {
@@ -6,49 +6,91 @@ export async function POST(request: Request) {
     prompt,
     promptOverride,
     image_url,
-  }: { prompt: string; promptOverride?: string; image_url?: string } =
-    await request.json()
+  }: { prompt: any; promptOverride?: string; image_url?: string } = await request.json()
 
   const fullPrompt =
     promptOverride ||
-    `## Product Info
-${JSON.stringify(prompt)}
+    `${prompt.imageDirection}. 
 
-## Instructions
-Create a vivid, stunning rendition of the product given the information you are provided. The product is on display in a high-end gallery store.The product is highly sought after and beautiful. It is eye catching while still adhering to the attributes and specifications you are provided. Ecommerce product photography. Studio lighting, sharp focus, high detail, no shadows or reflections, no extraneous markings, no measurements. The product should comfortably fit in the frame. No cropping. No text in the background. 
+## Photo Guidelines
+- The product must fit entirely in the frame and not be cropped or exceed the bounds of the photograph.
+- The product should comfortably fit in the frame.
+- No cropping.
+- No text in the background unless instructed.
+- Ecommerce product photography. Studio lighting, sharp focus, high detail.
 `
 
-  // const result = await generateWithOpenAI(fullPrompt)
-  const result = await generateWithFal(fullPrompt, image_url)
+  const result = await generateWithOpenAI(fullPrompt, image_url)
+  // const result = await generateWithFal(fullPrompt, image_url)
 
   return Response.json(result)
 }
 
-async function generateWithOpenAI(prompt: string) {
+async function generateWithOpenAI(prompt: string, image_url?: string) {
   const client = new OpenAI({
     apiKey: process.env.OPENAI_API_KEY,
   })
 
-  const result = await client.images.generate({
-    model: 'gpt-image-1',
-    background: 'auto',
-    output_format: 'webp',
-    quality: 'medium',
-    size: '1024x1024',
-    moderation: 'low',
-    prompt,
+  const input = [
+    {
+      role: 'user',
+      content: [
+        {
+          type: 'input_text',
+          text: `${prompt}\n\n## Product Information\n${JSON.stringify(prompt)}`,
+        },
+      ],
+    },
+  ] as any
+
+  if (image_url) {
+    input[0]?.content?.push({ type: 'input_image', image_url })
+  }
+
+  console.log(prompt)
+
+  const result = await client.responses.create({
+    model: 'gpt-4.1',
+    input,
+    tool_choice: {
+      type: 'image_generation',
+    },
+    tools: [
+      {
+        type: 'image_generation',
+        model: 'gpt-image-1',
+        background: 'transparent',
+        output_format: 'webp',
+        quality: 'medium',
+        // size: '1024x1024',
+        moderation: 'low',
+      },
+    ],
   })
 
-  result.data?.forEach((item) => {
-    item.b64_json = `data:image/webp;base64,${item.b64_json}`
-  })
+  // const isEdit = image_url != null
+
+  // const result = await client.images[isEdit ? 'edit' : 'generate']({
+  //   model: 'gpt-image-1',
+  //   background: 'transparent',
+  //   output_format: 'webp',
+  //   quality: 'medium',
+  //   size: '1024x1024',
+  //   moderation: 'low',
+  //   prompt,
+  //   image: image_url ? [image_url] : undefined,
+  // })
+
+  // result.data?.forEach((item) => {
+  //   item.b64_json = `data:image/webp;base64,${item.b64_json}`
+  // })
 
   return result
 }
 
 async function generateWithFal(prompt: string, image_url?: string) {
   const genModel = 'fal-ai/flux-pro/kontext/max/text-to-image'
-  const editModel = 'fal-ai/flux-pro/kontext'
+  const editModel = 'fal-ai/flux-pro/kontext/max'
   const model = image_url ? editModel : genModel
 
   console.log(prompt, model)
@@ -62,8 +104,8 @@ async function generateWithFal(prompt: string, image_url?: string) {
         width: 1024,
       },
       aspect_ratio: '1:1',
-      // num_inference_steps: 24,
-      guidance_scale: 20,
+      num_inference_steps: 50,
+      guidance_scale: 7.5,
       num_images: 1,
       enable_safety_checker: false,
       output_format: 'png',

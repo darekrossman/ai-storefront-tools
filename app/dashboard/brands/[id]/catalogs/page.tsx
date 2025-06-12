@@ -175,7 +175,7 @@ function CatalogCard({ catalog, brandId }: CatalogCardProps) {
   const statusColor = getStatusColor(catalog.status)
 
   return (
-    <Link href={`/dashboard/brands/${brandId}/catalogs/${catalog.id}`}>
+    <Link href={`/dashboard/brands/${brandId}/catalogs/${catalog.slug}`}>
       <Box
         bg="white"
         border="1px solid"

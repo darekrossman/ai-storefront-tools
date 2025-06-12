@@ -95,10 +95,10 @@ export default async function CatalogDetailsPage({ params }: CatalogDetailsPageP
 
             <Flex gap={2}>
               <Link
-                href={`/dashboard/brands/${brandId}/catalogs/${catalogId}/edit`}
+                href={`/dashboard/brands/${brandId}/catalogs/${catalogId}/settings`}
                 className={button({ variant: 'secondary', size: 'xs' })}
               >
-                Edit
+                Settings
               </Link>
             </Flex>
           </Flex>

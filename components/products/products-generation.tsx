@@ -6,12 +6,8 @@ import { useEffect, useState } from 'react'
 import { Button } from '@/components/ui/button'
 import { Box, Stack, styled, Flex, Grid } from '@/styled-system/jsx'
 import { z } from 'zod'
-import { useRouter } from 'next/navigation'
-import {
-  fullProductSchema,
-  productSchema,
-  productSchemaWithVariants,
-} from '@/lib/products/schemas'
+import { useRouter, useSearchParams } from 'next/navigation'
+import { fullProductSchema, productSchemaWithVariants } from '@/lib/products/schemas'
 import { createMultipleProducts } from '@/actions/products'
 
 type FullProductSchemaType = z.infer<typeof fullProductSchema>
@@ -76,6 +72,9 @@ export default function ProductsGeneration({
   projectId: number
 }) {
   const router = useRouter()
+  const searchParams = useSearchParams()
+  const categoryId = searchParams.get('category')
+  const count = 3
 
   const { object, submit, isLoading, stop } = useObject({
     api: '/api/agents/products',
@@ -88,6 +87,8 @@ export default function ProductsGeneration({
     // Submit the form data to the AI agent
     submit({
       catalogId,
+      categoryId,
+      count,
     })
   }
 
@@ -159,7 +160,7 @@ export default function ProductsGeneration({
                 py={2}
               >
                 <styled.p fontSize="sm" color="blue.700" fontWeight="medium">
-                  {completedProductsCount} of 15 products completed
+                  {completedProductsCount} of {count} products completed
                 </styled.p>
                 <styled.div
                   w="200px"
@@ -174,7 +175,7 @@ export default function ProductsGeneration({
                     bg="blue.500"
                     borderRadius="full"
                     style={{
-                      width: `${(completedProductsCount / 15) * 100}%`,
+                      width: `${(completedProductsCount / count) * 100}%`,
                       transition: 'width 0.3s ease-in-out',
                     }}
                   />

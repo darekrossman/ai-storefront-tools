@@ -2,9 +2,10 @@ import { openai } from '@ai-sdk/openai'
 import { streamObject } from 'ai'
 import { getBrandAction } from '@/actions/brands'
 import { getProductCatalogAction } from '@/actions/product-catalogs'
-import { fullProductSchema } from '@/lib/products/schemas'
+import { createFullProductSchema, fullProductSchema } from '@/lib/products/schemas'
 import { getCategoriesAction } from '@/actions/categories'
 import { getProducts } from '@/actions/products'
+import { getContextForCatalog } from '@/actions/generation/context-utils'
 
 const systemPrompt = `You are an expert product creation specialist tasked with generating authentic, compelling products for a specific brand catalog. Your role is to create products that seamlessly align with the brand's identity, voice, tone, and positioning while fitting perfectly within the provided catalog structure and category definitions.
 
@@ -154,53 +155,13 @@ Generate products that customers would genuinely want to purchase, that accurate
 
 export async function POST(req: Request) {
   const body = await req.json()
-  const { catalogId } = body
+  const { catalogId, categoryId, count } = body
 
-  const catalog = await getProductCatalogAction(catalogId)
-
-  if (!catalog) {
-    return Response.json({ error: 'Catalog not found' }, { status: 404 })
-  }
-
-  const brand = await getBrandAction(catalog.brand_id)
-
-  if (!brand) {
-    return Response.json({ error: 'Brand not found' }, { status: 404 })
-  }
-
-  const categories = await getCategoriesAction(catalog.catalog_id)
-  const parentCategories = categories.filter((c) => !c.parent_category_id)
-  const subcategories = categories.filter((c) => c.parent_category_id)
-
-  const existingProducts = await getProducts(catalogId)
-  const existingProductNames = existingProducts.map((product) => product.name)
-
-  const { id, project_id, status, created_at, updated_at, logo_url, ...brandData } = brand
-
-  const contextData = {
-    brand: brandData,
-    catalogName: catalog.name,
-    catalogDescription: catalog.description,
-    existingProductNames: existingProductNames,
-    categories: parentCategories.map((c) => ({
-      category_id: c.category_id,
-      name: c.name,
-      description: c.description,
-      subcategories: subcategories
-        .filter((sc) => sc.parent_category_id === c.category_id)
-        .map((sc) => ({
-          category_id: sc.category_id,
-          name: sc.name,
-          description: sc.description,
-        })),
-    })),
-  }
-
-  console.log(existingProductNames)
+  const contextData = await getContextForCatalog(catalogId)
 
   const result = streamObject({
     model: openai('o4-mini-2025-04-16'),
-    schema: fullProductSchema,
+    schema: createFullProductSchema(count),
     system: systemPrompt,
     maxTokens: 32768,
     temperature: 0.9,
@@ -211,10 +172,8 @@ export async function POST(req: Request) {
 ${JSON.stringify(contextData)}
 
 ## Instructions
-For each category in the catalog context, observe the subcategories and generate multiple products for each subcategory.
-
-## Important
-Review the 'existingProductNames' and ensure your generated products are completely unique and do not duplicate or closely resemble any existing products.`,
+Create ${count} products for the subcategory ${categoryId}.
+`,
       },
     ],
     onError: (error) => {

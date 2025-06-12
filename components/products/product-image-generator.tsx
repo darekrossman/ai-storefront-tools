@@ -27,7 +27,7 @@ export default function ProductImageGenerator({
   onEditComplete,
 }: ProductImageGeneratorProps) {
   const router = useRouter()
-  const [imageResponse, setImageResponse] = useState<OpenAI.Images.ImagesResponse | null>(
+  const [imageResponse, setImageResponse] = useState<OpenAI.Responses.Response | null>(
     null,
   )
   const [isGenerating, setIsGenerating] = useState(false)
@@ -37,6 +37,23 @@ export default function ProductImageGenerator({
   const [savedPrompts, setSavedPrompts] = useState<string[]>([])
 
   const STORAGE_KEY = 'product-image-edit-prompts'
+
+  const getImageObject = () => {
+    if (!imageResponse) return
+    const imageData = imageResponse?.output.filter(
+      (output) => output.type === 'image_generation_call',
+    )[0]
+    return imageData as OpenAI.Responses.ResponseOutputItem.ImageGenerationCall & {
+      size: string
+    }
+  }
+
+  const getImageData = () => {
+    const imageData = getImageObject()
+    if (!imageData) return
+    const imageDataUrl = `data:image/webp;base64,${imageData.result}`
+    return imageDataUrl
+  }
 
   // Load saved prompts from localStorage on mount
   useEffect(() => {
@@ -83,7 +100,7 @@ export default function ProductImageGenerator({
     baseAttributes: product.base_attributes,
     specifications: product.specifications,
     attributes: product.product_variants?.[0]?.attributes,
-    imageDirection: imageDirection || 'single sneaker from the left side, close up',
+    imageDirection,
   }
 
   // Function to convert image URL to base64
@@ -127,6 +144,7 @@ export default function ProductImageGenerator({
         const base64Image = await convertImageToBase64(selectedImage.url)
         requestBody = {
           promptOverride: promptText || imageDirection,
+          prompt: productInfo,
           image_url: base64Image,
         }
       } else {
@@ -139,7 +157,8 @@ export default function ProductImageGenerator({
         method: 'POST',
         body: JSON.stringify({ ...requestBody }),
       })
-      const data: OpenAI.Images.ImagesResponse = await response.json()
+      const data: OpenAI.Responses.Response = await response.json()
+
       setImageResponse(data)
     } catch (error) {
       console.error('Error generating image:', error)
@@ -154,7 +173,7 @@ export default function ProductImageGenerator({
   }
 
   const saveImage = async () => {
-    if (!imageResponse?.data?.[0]?.b64_json) return
+    if (!imageResponse) return
 
     setIsSaving(true)
     setSaveMessage(null)
@@ -162,7 +181,7 @@ export default function ProductImageGenerator({
     try {
       const result = await storeGeneratedImageAction(
         product.id,
-        `${imageResponse.data[0].b64_json}`,
+        getImageData()!,
         'gallery',
         `Generated image for ${product.name}`,
       )
@@ -185,10 +204,7 @@ export default function ProductImageGenerator({
     }
   }
 
-  console.log(product)
-  console.log(imageResponse)
-
-  const image = imageResponse?.data?.[0]?.b64_json
+  const image = getImageData()
 
   return (
     <Stack gap={4}>
@@ -203,8 +219,8 @@ export default function ProductImageGenerator({
               <Image
                 src={selectedImage.url}
                 alt={selectedImage.alt_text || `Image for ${product.name}`}
-                width={400}
-                height={400}
+                width={parseInt(getImageObject()?.size?.split('x')[0] || '400')}
+                height={parseInt(getImageObject()?.size?.split('x')[1] || '400')}
                 style={{ width: '100%', height: 'auto', objectFit: 'contain' }}
               />
             </Box>

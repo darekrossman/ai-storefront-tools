@@ -88,9 +88,16 @@ export const productSchemaWithVariants = productSchema.extend({
 })
 
 export const fullProductSchema = z.object({
-  products: z
-    .array(productSchemaWithVariants)
-    .min(15)
-    .length(15)
-    .describe('The products of the catalog'),
+  products: z.array(productSchemaWithVariants).describe('The products of the catalog'),
 })
+
+export const createFullProductSchema = (count: number) => {
+  return z.object({
+    products: z
+      .array(productSchemaWithVariants)
+      .min(count)
+      .max(count)
+      .length(count)
+      .describe('The products of the catalog'),
+  })
+}
