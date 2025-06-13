@@ -8,6 +8,15 @@ import Image from 'next/image'
 import OpenAI from 'openai'
 import { storeGeneratedImageAction } from '@/actions/storage'
 import { useRouter } from 'next/navigation'
+import { getProductCatalogAction } from '@/actions/product-catalogs'
+import type { Tables } from '@/lib/supabase/generated-types'
+
+type ProductCatalog = Tables<'product_catalogs'>
+
+interface ImageGroupPrompt {
+  groupName: string
+  prompts: string[]
+}
 
 interface ProductImageGeneratorProps {
   product: ProductWithRelations
@@ -35,8 +44,35 @@ export default function ProductImageGenerator({
   const [saveMessage, setSaveMessage] = useState<string | null>(null)
   const [imageDirection, setImageDirection] = useState('')
   const [savedPrompts, setSavedPrompts] = useState<string[]>([])
+  const [catalogPrompts, setCatalogPrompts] = useState<ImageGroupPrompt[]>([])
+  const [selectedGroupIndex, setSelectedGroupIndex] = useState<number | null>(null)
+  const [isLoadingCatalog, setIsLoadingCatalog] = useState(false)
 
   const STORAGE_KEY = 'product-image-edit-prompts'
+
+  // Load catalog settings on mount
+  useEffect(() => {
+    if (product.catalog_id) {
+      loadCatalogSettings()
+    }
+  }, [product.catalog_id])
+
+  const loadCatalogSettings = async () => {
+    setIsLoadingCatalog(true)
+    try {
+      const catalog = await getProductCatalogAction(product.catalog_id)
+      if (catalog?.settings && typeof catalog.settings === 'object') {
+        const settings = catalog.settings as any
+        if (settings.imageGroupPrompts && Array.isArray(settings.imageGroupPrompts)) {
+          setCatalogPrompts(settings.imageGroupPrompts)
+        }
+      }
+    } catch (error) {
+      console.error('Error loading catalog settings:', error)
+    } finally {
+      setIsLoadingCatalog(false)
+    }
+  }
 
   const getImageObject = () => {
     if (!imageResponse) return
@@ -89,6 +125,11 @@ export default function ProductImageGenerator({
     setTimeout(() => {
       generateImageWithPrompt(prompt)
     }, 100)
+  }
+
+  // Handle clicking on a catalog prompt
+  const handleCatalogPromptClick = (prompt: string) => {
+    setImageDirection(prompt)
   }
 
   const productInfo = {
@@ -290,12 +331,90 @@ export default function ProductImageGenerator({
               : 'Create a new product image using AI based on the product information.'}
           </styled.p>
 
+          {/* Catalog Prompts */}
+          {catalogPrompts.length > 0 && (
+            <Stack gap={3}>
+              <styled.label fontSize="sm" fontWeight="medium" color="gray.700">
+                Catalog Prompts
+              </styled.label>
+              <styled.p fontSize="xs" color="gray.500">
+                Predefined prompts from your catalog settings
+              </styled.p>
+
+              {/* Group Selection Dropdown */}
+              <Stack gap={2}>
+                <styled.label fontSize="sm" fontWeight="medium" color="gray.700">
+                  Select Image Group
+                </styled.label>
+                <styled.select
+                  value={selectedGroupIndex ?? ''}
+                  onChange={(e) =>
+                    setSelectedGroupIndex(
+                      e.target.value === '' ? null : parseInt(e.target.value),
+                    )
+                  }
+                  px={3}
+                  py={2}
+                  border="1px solid"
+                  borderColor="gray.300"
+                  borderRadius="md"
+                  fontSize="sm"
+                  bg="white"
+                  _focus={{ borderColor: 'blue.500', outline: 'none' }}
+                  disabled={isGenerating || isSaving}
+                >
+                  <option value="">Choose an image group...</option>
+                  {catalogPrompts.map((group, groupIndex) => (
+                    <option key={groupIndex} value={groupIndex}>
+                      {group.groupName}
+                    </option>
+                  ))}
+                </styled.select>
+              </Stack>
+
+              {/* Selected Group Prompts */}
+              {selectedGroupIndex !== null && catalogPrompts[selectedGroupIndex] && (
+                <Stack gap={2}>
+                  <styled.h4 fontSize="sm" fontWeight="medium" color="gray.800">
+                    {catalogPrompts[selectedGroupIndex].groupName} Prompts
+                  </styled.h4>
+                  <Stack gap={2}>
+                    {catalogPrompts[selectedGroupIndex].prompts.map(
+                      (prompt, promptIndex) => (
+                        <Button
+                          key={promptIndex}
+                          onClick={() => handleCatalogPromptClick(prompt)}
+                          variant="secondary"
+                          size="sm"
+                          disabled={isGenerating || isSaving}
+                          width="full"
+                          textAlign="left"
+                          justifyContent="flex-start"
+                          py={3}
+                          px={4}
+                          minHeight="auto"
+                          whiteSpace="normal"
+                          wordBreak="break-word"
+                        >
+                          {prompt}
+                        </Button>
+                      ),
+                    )}
+                  </Stack>
+                </Stack>
+              )}
+            </Stack>
+          )}
+
           {/* Saved Prompts */}
           {mode === 'edit' && savedPrompts.length > 0 && (
             <Stack gap={2}>
               <styled.label fontSize="sm" fontWeight="medium" color="gray.700">
-                Quick Edit Prompts
+                Recent Edit Prompts
               </styled.label>
+              <styled.p fontSize="xs" color="gray.500">
+                Previously used prompts for editing images
+              </styled.p>
               <Flex gap={2} wrap="wrap">
                 {savedPrompts.map((prompt, index) => (
                   <Button
@@ -322,7 +441,7 @@ export default function ProductImageGenerator({
               placeholder={
                 mode === 'edit'
                   ? 'Describe how you want to modify the image...'
-                  : 'single sneaker from the left side, close up'
+                  : 'Single sneaker from the left side, close up.'
               }
               value={imageDirection}
               onChange={(e) => setImageDirection(e.target.value)}
@@ -339,7 +458,7 @@ export default function ProductImageGenerator({
 
           <Button
             onClick={generateImage}
-            disabled={isGenerating || isSaving}
+            disabled={isGenerating || isSaving || isLoadingCatalog}
             variant="primary"
           >
             {isGenerating
