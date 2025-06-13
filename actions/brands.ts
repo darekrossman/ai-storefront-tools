@@ -178,3 +178,20 @@ export const deleteBrandAction = async (brandId: number): Promise<void> => {
 
   revalidatePath('/dashboard/brands')
 }
+
+// Get brandId by catalogId
+export const getBrandIdByCatalog = async (catalogId: string): Promise<number> => {
+  const supabase = await createClient()
+
+  const { data, error } = await supabase
+    .from('product_catalogs')
+    .select('brand_id')
+    .eq('catalog_id', catalogId)
+    .single()
+
+  if (error || !data) {
+    throw new Error('Brand not found for catalog')
+  }
+
+  return data.brand_id
+}

@@ -3,18 +3,19 @@ import Link from 'next/link'
 import { getProductsByCatalog } from '@/actions/products'
 import type { ProductWithRelations } from '@/actions/products'
 import { button } from '@/components/ui/button'
-import { useBrand } from '../brand-context'
+import { getBrandIdByCatalog } from '@/actions'
 
 interface ProductsTabProps {
   catalogId: string
 }
 
 export default async function ProductsTab({ catalogId }: ProductsTabProps) {
-  const { brandId } = useBrand()
+  let brandId: number | null = null
   let products: ProductWithRelations[] = []
   let error: string | null = null
 
   try {
+    brandId = await getBrandIdByCatalog(catalogId)
     products = await getProductsByCatalog(catalogId)
   } catch (err) {
     error = err instanceof Error ? err.message : 'Failed to load products'
@@ -214,7 +215,7 @@ export default async function ProductsTab({ catalogId }: ProductsTabProps) {
             </styled.thead>
             <styled.tbody>
               {products.map((product) => (
-                <ProductTableRow key={product.id} product={product} />
+                <ProductTableRow key={product.id} product={product} brandId={brandId!} />
               ))}
             </styled.tbody>
           </styled.table>
@@ -227,10 +228,10 @@ export default async function ProductsTab({ catalogId }: ProductsTabProps) {
 // Product Table Row Component
 interface ProductTableRowProps {
   product: ProductWithRelations
+  brandId: number
 }
 
-function ProductTableRow({ product }: ProductTableRowProps) {
-  const { brandId } = useBrand()
+function ProductTableRow({ product, brandId }: ProductTableRowProps) {
   const getStatusColor = (status: string) => {
     switch (status) {
       case 'active':
