@@ -5,7 +5,7 @@ import Link from 'next/link'
 import type { ProductWithRelations } from '@/actions/products'
 import { Button, button } from '@/components/ui/button'
 import ProductImageGenerator from './product-image-generator'
-import Modal from '@/components/ui/modal'
+import ImageModal from '@/components/ui/image-modal'
 import { useState } from 'react'
 import { useBrand } from '../brand-context'
 import Image from 'next/image'
@@ -26,7 +26,6 @@ export default function ProductDetails({ product }: ProductDetailsProps) {
   const { id: brandId, slug: brandSlug } = useBrand()
   const router = useRouter()
   const [isModalOpen, setIsModalOpen] = useState(false)
-  const [isEditModalOpen, setIsEditModalOpen] = useState(false)
   const [selectedImage, setSelectedImage] = useState<SelectedImageType | null>(null)
   const [deletingImageId, setDeletingImageId] = useState<number | null>(null)
 
@@ -38,26 +37,6 @@ export default function ProductDetails({ product }: ProductDetailsProps) {
   const handleModalClose = () => {
     setIsModalOpen(false)
     setSelectedImage(null)
-  }
-
-  const handleEditModalClose = () => {
-    setIsEditModalOpen(false)
-  }
-
-  const handleEditComplete = () => {
-    setIsEditModalOpen(false)
-    handleModalClose()
-  }
-
-  const handleEditImage = () => {
-    setIsModalOpen(false)
-    setIsEditModalOpen(true)
-  }
-
-  const handleDeleteImageFromModal = async () => {
-    if (!selectedImage) return
-    await handleDeleteImage(Number(selectedImage.id))
-    handleModalClose()
   }
 
   const handleDeleteImage = async (imageId: number) => {
@@ -607,63 +586,13 @@ export default function ProductDetails({ product }: ProductDetailsProps) {
         </Stack>
       </Box>
 
-      {/* Image View Modal */}
-      <Modal
+      {/* Image Modal */}
+      <ImageModal
         isOpen={isModalOpen}
         onClose={handleModalClose}
-        title="Product Image"
-        size="xl"
-      >
-        {selectedImage && (
-          <Stack gap={6}>
-            {/* Large Image Display */}
-            <Box display="flex" justifyContent="center" alignItems="center">
-              <styled.img
-                src={selectedImage.url}
-                alt={selectedImage.alt_text || 'Product image'}
-                maxH="500px"
-                bg="white"
-                borderRadius="lg"
-                objectFit="contain"
-              />
-            </Box>
-
-            {/* Action Buttons */}
-            <Flex justify="center" gap={3}>
-              <Button variant="secondary" size="sm" onClick={handleEditImage}>
-                Edit Image
-              </Button>
-              <Button
-                variant="danger"
-                size="sm"
-                onClick={handleDeleteImageFromModal}
-                disabled={deletingImageId === Number(selectedImage.id)}
-              >
-                {deletingImageId === Number(selectedImage.id)
-                  ? 'Deleting...'
-                  : 'Delete Image'}
-              </Button>
-            </Flex>
-          </Stack>
-        )}
-      </Modal>
-
-      {/* Image Edit Modal */}
-      <Modal
-        isOpen={isEditModalOpen}
-        onClose={handleEditModalClose}
-        title="Edit Product Image"
-        size="xl"
-      >
-        {selectedImage && (
-          <ProductImageGenerator
-            product={product}
-            mode="edit"
-            selectedImage={selectedImage}
-            onEditComplete={handleEditComplete}
-          />
-        )}
-      </Modal>
+        selectedImage={selectedImage}
+        product={product}
+      />
     </Box>
   )
 }

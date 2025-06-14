@@ -11,10 +11,17 @@ import { Brand } from '@/lib/supabase/database-types'
 import Image from 'next/image'
 import { useEffect, useState } from 'react'
 import BulkImageGeneratorModal from './bulk-image-generator-modal'
+import ImageModal from '@/components/ui/image-modal'
 
 interface ProductsTabProps {
   brand: Brand
   catalogId?: string
+}
+
+type SelectedImageType = {
+  id: string
+  url: string
+  alt_text?: string
 }
 
 export default function ProductsTab({ catalogId, brand }: ProductsTabProps) {
@@ -23,6 +30,11 @@ export default function ProductsTab({ catalogId, brand }: ProductsTabProps) {
   const [loading, setLoading] = useState(true)
   const [selectedProductIds, setSelectedProductIds] = useState<number[]>([])
   const [showBulkImageModal, setShowBulkImageModal] = useState(false)
+  const [isImageModalOpen, setIsImageModalOpen] = useState(false)
+  const [selectedImage, setSelectedImage] = useState<SelectedImageType | null>(null)
+  const [selectedProduct, setSelectedProduct] = useState<ProductWithRelations | null>(
+    null,
+  )
 
   const brandId = brand.id
 
@@ -80,6 +92,18 @@ export default function ProductsTab({ catalogId, brand }: ProductsTabProps) {
   const handleGenerationComplete = () => {
     // Refresh products data and clear selection
     setSelectedProductIds([])
+  }
+
+  const handleImageClick = (image: SelectedImageType, product: ProductWithRelations) => {
+    setSelectedImage(image)
+    setSelectedProduct(product)
+    setIsImageModalOpen(true)
+  }
+
+  const handleImageModalClose = () => {
+    setIsImageModalOpen(false)
+    setSelectedImage(null)
+    setSelectedProduct(null)
   }
 
   if (loading) {
@@ -287,6 +311,7 @@ export default function ProductsTab({ catalogId, brand }: ProductsTabProps) {
                     brand={brand!}
                     isSelected={selectedProductIds.includes(product.id)}
                     onSelect={(checked) => handleSelectProduct(product.id, checked)}
+                    onImageClick={handleImageClick}
                   />
                 ))}
               </styled.tbody>
@@ -302,6 +327,16 @@ export default function ProductsTab({ catalogId, brand }: ProductsTabProps) {
         selectedProducts={selectedProducts}
         onComplete={handleGenerationComplete}
       />
+
+      {/* Image Modal */}
+      {selectedProduct && (
+        <ImageModal
+          isOpen={isImageModalOpen}
+          onClose={handleImageModalClose}
+          selectedImage={selectedImage}
+          product={selectedProduct}
+        />
+      )}
     </Stack>
   )
 }
@@ -312,9 +347,16 @@ interface ProductTableRowProps {
   brand: Brand
   isSelected: boolean
   onSelect: (checked: boolean) => void
+  onImageClick: (image: SelectedImageType, product: ProductWithRelations) => void
 }
 
-function ProductTableRow({ product, brand, isSelected, onSelect }: ProductTableRowProps) {
+function ProductTableRow({
+  product,
+  brand,
+  isSelected,
+  onSelect,
+  onImageClick,
+}: ProductTableRowProps) {
   const getStatusColor = (status: string) => {
     switch (status) {
       case 'active':
@@ -352,7 +394,28 @@ function ProductTableRow({ product, brand, isSelected, onSelect }: ProductTableR
 
       {/* Product Image */}
       <styled.td px={6} py={4}>
-        <Box w={12} borderRadius="md" overflow="hidden" bg="gray.100">
+        <Box
+          w={12}
+          borderRadius="md"
+          overflow="hidden"
+          bg="gray.100"
+          cursor={mainImage ? 'pointer' : 'default'}
+          transition="all 0.2s"
+          _hover={mainImage ? { transform: 'scale(1.05)' } : {}}
+          onClick={
+            mainImage
+              ? () =>
+                  onImageClick(
+                    {
+                      id: String(mainImage.id),
+                      url: mainImage.url,
+                      alt_text: mainImage.alt_text || undefined,
+                    },
+                    product,
+                  )
+              : undefined
+          }
+        >
           {mainImage ? (
             <Image
               src={mainImage.url}
