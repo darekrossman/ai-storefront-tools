@@ -47,6 +47,10 @@ export function BrandNavigation() {
       label: 'Products',
     },
     {
+      href: `${pathPrefix}/export`,
+      label: 'Export',
+    },
+    {
       href: `${pathPrefix}/settings`,
       label: 'Settings',
     },
