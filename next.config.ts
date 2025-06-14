@@ -16,6 +16,10 @@ export default {
         protocol: 'https',
         hostname: 'stz3fsqejwncfcjx.public.blob.vercel-storage.com',
       },
+      {
+        protocol: 'https',
+        hostname: 'nufzsyheqwveuibxibss.supabase.co',
+      },
     ],
   },
 }

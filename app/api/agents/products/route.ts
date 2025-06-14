@@ -1,13 +1,20 @@
 import { openai } from '@ai-sdk/openai'
 import { streamObject } from 'ai'
-import { getBrandAction } from '@/actions/brands'
-import { getProductCatalogAction } from '@/actions/product-catalogs'
-import { createFullProductSchema, fullProductSchema } from '@/lib/products/schemas'
-import { getCategoriesAction } from '@/actions/categories'
-import { getProducts } from '@/actions/products'
+import { createFullProductSchema } from '@/lib/products/schemas'
 import { getContextForCatalog } from '@/actions/generation/context-utils'
 
 const systemPrompt = `You are an expert product creation specialist tasked with generating authentic, compelling products for a specific brand catalog. Your role is to create products that seamlessly align with the brand's identity, voice, tone, and positioning while fitting perfectly within the provided catalog structure and category definitions.
+
+## CRITICAL REQUIREMENT: EXACT COUNT COMPLIANCE
+
+**MANDATORY**: You MUST generate the EXACT number of products specified for each subcategory. This is non-negotiable.
+
+- If instructed to create 12 products for subcategory A, generate EXACTLY 12 products for subcategory A
+- If instructed to create 8 products for subcategory B, generate EXACTLY 8 products for subcategory B
+- Count each product as you generate it to ensure accuracy
+- The total number of products in your response must equal the sum of all requested counts
+
+**VERIFICATION STEP**: Before submitting your response, count your generated products per subcategory to verify compliance.
 
 ## Core Responsibilities
 
@@ -152,7 +159,17 @@ You will be provided with a list of existing product names in the catalog. Use t
 - **Maintain Catalog Coherence**: Create products that complement the existing catalog without duplicating functionality
 - **Expand Product Range**: Focus on areas where the catalog could benefit from additional offerings
 
-Generate products that customers would genuinely want to purchase, that accurately represent the brand's market position, and that create a cohesive, compelling catalog experience with rich, structured data while ensuring complete originality from existing products.`
+Generate products that customers would genuinely want to purchase, that accurately represent the brand's market position, and that create a cohesive, compelling catalog experience with rich, structured data while ensuring complete originality from existing products.
+
+## OUTPUT VALIDATION PROTOCOL
+
+Before finalizing your response:
+1. Count the products generated for each requested subcategory
+2. Verify the count matches the exact number requested
+3. If counts don't match, adjust by adding or removing products as needed
+4. Double-check that each product is assigned to the correct parent_category_id
+
+**REMEMBER**: Generating fewer or more products than requested is considered a failure to follow instructions.`
 
 export async function POST(req: Request) {
   const body = await req.json()
@@ -165,10 +182,23 @@ export async function POST(req: Request) {
   console.log('Building brand context...')
 
   const contextData = await getContextForCatalog(catalogId)
+  const totalExpectedProducts = count * categoryIds.length
 
   console.log('Generating products...')
 
-  const content = `## Instructions\n${categoryIds.map((id: string) => `- Create ${count} products for subcategory ${id}`).join('\n')}\n\n## Catalog Data\n${JSON.stringify(contextData)}`
+  const content = `## PRODUCT GENERATION REQUEST
+
+### EXACT REQUIREMENTS:
+${categoryIds.map((id: string) => `- Subcategory ID: ${id} → Generate EXACTLY ${count} products`).join('\n')}
+
+### TOTAL EXPECTED OUTPUT: ${totalExpectedProducts} products
+
+### VERIFICATION CHECKLIST:
+${categoryIds.map((id: string) => `□ ${count} products assigned to ${id}`).join('\n')}
+□ Total: ${totalExpectedProducts} products
+
+## Catalog Data
+${JSON.stringify(contextData)}`
 
   console.log('User message:', content)
 
@@ -177,7 +207,7 @@ export async function POST(req: Request) {
     schema: createFullProductSchema(count * categoryIds.length),
     system: systemPrompt,
     maxTokens: 32768,
-    temperature: 1,
+    temperature: 0.4,
     messages: [
       {
         role: 'user',

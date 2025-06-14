@@ -95,7 +95,7 @@ function generateHandle(productName: string): string {
 
 export async function GET(
   request: NextRequest,
-  { params }: { params: { catalogId: string } },
+  { params }: { params: Promise<{ catalogId: string }> },
 ) {
   try {
     const supabase = await createClient()
@@ -109,7 +109,7 @@ export async function GET(
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
     }
 
-    const { catalogId } = params
+    const { catalogId } = await params
 
     // Verify user has access to this catalog
     const { data: catalog, error: catalogError } = await supabase

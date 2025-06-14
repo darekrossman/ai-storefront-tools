@@ -2,7 +2,7 @@ import { createClient } from '@/lib/supabase/server'
 import { redirect } from 'next/navigation'
 import Link from 'next/link'
 import { button } from '@/components/ui/button'
-import { styled } from '@/styled-system/jsx'
+import { Stack, styled } from '@/styled-system/jsx'
 
 export default async function BrandsPage() {
   const supabase = await createClient()
@@ -27,7 +27,7 @@ export default async function BrandsPage() {
   }
 
   return (
-    <styled.div maxW="7xl" mx="auto" p={6}>
+    <Stack p={8}>
       <styled.div mb={8}>
         <styled.div
           display="flex"
@@ -54,7 +54,7 @@ export default async function BrandsPage() {
           gap={6}
         >
           {brands.map((brand) => (
-            <Link key={brand.id} href={`/brands/${brand.id}`}>
+            <Link key={brand.id} href={`/brands/${brand.slug}`}>
               <styled.div
                 bg="white"
                 border="1px solid"
@@ -140,6 +140,6 @@ export default async function BrandsPage() {
           </Link>
         </styled.div>
       )}
-    </styled.div>
+    </Stack>
   )
 }
