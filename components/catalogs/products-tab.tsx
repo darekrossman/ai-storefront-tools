@@ -1,29 +1,83 @@
+'use client'
+
 import { Box, Flex, Stack, styled } from '@/styled-system/jsx'
 import Link from 'next/link'
 import { getProductsByBrand, getProductsByCatalog } from '@/actions/products'
 import type { ProductWithRelations } from '@/actions/products'
 import { button } from '@/components/ui/button'
+import { Button } from '@/components/ui/button'
 import { getBrandIdByCatalog } from '@/actions'
 import { Brand } from '@/lib/supabase/database-types'
 import Image from 'next/image'
+import { useEffect, useState } from 'react'
 
 interface ProductsTabProps {
   brand: Brand
   catalogId?: string
 }
 
-export default async function ProductsTab({ catalogId, brand }: ProductsTabProps) {
-  let products: ProductWithRelations[] = []
-  let error: string | null = null
+export default function ProductsTab({ catalogId, brand }: ProductsTabProps) {
+  const [products, setProducts] = useState<ProductWithRelations[]>([])
+  const [error, setError] = useState<string | null>(null)
+  const [loading, setLoading] = useState(true)
+  const [selectedProductIds, setSelectedProductIds] = useState<number[]>([])
 
   const brandId = brand.id
 
-  try {
-    products = !catalogId
-      ? await getProductsByBrand(brandId)
-      : await getProductsByCatalog(catalogId)
-  } catch (err) {
-    error = err instanceof Error ? err.message : 'Failed to load products'
+  useEffect(() => {
+    async function fetchProducts() {
+      try {
+        setLoading(true)
+        const fetchedProducts = !catalogId
+          ? await getProductsByBrand(brandId)
+          : await getProductsByCatalog(catalogId)
+        setProducts(fetchedProducts)
+      } catch (err) {
+        setError(err instanceof Error ? err.message : 'Failed to load products')
+      } finally {
+        setLoading(false)
+      }
+    }
+
+    fetchProducts()
+  }, [catalogId, brandId])
+
+  const handleSelectAll = (checked: boolean) => {
+    if (checked) {
+      setSelectedProductIds(products.map((product) => product.id))
+    } else {
+      setSelectedProductIds([])
+    }
+  }
+
+  const handleSelectProduct = (productId: number, checked: boolean) => {
+    if (checked) {
+      setSelectedProductIds((prev) => [...prev, productId])
+    } else {
+      setSelectedProductIds((prev) => prev.filter((id) => id !== productId))
+    }
+  }
+
+  const isAllSelected =
+    products.length > 0 && selectedProductIds.length === products.length
+  const isIndeterminate =
+    selectedProductIds.length > 0 && selectedProductIds.length < products.length
+
+  if (loading) {
+    return (
+      <Box
+        bg="white"
+        border="1px solid"
+        borderColor="gray.200"
+        borderRadius="lg"
+        p={6}
+        textAlign="center"
+      >
+        <styled.p fontSize="sm" color="gray.600">
+          Loading products...
+        </styled.p>
+      </Box>
+    )
   }
 
   if (error) {
@@ -91,74 +145,134 @@ export default async function ProductsTab({ catalogId, brand }: ProductsTabProps
           </Stack>
         </Box>
       ) : (
-        <Box
-          bg="white"
-          border="1px solid"
-          borderColor="gray.200"
-          borderRadius="lg"
-          overflow="hidden"
-        >
-          <styled.table w="full">
-            <styled.thead bg="gray.50">
-              <styled.tr>
-                <styled.th
-                  textAlign="left"
-                  px={6}
-                  py={3}
-                  fontSize="xs"
-                  fontWeight="medium"
-                  color="gray.500"
-                  textTransform="uppercase"
-                  letterSpacing="wide"
-                  w={16}
-                >
-                  Image
-                </styled.th>
-                <styled.th
-                  textAlign="left"
-                  px={6}
-                  py={3}
-                  fontSize="xs"
-                  fontWeight="medium"
-                  color="gray.500"
-                  textTransform="uppercase"
-                  letterSpacing="wide"
-                >
-                  Product
-                </styled.th>
-                <styled.th
-                  textAlign="left"
-                  px={6}
-                  py={3}
-                  fontSize="xs"
-                  fontWeight="medium"
-                  color="gray.500"
-                  textTransform="uppercase"
-                  letterSpacing="wide"
-                >
-                  Category
-                </styled.th>
-                <styled.th
-                  textAlign="left"
-                  px={6}
-                  py={3}
-                  fontSize="xs"
-                  fontWeight="medium"
-                  color="gray.500"
-                  textTransform="uppercase"
-                  letterSpacing="wide"
-                >
-                  Variants
-                </styled.th>
-              </styled.tr>
-            </styled.thead>
-            <styled.tbody>
-              {products.map((product) => (
-                <ProductTableRow key={product.id} product={product} brand={brand!} />
-              ))}
-            </styled.tbody>
-          </styled.table>
-        </Box>
+        <Stack gap={4}>
+          {/* Toolbar */}
+          <Flex justify="space-between" align="center">
+            <Flex gap={2}>
+              <Button
+                variant="secondary"
+                size="xs"
+                disabled={selectedProductIds.length === 0}
+              >
+                Edit
+              </Button>
+              <Button
+                variant="secondary"
+                size="xs"
+                disabled={selectedProductIds.length === 0}
+              >
+                Delete
+              </Button>
+              <Button
+                variant="secondary"
+                size="xs"
+                disabled={selectedProductIds.length === 0}
+              >
+                Generate Images
+              </Button>
+            </Flex>
+            <styled.p fontSize="xs" color="gray.600">
+              {selectedProductIds.length} of {products.length} selected
+            </styled.p>
+          </Flex>
+
+          {/* Table */}
+          <Box
+            bg="white"
+            border="1px solid"
+            borderColor="gray.200"
+            borderRadius="lg"
+            overflow="hidden"
+          >
+            <styled.table w="full">
+              <styled.thead bg="gray.50">
+                <styled.tr>
+                  <styled.th
+                    textAlign="left"
+                    px={6}
+                    py={3}
+                    fontSize="xs"
+                    fontWeight="medium"
+                    color="gray.500"
+                    textTransform="uppercase"
+                    letterSpacing="wide"
+                    w={12}
+                  >
+                    <styled.input
+                      type="checkbox"
+                      checked={isAllSelected}
+                      ref={(input) => {
+                        if (input) input.indeterminate = isIndeterminate
+                      }}
+                      onChange={(e) => handleSelectAll(e.target.checked)}
+                      cursor="pointer"
+                    />
+                  </styled.th>
+                  <styled.th
+                    textAlign="left"
+                    px={6}
+                    py={3}
+                    fontSize="xs"
+                    fontWeight="medium"
+                    color="gray.500"
+                    textTransform="uppercase"
+                    letterSpacing="wide"
+                    w={16}
+                  >
+                    Image
+                  </styled.th>
+                  <styled.th
+                    textAlign="left"
+                    px={6}
+                    py={3}
+                    fontSize="xs"
+                    fontWeight="medium"
+                    color="gray.500"
+                    textTransform="uppercase"
+                    letterSpacing="wide"
+                  >
+                    Product
+                  </styled.th>
+                  <styled.th
+                    textAlign="left"
+                    px={6}
+                    py={3}
+                    fontSize="xs"
+                    fontWeight="medium"
+                    color="gray.500"
+                    textTransform="uppercase"
+                    letterSpacing="wide"
+                  >
+                    Category
+                  </styled.th>
+                  <styled.th
+                    textAlign="left"
+                    px={6}
+                    py={3}
+                    fontSize="xs"
+                    fontWeight="medium"
+                    color="gray.500"
+                    textTransform="uppercase"
+                    letterSpacing="wide"
+                  >
+                    Variants
+                  </styled.th>
+                </styled.tr>
+              </styled.thead>
+              <styled.tbody>
+                {products.map((product) => (
+                  <ProductTableRow
+                    key={product.id}
+                    product={product}
+                    brand={brand!}
+                    isSelected={selectedProductIds.includes(product.id)}
+                    onSelect={(checked) => handleSelectProduct(product.id, checked)}
+                  />
+                ))}
+              </styled.tbody>
+            </styled.table>
+          </Box>
+        </Stack>
       )}
     </Stack>
   )
@@ -168,9 +282,11 @@ export default async function ProductsTab({ catalogId, brand }: ProductsTabProps
 interface ProductTableRowProps {
   product: ProductWithRelations
   brand: Brand
+  isSelected: boolean
+  onSelect: (checked: boolean) => void
 }
 
-function ProductTableRow({ product, brand }: ProductTableRowProps) {
+function ProductTableRow({ product, brand, isSelected, onSelect }: ProductTableRowProps) {
   const getStatusColor = (status: string) => {
     switch (status) {
       case 'active':
@@ -194,7 +310,18 @@ function ProductTableRow({ product, brand }: ProductTableRowProps) {
       borderColor="gray.100"
       _hover={{ bg: 'gray.50' }}
       transition="all 0.2s"
+      bg={isSelected ? 'blue.50' : 'transparent'}
     >
+      {/* Checkbox */}
+      <styled.td px={6} py={4}>
+        <styled.input
+          type="checkbox"
+          checked={isSelected}
+          onChange={(e) => onSelect(e.target.checked)}
+          cursor="pointer"
+        />
+      </styled.td>
+
       {/* Product Image */}
       <styled.td px={6} py={4}>
         <Box w={12} borderRadius="md" overflow="hidden" bg="gray.100">

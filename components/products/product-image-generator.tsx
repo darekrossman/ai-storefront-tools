@@ -141,7 +141,6 @@ export default function ProductImageGenerator({
     baseAttributes: product.base_attributes,
     specifications: product.specifications,
     attributes: product.product_variants?.[0]?.attributes,
-    imageDirection,
   }
 
   // Function to convert image URL to base64
