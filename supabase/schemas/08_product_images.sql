@@ -16,6 +16,16 @@ create table if not exists public.product_images (
   color_id text,
   attribute_filters jsonb default '{}',
   sort_order integer not null default 0,
+  width integer,
+  height integer,
+  aspect_ratio decimal generated always as (
+    case 
+      when height > 0 then round((width::decimal / height::decimal), 4)
+      else null 
+    end
+  ) stored,
+  seed bigint,
+  prompt text,
   created_at timestamptz not null default now(),
   updated_at timestamptz not null default now()
 );
@@ -30,6 +40,11 @@ comment on column public.product_images.type is 'Image type: hero, gallery, thum
 comment on column public.product_images.color_id is 'Color ID for structured image naming: {masterId}_{colorId}_{index}.{ext}';
 comment on column public.product_images.attribute_filters is 'JSONB: Attributes that determine which variants show this image';
 comment on column public.product_images.sort_order is 'Display order within type group';
+comment on column public.product_images.width is 'Image width in pixels';
+comment on column public.product_images.height is 'Image height in pixels';
+comment on column public.product_images.aspect_ratio is 'Computed aspect ratio (width/height) rounded to 4 decimal places';
+comment on column public.product_images.seed is 'AI generation seed number for reproducible results';
+comment on column public.product_images.prompt is 'AI generation prompt used to create the image';
 
 -- Add constraints for image types
 do $$ begin

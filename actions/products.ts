@@ -825,3 +825,94 @@ export async function getProductsByCategory(
     return []
   }
 }
+
+/**
+ * Get all products for a specific brand
+ */
+export async function getProductsByBrand(
+  brandId: number,
+): Promise<ProductWithRelations[]> {
+  const supabase = await createClient()
+
+  try {
+    const {
+      data: { user },
+    } = await supabase.auth.getUser()
+
+    if (!user) {
+      throw new Error('User not authenticated')
+    }
+
+    // First verify user owns the brand
+    const { data: brand } = await supabase
+      .from('brands')
+      .select('id, user_id')
+      .eq('id', brandId)
+      .eq('user_id', user.id)
+      .single()
+
+    if (!brand) {
+      throw new Error('Brand not found or access denied')
+    }
+
+    // Get all products from all catalogs belonging to this brand
+    const { data: products, error } = await supabase
+      .from('products')
+      .select(`
+        *,
+        product_catalogs!inner (
+          catalog_id,
+          name,
+          brands!inner (
+            id,
+            name,
+            user_id
+          )
+        ),
+        categories (
+          category_id,
+          name
+        ),
+        product_variants (
+          id,
+          sku,
+          barcode,
+          price,
+          is_active,
+          attributes,
+          status,
+          sort_order
+        ),
+        product_attribute_schemas (
+          id,
+          attribute_key,
+          attribute_label,
+          options,
+          is_required,
+          sort_order
+        ),
+        product_images (
+          id,
+          url,
+          alt_text,
+          type,
+          color_id,
+          attribute_filters,
+          sort_order
+        )
+      `)
+      .eq('product_catalogs.brands.id', brandId)
+      .order('sort_order', { ascending: true })
+      .order('name', { ascending: true })
+
+    if (error) {
+      console.error('Error fetching products by brand:', error)
+      throw error
+    }
+
+    return products || []
+  } catch (error) {
+    console.error('Error in getProductsByBrand:', error)
+    return []
+  }
+}

@@ -38,7 +38,7 @@ export default async function BrandsPage() {
           <styled.h1 fontSize="3xl" fontWeight="bold" color="gray.900">
             Your Brands
           </styled.h1>
-          <Link href="/dashboard/brands/new" className={button({ variant: 'primary' })}>
+          <Link href="/brands/new" className={button({ variant: 'primary' })}>
             Create New Brand
           </Link>
         </styled.div>
@@ -54,7 +54,7 @@ export default async function BrandsPage() {
           gap={6}
         >
           {brands.map((brand) => (
-            <Link key={brand.id} href={`/dashboard/brands/${brand.id}`}>
+            <Link key={brand.id} href={`/brands/${brand.id}`}>
               <styled.div
                 bg="white"
                 border="1px solid"
@@ -135,7 +135,7 @@ export default async function BrandsPage() {
           <styled.p color="gray.500" mb={6}>
             Create your first brand to get started with your storefront
           </styled.p>
-          <Link href="/dashboard/brands/new" className={button({ variant: 'primary' })}>
+          <Link href="/brands/new" className={button({ variant: 'primary' })}>
             Create Your First Brand
           </Link>
         </styled.div>

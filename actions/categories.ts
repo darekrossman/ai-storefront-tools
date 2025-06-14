@@ -12,6 +12,11 @@ type CategoryUpdate = TablesUpdate<'categories'>
 export type CreateCategoryData = Omit<CategoryInsert, 'id' | 'created_at' | 'updated_at'>
 export type UpdateCategoryData = Omit<CategoryUpdate, 'id' | 'created_at' | 'updated_at'>
 
+// Category tree type for combined category and subcategories data
+export type CategoryTree = Category & {
+  categories: Category[]
+}
+
 // Get all categories for a specific catalog (with hierarchical structure)
 export const getCategoriesAction = async (catalogId: string): Promise<Category[]> => {
   const supabase = await createClient()
@@ -182,6 +187,64 @@ export const getCategoryAction = async (categoryId: string): Promise<Category | 
   // Remove the nested catalog data from response
   const { catalog, ...category } = data
   return category
+}
+
+// Get category tree (category + subcategories)
+export const getCategoryTree = async (
+  categoryId: string,
+): Promise<CategoryTree | null> => {
+  const supabase = await createClient()
+
+  const {
+    data: { user },
+  } = await supabase.auth.getUser()
+
+  if (!user) {
+    throw new Error('User not authenticated')
+  }
+
+  // Get the main category with ownership verification
+  const { data: categoryData, error: categoryError } = await supabase
+    .from('categories')
+    .select(`
+      *,
+      catalog:product_catalogs!inner(
+        brand:brands!inner(user_id)
+      )
+    `)
+    .eq('category_id', categoryId)
+    .eq('catalog.brand.user_id', user.id)
+    .single()
+
+  if (categoryError) {
+    if (categoryError.code === 'PGRST116') {
+      return null // Category not found
+    }
+    console.error('Error fetching category:', categoryError)
+    throw categoryError
+  }
+
+  // Remove the nested catalog data from response
+  const { catalog, ...category } = categoryData
+
+  // Get subcategories for this category
+  const { data: subcategories, error: subcategoriesError } = await supabase
+    .from('categories')
+    .select('*')
+    .eq('parent_category_id', categoryId)
+    .eq('is_active', true)
+    .order('sort_order', { ascending: true })
+    .order('name', { ascending: true })
+
+  if (subcategoriesError) {
+    console.error('Error fetching subcategories:', subcategoriesError)
+    throw subcategoriesError
+  }
+
+  return {
+    ...category,
+    categories: subcategories || [],
+  }
 }
 
 // Create a new category

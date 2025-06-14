@@ -8,92 +8,118 @@ export async function POST(request: Request) {
     image_url,
   }: { prompt: any; promptOverride?: string; image_url?: string } = await request.json()
 
-  const fullPrompt =
-    promptOverride ||
-    `${prompt.imageDirection}. 
+  const { imageDirection, ...productInfo } = prompt
 
-## Photo Guidelines
-- The product must fit entirely in the frame and not be cropped or exceed the bounds of the photograph.
-- The product should comfortably fit in the frame.
-- No cropping.
-- No text in the background unless instructed.
-- Ecommerce product photography. Studio lighting, sharp focus, high detail.
-`
+  //   const fullPrompt =
+  //     promptOverride ||
+  //     `${imageDirection}.
 
-  const result = await generateWithOpenAI(fullPrompt, image_url)
-  // const result = await generateWithFal(fullPrompt, image_url)
+  // ## Product Information
+  // ${JSON.stringify(productInfo)}
+
+  // ## Photo Guidelines
+  // - Photo must adhere to product information.
+  // - The product must fit entirely in the frame and not be cropped or exceed the bounds of the photograph.
+  // - The product should comfortably fit in the frame.
+  // - No cropping.
+  // - No text in the background unless instructed.
+  // - Ecommerce product photography. Studio lighting, sharp focus, high detail.
+  // `
+
+  // const result = await generateWithOpenAI(fullPrompt, image_url)
+
+  const imagePrompt = await generatePromptFromProductInfo(productInfo)
+
+  console.log(imagePrompt.output_text)
+
+  const result = await generateWithFal(imagePrompt.output_text, image_url)
 
   return Response.json(result)
 }
 
-async function generateWithOpenAI(prompt: string, image_url?: string) {
+async function generatePromptFromProductInfo(productInfo: any) {
   const client = new OpenAI({
     apiKey: process.env.OPENAI_API_KEY,
   })
 
-  const input = [
-    {
-      role: 'user',
-      content: [
-        {
-          type: 'input_text',
-          text: `${prompt}\n\n## Product Information\n${JSON.stringify(prompt)}`,
-        },
-      ],
-    },
-  ] as any
-
-  if (image_url) {
-    input[0]?.content?.push({ type: 'input_image', image_url })
-  }
-
-  console.log(prompt)
-
   const result = await client.responses.create({
     model: 'gpt-4.1',
-    input,
-    tool_choice: {
-      type: 'image_generation',
-    },
-    tools: [
+    temperature: 0.8,
+    max_output_tokens: 2048,
+    input: [
       {
-        type: 'image_generation',
-        model: 'gpt-image-1',
-        background: 'transparent',
-        output_format: 'webp',
-        quality: 'medium',
-        // size: '1024x1024',
-        moderation: 'low',
+        role: 'system',
+        content: [
+          {
+            type: 'input_text',
+            text: 'You are an expert prompt generator that specializes in creating extremely detailed prompts for ecommerce image generation given product information. \n\n## Photo Guidelines\n- Photo must adhere to product information\n- Product should be perfectly centered in the frame\n- The product must fit entirely in the frame\n- No cropping\n- No text in the background unless instructed\n- Ecommerce product photography. Studio lighting, sharp focus, high detail.\n- The product should be displayed against a pure white/transparent background.',
+          },
+        ],
+      },
+      {
+        role: 'user',
+        content: [
+          {
+            type: 'input_text',
+            text: `## Product Information\n${JSON.stringify(productInfo)}`,
+          },
+        ],
       },
     ],
   })
 
-  // const isEdit = image_url != null
-
-  // const result = await client.images[isEdit ? 'edit' : 'generate']({
-  //   model: 'gpt-image-1',
-  //   background: 'transparent',
-  //   output_format: 'webp',
-  //   quality: 'medium',
-  //   size: '1024x1024',
-  //   moderation: 'low',
-  //   prompt,
-  //   image: image_url ? [image_url] : undefined,
-  // })
-
-  // result.data?.forEach((item) => {
-  //   item.b64_json = `data:image/webp;base64,${item.b64_json}`
-  // })
-
   return result
 }
+
+// async function generateWithOpenAI(prompt: string, image_url?: string) {
+//   const client = new OpenAI({
+//     apiKey: process.env.OPENAI_API_KEY,
+//   })
+
+//   const input = [
+//     {
+//       role: 'user',
+//       content: [
+//         {
+//           type: 'input_text',
+//           text: prompt,
+//         },
+//       ],
+//     },
+//   ] as any
+
+//   if (image_url) {
+//     input[0]?.content?.push({ type: 'input_image', image_url })
+//   }
+
+//   console.log(prompt)
+
+//   const result = await client.responses.create({
+//     model: 'gpt-4.1',
+//     input,
+//     tool_choice: {
+//       type: 'image_generation',
+//     },
+//     tools: [
+//       {
+//         type: 'image_generation',
+//         model: 'gpt-image-1',
+//         background: 'transparent',
+//         output_format: 'webp',
+//         quality: 'high',
+//         size: '1024x1536',
+//         moderation: 'low',
+//       },
+//     ],
+//   })
+
+//   return result
+// }
 
 async function generateWithFal(prompt: string, image_url?: string) {
   const genModel = 'fal-ai/flux-pro/kontext/max/text-to-image'
   const editModel = 'fal-ai/flux-pro/kontext/max'
   const model = image_url ? editModel : genModel
-
-  console.log(prompt, model)
 
   const result = await fal.subscribe(model, {
     input: {
@@ -104,8 +130,7 @@ async function generateWithFal(prompt: string, image_url?: string) {
         width: 1024,
       },
       aspect_ratio: '1:1',
-      num_inference_steps: 50,
-      guidance_scale: 7.5,
+      guidance_scale: 13.5,
       num_images: 1,
       enable_safety_checker: false,
       output_format: 'png',
@@ -120,11 +145,5 @@ async function generateWithFal(prompt: string, image_url?: string) {
     },
   })
 
-  return {
-    data: [
-      {
-        b64_json: result.data.images[0].url,
-      },
-    ],
-  }
+  return result
 }

@@ -94,6 +94,7 @@ Example variant structure:
 - Avoid generic or overly technical names unless that fits the brand style
 - Consider the target audience's preferences and expectations
 - Ensure product names are varied and unique and are not too similar to existing product names.
+- Product names do not need to include the brand or catalog name
 
 ### Pricing Strategy
 - Generate prices that reflect the brand's market positioning
@@ -155,25 +156,32 @@ Generate products that customers would genuinely want to purchase, that accurate
 
 export async function POST(req: Request) {
   const body = await req.json()
-  const { catalogId, categoryId, count } = body
+  const { catalogId, categoryIds, count } = body
+
+  console.log('catalogId', catalogId)
+  console.log('categoryIds', categoryIds)
+  console.log('count', count)
+
+  console.log('Building brand context...')
 
   const contextData = await getContextForCatalog(catalogId)
 
+  console.log('Generating products...')
+
+  const content = `## Instructions\n${categoryIds.map((id: string) => `- Create ${count} products for subcategory ${id}`).join('\n')}\n\n## Catalog Data\n${JSON.stringify(contextData)}`
+
+  console.log('User message:', content)
+
   const result = streamObject({
-    model: openai('o4-mini-2025-04-16'),
-    schema: createFullProductSchema(count),
+    model: openai('gpt-4.1'),
+    schema: createFullProductSchema(count * categoryIds.length),
     system: systemPrompt,
     maxTokens: 32768,
-    temperature: 0.9,
+    temperature: 1,
     messages: [
       {
         role: 'user',
-        content: `## Catalog Context
-${JSON.stringify(contextData)}
-
-## Instructions
-Create ${count} products for the subcategory ${categoryId}.
-`,
+        content,
       },
     ],
     onError: (error) => {

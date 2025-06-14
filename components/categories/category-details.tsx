@@ -1,19 +1,18 @@
 'use client'
 
-import { Box, Container, Flex, Stack, styled } from '@/styled-system/jsx'
+import { Box, Flex, Stack, styled } from '@/styled-system/jsx'
 import Link from 'next/link'
-import { useState, useEffect } from 'react'
-import type { Category } from '@/lib/supabase/database-types'
+import { useState } from 'react'
 import type { ProductWithRelations } from '@/actions/products'
 import { button } from '@/components/ui/button'
 import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
-import { getSubcategoriesAction } from '@/actions/categories'
+import { CategoryTree } from '@/actions/categories'
 import { getProductsByCategory } from '@/actions/products'
 import { useBrand } from '../brand-context'
 
 interface CategoryDetailsProps {
-  category: Category
+  category: CategoryTree
   products: ProductWithRelations[]
   catalogId: string
 }
@@ -23,15 +22,12 @@ export default function CategoryDetails({
   products,
   catalogId,
 }: CategoryDetailsProps) {
-  const { brandId } = useBrand()
-  const [subcategories, setSubcategories] = useState<Category[]>([])
+  const { id: brandId, slug: brandSlug } = useBrand()
   const [expandedSubcategories, setExpandedSubcategories] = useState<Set<string>>(
     new Set(),
   )
-  const [subcategoryProducts, setSubcategoryProducts] = useState<
-    Record<string, ProductWithRelations[]>
-  >({})
-  const [loadingSubcategories, setLoadingSubcategories] = useState<Set<string>>(new Set())
+
+  const subcategories = category.categories
 
   const getStatusVariant = (status: boolean) => {
     return status
@@ -41,20 +37,6 @@ export default function CategoryDetails({
 
   const statusInfo = getStatusVariant(category.is_active)
 
-  // Load subcategories on mount
-  useEffect(() => {
-    const loadSubcategories = async () => {
-      try {
-        const subs = await getSubcategoriesAction(category.category_id)
-        setSubcategories(subs)
-      } catch (error) {
-        console.error('Failed to load subcategories:', error)
-      }
-    }
-
-    loadSubcategories()
-  }, [category.category_id])
-
   // Toggle subcategory expansion and load products if needed
   const toggleSubcategory = async (subcategoryId: string) => {
     const newExpanded = new Set(expandedSubcategories)
@@ -63,26 +45,6 @@ export default function CategoryDetails({
       newExpanded.delete(subcategoryId)
     } else {
       newExpanded.add(subcategoryId)
-
-      // Load products for this subcategory if not already loaded
-      if (!subcategoryProducts[subcategoryId]) {
-        setLoadingSubcategories((prev) => new Set(prev).add(subcategoryId))
-        try {
-          const products = await getProductsByCategory(subcategoryId)
-          setSubcategoryProducts((prev) => ({
-            ...prev,
-            [subcategoryId]: products,
-          }))
-        } catch (error) {
-          console.error('Failed to load products for subcategory:', error)
-        } finally {
-          setLoadingSubcategories((prev) => {
-            const newLoading = new Set(prev)
-            newLoading.delete(subcategoryId)
-            return newLoading
-          })
-        }
-      }
     }
 
     setExpandedSubcategories(newExpanded)
@@ -95,12 +57,12 @@ export default function CategoryDetails({
         {/* Breadcrumb */}
         <Stack gap={2}>
           <Flex align="center" gap={2} fontSize="sm" color="gray.600">
-            <Link href={`/dashboard/brands/${brandId}`} className="hover-underline">
+            <Link href={`/brands/${brandSlug}`} className="hover-underline">
               Brand
             </Link>
             <styled.span color="gray.400">/</styled.span>
             <Link
-              href={`/dashboard/brands/${brandId}/catalogs/${catalogId}`}
+              href={`/brands/${brandSlug}/catalogs/${catalogId}`}
               className="hover-underline"
             >
               Catalog
@@ -131,13 +93,13 @@ export default function CategoryDetails({
 
           <Flex gap={2} flexShrink={0}>
             <Link
-              href={`/dashboard/brands/${brandId}/catalogs/${catalogId}/categories/${category.category_id}/edit`}
+              href={`/brands/${brandSlug}/catalogs/${catalogId}/categories/${category.category_id}/edit`}
               className={button({ variant: 'secondary', size: 'sm' })}
             >
               Edit Category
             </Link>
             <Link
-              href={`/dashboard/brands/${brandId}/catalogs/${catalogId}/products/new?category=${category.category_id}`}
+              href={`/brands/${brandSlug}/catalogs/${catalogId}/products/new?category=${category.category_id}`}
               className={button({ size: 'sm' })}
             >
               Add Product
@@ -196,7 +158,7 @@ export default function CategoryDetails({
           </styled.h2>
 
           <Link
-            href={`/dashboard/brands/${brandId}/catalogs/${catalogId}/categories/new?parent=${category.category_id}`}
+            href={`/brands/${brandSlug}/catalogs/${catalogId}/categories/new?parent=${category.category_id}`}
             className={button({ variant: 'secondary', size: 'sm' })}
           >
             Add Subcategory
@@ -240,13 +202,13 @@ export default function CategoryDetails({
 
               <Flex gap={2}>
                 <Link
-                  href={`/dashboard/brands/${brandId}/catalogs/${catalogId}/categories/new?parent=${category.category_id}`}
+                  href={`/brands/${brandSlug}/catalogs/${catalogId}/categories/new?parent=${category.category_id}`}
                   className={button({ variant: 'secondary' })}
                 >
                   Add Subcategory
                 </Link>
                 <Link
-                  href={`/dashboard/brands/${brandId}/catalogs/${catalogId}/products/new?category=${category.category_id}`}
+                  href={`/brands/${brandSlug}/catalogs/${catalogId}/products/new?category=${category.category_id}`}
                   className={button()}
                 >
                   Add Product
@@ -272,8 +234,6 @@ export default function CategoryDetails({
             {/* Subcategories */}
             {subcategories.map((subcategory) => {
               const isExpanded = expandedSubcategories.has(subcategory.category_id)
-              const products = subcategoryProducts[subcategory.category_id] || []
-              const isLoading = loadingSubcategories.has(subcategory.category_id)
 
               return (
                 <SubcategoryProductSection
@@ -282,7 +242,6 @@ export default function CategoryDetails({
                   description={subcategory.description}
                   products={products}
                   isExpanded={isExpanded}
-                  isLoading={isLoading}
                   onToggle={() => toggleSubcategory(subcategory.category_id)}
                   hasToggle={true}
                   catalogId={catalogId}
@@ -297,89 +256,12 @@ export default function CategoryDetails({
   )
 }
 
-// Product List Item for list view
-interface ProductListItemProps {
-  product: ProductWithRelations
-  catalogId: string
-}
-
-function ProductListItem({ product, catalogId }: ProductListItemProps) {
-  const { brandId } = useBrand()
-  const getStatusVariant = (status: string) => {
-    switch (status) {
-      case 'active':
-        return { variant: 'success' as const, text: 'Active' }
-      case 'draft':
-        return { variant: 'neutral' as const, text: 'Draft' }
-      case 'archived':
-        return { variant: 'neutral' as const, text: 'Archived' }
-      default:
-        return { variant: 'neutral' as const, text: status }
-    }
-  }
-
-  const statusInfo = getStatusVariant(product.status)
-
-  return (
-    <Link href={`/dashboard/brands/${brandId}/products/${product.id}`}>
-      <Box
-        bg="white"
-        border="1px solid"
-        borderColor="gray.200"
-        borderRadius="lg"
-        p={6}
-        cursor="pointer"
-        _hover={{ borderColor: 'gray.300', shadow: 'sm' }}
-        transition="all 0.2s"
-      >
-        <Flex justify="space-between" align="start" gap={4}>
-          <Stack gap={3} flex={1}>
-            <Flex align="center" gap={3}>
-              <styled.h3 fontSize="lg" fontWeight="semibold" color="gray.900">
-                {product.name}
-              </styled.h3>
-              <Badge variant={statusInfo.variant}>{statusInfo.text}</Badge>
-            </Flex>
-
-            {product.short_description && (
-              <styled.p fontSize="sm" color="gray.600" lineHeight="relaxed">
-                {product.short_description}
-              </styled.p>
-            )}
-
-            <Flex gap={4} fontSize="xs" color="gray.500">
-              {product.product_variants && product.product_variants.length > 0 && (
-                <styled.span>
-                  {product.product_variants.length} variant
-                  {product.product_variants.length > 1 ? 's' : ''}
-                </styled.span>
-              )}
-              {product.min_price && product.max_price && (
-                <styled.span>
-                  ${product.min_price.toFixed(2)}
-                  {product.min_price !== product.max_price &&
-                    ` - $${product.max_price.toFixed(2)}`}
-                </styled.span>
-              )}
-            </Flex>
-          </Stack>
-
-          <styled.div fontSize="sm" color="gray.400">
-            →
-          </styled.div>
-        </Flex>
-      </Box>
-    </Link>
-  )
-}
-
 // Subcategory Product Section Component
 interface SubcategoryProductSectionProps {
   title: string
   description?: string
   products: ProductWithRelations[]
   isExpanded: boolean
-  isLoading?: boolean
   onToggle: () => void
   hasToggle: boolean
   catalogId: string
@@ -391,13 +273,12 @@ function SubcategoryProductSection({
   description,
   products,
   isExpanded,
-  isLoading = false,
   onToggle,
   hasToggle,
   catalogId,
   categoryId,
 }: SubcategoryProductSectionProps) {
-  const { brandId } = useBrand()
+  const { id: brandId, slug: brandSlug } = useBrand()
   return (
     <Box
       bg="white"
@@ -443,13 +324,13 @@ function SubcategoryProductSection({
 
           <Flex gap={2} flexShrink={0}>
             <Link
-              href={`/dashboard/brands/${brandId}/catalogs/${catalogId}/products/new?category=${categoryId}`}
+              href={`/brands/${brandSlug}/catalogs/${catalogId}/products/new?category=${categoryId}`}
               className={button({ variant: 'secondary', size: 'xs' })}
             >
               Add Product
             </Link>
             <Link
-              href={`/dashboard/brands/${brandId}/catalogs/${catalogId}/categories/${categoryId}`}
+              href={`/brands/${brandSlug}/catalogs/${catalogId}/categories/${categoryId}`}
               className={button({ variant: 'secondary', size: 'xs' })}
             >
               View Category
@@ -461,13 +342,7 @@ function SubcategoryProductSection({
       {/* Products */}
       {isExpanded && (
         <Box>
-          {isLoading ? (
-            <Box p={8} textAlign="center">
-              <styled.div fontSize="sm" color="gray.500">
-                Loading products...
-              </styled.div>
-            </Box>
-          ) : products.length === 0 ? (
+          {products.length === 0 ? (
             <Box p={8} textAlign="center">
               <Stack gap={2} align="center">
                 <styled.div fontSize="2xl" color="gray.400">
@@ -477,7 +352,7 @@ function SubcategoryProductSection({
                   No products in this {hasToggle ? 'subcategory' : 'category'} yet
                 </styled.p>
                 <Link
-                  href={`/dashboard/brands/${brandId}/catalogs/${catalogId}/products/new?category=${categoryId}`}
+                  href={`/brands/${brandSlug}/catalogs/${catalogId}/products/new?category=${categoryId}`}
                   className={button({ size: 'xs' })}
                 >
                   Add First Product
@@ -508,7 +383,7 @@ interface CompactProductRowProps {
 }
 
 function CompactProductRow({ product, isLast }: CompactProductRowProps) {
-  const { brandId } = useBrand()
+  const { id: brandId, slug: brandSlug } = useBrand()
   const getStatusColor = (status: string) => {
     switch (status) {
       case 'active':
@@ -527,7 +402,7 @@ function CompactProductRow({ product, isLast }: CompactProductRowProps) {
   const heroImage = product.product_images?.find((img) => img.type === 'hero')
 
   return (
-    <Link href={`/dashboard/brands/${brandId}/products/${product.id}`}>
+    <Link href={`/brands/${brandSlug}/products/${product.id}`}>
       <Box
         p={4}
         borderBottom={!isLast ? '1px solid' : 'none'}

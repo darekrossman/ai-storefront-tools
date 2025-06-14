@@ -2,6 +2,7 @@
 
 import { createClient } from '@/lib/supabase/server'
 import type { ProductImageInsert } from '@/lib/supabase/database-types'
+import { GeneratedImageResponse } from '@/lib/types'
 
 // Placeholder storage actions for brand logo operations
 // These need to be implemented with actual Supabase storage logic
@@ -39,7 +40,8 @@ export async function deleteBrandLogoAction(
  */
 export async function storeGeneratedImageAction(
   productId: number,
-  base64Data: string,
+  imageData: GeneratedImageResponse,
+  attributes: Record<string, string | number | boolean>,
   imageType:
     | 'hero'
     | 'gallery'
@@ -47,25 +49,36 @@ export async function storeGeneratedImageAction(
     | 'lifestyle'
     | 'detail'
     | 'variant' = 'gallery',
-  altText?: string,
 ): Promise<UploadResult & { imageRecord?: ProductImageInsert }> {
   try {
     const supabase = await createClient()
 
+    const image = imageData.images[0]
+
+    if (!image) {
+      console.error('No image data found')
+      return {
+        success: false,
+        error: 'No image data found',
+      }
+    }
+
     // Convert base64 to buffer
-    const base64String = base64Data.replace(/^data:image\/[a-z]+;base64,/, '')
+    const base64String = image.url.replace(/^data:image\/[a-z]+;base64,/, '')
+
     const buffer = Buffer.from(base64String, 'base64')
 
     // Generate unique filename
     const timestamp = Date.now()
-    const filename = `${imageType}_${timestamp}_generated.webp`
+    const attributesString = Object.values(attributes).join('_')
+    const filename = `${timestamp}_${attributesString}.${image.content_type.split('/')[1]}`
     const storagePath = `${productId}/${filename}`
 
     // Upload to Supabase storage
     const { data: uploadData, error: uploadError } = await supabase.storage
       .from('product_images')
       .upload(storagePath, buffer, {
-        contentType: 'image/webp',
+        contentType: image.content_type,
         upsert: false,
       })
 
@@ -94,9 +107,14 @@ export async function storeGeneratedImageAction(
     const imageRecord: ProductImageInsert = {
       product_id: productId,
       url: urlData.publicUrl,
-      alt_text: altText || `Generated ${imageType} image`,
+      alt_text: `${imageType} image for ${productId}, ${attributesString}`,
       type: imageType,
       sort_order: 0,
+      width: image.width,
+      height: image.height,
+      seed: imageData.seed,
+      prompt: imageData.prompt,
+      attribute_filters: attributes,
     }
 
     const { data: dbData, error: dbError } = await supabase

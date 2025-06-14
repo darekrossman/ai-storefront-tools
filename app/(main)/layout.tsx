@@ -1,9 +1,10 @@
 import { redirect } from 'next/navigation'
 import { createClient } from '@/lib/supabase/server'
-import { Box } from '@/styled-system/jsx'
+import { Box, Flex } from '@/styled-system/jsx'
 import DashboardNav from '@/components/navigation/dashboard-nav'
 import { PropsWithChildren } from 'react'
 import { UserContextProvider } from '@/components/user-context'
+import { css } from '@/styled-system/css'
 
 export default async function DashboardLayout({ children }: PropsWithChildren) {
   const supabase = await createClient()
@@ -18,10 +19,18 @@ export default async function DashboardLayout({ children }: PropsWithChildren) {
 
   return (
     <UserContextProvider userId={user.id}>
-      <Box minH="100vh" bg="gray.50">
+      <Flex
+        flex="1"
+        flexDirection="column"
+        className={css({
+          '--header-height': '44px',
+        })}
+      >
         <DashboardNav />
-        <Box>{children}</Box>
-      </Box>
+        <Flex flex="1" flexDirection="column" bg="stone.100">
+          {children}
+        </Flex>
+      </Flex>
     </UserContextProvider>
   )
 }

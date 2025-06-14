@@ -7,10 +7,11 @@ import { Button, button } from '@/components/ui/button'
 import ProductImageGenerator from './product-image-generator'
 import Modal from '@/components/ui/modal'
 import { useState } from 'react'
+import { useBrand } from '../brand-context'
+import Image from 'next/image'
 
 interface ProductDetailsProps {
   product: ProductWithRelations
-  projectId: number
 }
 
 type SelectedImageType = {
@@ -19,7 +20,8 @@ type SelectedImageType = {
   alt_text?: string
 }
 
-export default function ProductDetails({ product, projectId }: ProductDetailsProps) {
+export default function ProductDetails({ product }: ProductDetailsProps) {
+  const { id: brandId, slug: brandSlug } = useBrand()
   const [isModalOpen, setIsModalOpen] = useState(false)
   const [selectedImage, setSelectedImage] = useState<SelectedImageType | null>(null)
 
@@ -124,13 +126,13 @@ export default function ProductDetails({ product, projectId }: ProductDetailsPro
 
           <Flex gap={2}>
             <Link
-              href={`/dashboard/projects/${projectId}/products/${product.id}/variants`}
+              href={`/brands/${brandSlug}/products/${product.id}/variants`}
               className={button({ variant: 'primary', size: 'sm' })}
             >
               Manage Variants
             </Link>
             <Link
-              href={`/dashboard/projects/${projectId}/products/${product.id}/edit`}
+              href={`/brands/${brandSlug}/products/${product.id}/edit`}
               className={button({ variant: 'secondary', size: 'sm' })}
             >
               Edit Product
@@ -253,13 +255,14 @@ export default function ProductDetails({ product, projectId }: ProductDetailsPro
                     (image: NonNullable<ProductWithRelations['product_images']>[0]) => (
                       <Box
                         key={image.id}
-                        h={24}
-                        bg="gray.100"
+                        width="150px"
+                        border="1px solid"
+                        borderColor="gray.200"
                         borderRadius="md"
                         overflow="hidden"
                         cursor="pointer"
                         transition="all 0.2s"
-                        _hover={{ transform: 'scale(1.05)', shadow: 'md' }}
+                        _hover={{ borderColor: 'blue.500' }}
                         onClick={() =>
                           handleImageClick({
                             id: String(image.id),
@@ -268,12 +271,12 @@ export default function ProductDetails({ product, projectId }: ProductDetailsPro
                           })
                         }
                       >
-                        <styled.img
+                        <Image
                           src={image.url}
                           alt={image.alt_text || ''}
-                          w="full"
-                          h="full"
-                          objectFit="cover"
+                          width={150}
+                          height={150}
+                          objectFit="contain"
                         />
                       </Box>
                     ),
@@ -365,7 +368,7 @@ export default function ProductDetails({ product, projectId }: ProductDetailsPro
                   Variants ({variants.length})
                 </styled.h3>
                 <Link
-                  href={`/dashboard/projects/${projectId}/products/${product.id}/variants`}
+                  href={`/brands/${brandSlug}/products/${product.id}/variants`}
                   className={button({ variant: 'primary', size: 'xs' })}
                 >
                   Manage

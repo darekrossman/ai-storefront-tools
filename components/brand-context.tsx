@@ -1,22 +1,14 @@
 'use client'
 
+import { Brand } from '@/lib/supabase/database-types'
 import { createContext, PropsWithChildren, use } from 'react'
 
-export type BrandContextType = {
-  brandName: string
-  brandId: number
-} | null
-
-type ProviderProps = {
-  brand: BrandContextType
-}
-
-export const BrandContext = createContext<BrandContextType>(null)
+export const BrandContext = createContext<Brand | null>(null)
 
 export const BrandContextProvider = ({
   brand,
   children,
-}: PropsWithChildren<ProviderProps>) => {
+}: PropsWithChildren<{ brand: Brand }>) => {
   return <BrandContext.Provider value={brand}>{children}</BrandContext.Provider>
 }
 

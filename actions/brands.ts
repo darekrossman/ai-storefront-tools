@@ -68,6 +68,36 @@ export const getBrandAction = async (brandId: number): Promise<Brand | null> => 
   return data
 }
 
+// Get a single brand by slug
+export const getBrandBySlugAction = async (slug: string): Promise<Brand | null> => {
+  const supabase = await createClient()
+
+  const {
+    data: { user },
+  } = await supabase.auth.getUser()
+
+  if (!user) {
+    throw new Error('User not authenticated')
+  }
+
+  const { data, error } = await supabase
+    .from('brands')
+    .select('*')
+    .eq('slug', slug)
+    .eq('user_id', user.id)
+    .single()
+
+  if (error) {
+    if (error.code === 'PGRST116') {
+      return null // Brand not found
+    }
+    console.error('Error fetching brand by slug:', error)
+    throw error
+  }
+
+  return data
+}
+
 // Create a new brand
 export const createBrandAction = async (brandData: CreateBrandData): Promise<Brand> => {
   const supabase = await createClient()

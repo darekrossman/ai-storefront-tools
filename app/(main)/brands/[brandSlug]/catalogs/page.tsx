@@ -5,77 +5,27 @@ import { createClient } from '@/lib/supabase/server'
 import { getProductCatalogsAction } from '@/actions/product-catalogs'
 import type { ProductCatalog } from '@/lib/supabase/database-types'
 import { button } from '@/components/ui/button'
+import { getBrandBySlugAction } from '@/actions/brands'
+import { PageContainer } from '@/components/ui/page-container'
 
 interface BrandCatalogsPageProps {
   params: Promise<{
-    id: string
+    brandSlug: string
   }>
 }
 
 export default async function BrandCatalogsPage({ params }: BrandCatalogsPageProps) {
-  const { id } = await params
-  const brandId = parseInt(id)
+  const { brandSlug } = await params
+  const brand = await getBrandBySlugAction(brandSlug)
 
-  if (isNaN(brandId)) {
+  if (!brand) {
     notFound()
   }
 
-  const supabase = await createClient()
-
-  const {
-    data: { user },
-    error: userError,
-  } = await supabase.auth.getUser()
-
-  if (userError || !user) {
-    redirect('/login')
-  }
-
-  // Get brand data and verify ownership
-  const { data: brand, error: brandError } = await supabase
-    .from('brands')
-    .select('id, name, user_id')
-    .eq('id', brandId)
-    .eq('user_id', user.id)
-    .single()
-
-  if (brandError || !brand) {
-    notFound()
-  }
-
-  let catalogs: ProductCatalog[] = []
-  let error: string | null = null
-
-  try {
-    catalogs = await getProductCatalogsAction(brandId)
-  } catch (err) {
-    error = err instanceof Error ? err.message : 'Failed to load catalogs'
-  }
-
-  if (error) {
-    return (
-      <Box
-        bg="red.50"
-        border="1px solid"
-        borderColor="red.200"
-        borderRadius="lg"
-        p={6}
-        textAlign="center"
-      >
-        <Stack gap={2} align="center">
-          <styled.h3 fontSize="lg" fontWeight="medium" color="red.900">
-            Error Loading Catalogs
-          </styled.h3>
-          <styled.p fontSize="sm" color="red.700">
-            {error}
-          </styled.p>
-        </Stack>
-      </Box>
-    )
-  }
+  const catalogs = await getProductCatalogsAction(brand.id)
 
   return (
-    <Box p={{ base: 4, md: 6, lg: 8 }}>
+    <PageContainer>
       {/* Header */}
       <Flex justify="space-between" align="start" gap={4} mb={8}>
         <Stack gap={2} flex={1}>
@@ -87,7 +37,7 @@ export default async function BrandCatalogsPage({ params }: BrandCatalogsPagePro
           </styled.p>
         </Stack>
 
-        <Link href={`/dashboard/brands/${brandId}/catalogs/new`} className={button()}>
+        <Link href={`/brands/${brand.slug}/catalogs/create`} className={button()}>
           Create Catalog
         </Link>
       </Flex>
@@ -127,7 +77,7 @@ export default async function BrandCatalogsPage({ params }: BrandCatalogsPagePro
               </styled.p>
             </Stack>
 
-            <Link href={`/dashboard/brands/${brandId}/catalogs/new`} className={button()}>
+            <Link href={`/brands/${brand.slug}/catalogs/create`} className={button()}>
               Create Your First Catalog
             </Link>
           </Stack>
@@ -144,18 +94,18 @@ export default async function BrandCatalogsPage({ params }: BrandCatalogsPagePro
           gap={6}
         >
           {catalogs.map((catalog) => (
-            <CatalogCard key={catalog.id} catalog={catalog} brandId={brandId} />
+            <CatalogCard key={catalog.id} catalog={catalog} brandSlug={brand.slug} />
           ))}
         </Box>
       )}
-    </Box>
+    </PageContainer>
   )
 }
 
 // Catalog Card Component
 interface CatalogCardProps {
   catalog: ProductCatalog
-  brandId: number
+  brandSlug: string
 }
 
 function getStatusColor(status: string) {
@@ -171,11 +121,11 @@ function getStatusColor(status: string) {
   }
 }
 
-function CatalogCard({ catalog, brandId }: CatalogCardProps) {
+function CatalogCard({ catalog, brandSlug }: CatalogCardProps) {
   const statusColor = getStatusColor(catalog.status)
 
   return (
-    <Link href={`/dashboard/brands/${brandId}/catalogs/${catalog.slug}`}>
+    <Link href={`/brands/${brandSlug}/catalogs/${catalog.slug}`}>
       <Box
         bg="white"
         border="1px solid"

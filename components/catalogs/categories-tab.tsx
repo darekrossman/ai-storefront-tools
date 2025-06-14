@@ -17,7 +17,7 @@ interface CategoriesTabProps {
 }
 
 export default function CategoriesTab({ catalogId, categories }: CategoriesTabProps) {
-  const { brandId } = useBrand()
+  const { id: brandId, slug: brandSlug } = useBrand()
 
   return (
     <Stack gap={6}>
@@ -26,7 +26,7 @@ export default function CategoriesTab({ catalogId, categories }: CategoriesTabPr
           Categories
         </styled.h2>
         <Link
-          href={`/dashboard/brands/${brandId}/catalogs/${catalogId}/categories/new`}
+          href={`/brands/${brandSlug}/catalogs/${catalogId}/categories/new`}
           className={button()}
         >
           Add Category
@@ -69,7 +69,7 @@ export default function CategoriesTab({ catalogId, categories }: CategoriesTabPr
             </Stack>
 
             <Link
-              href={`/dashboard/brands/${brandId}/catalogs/${catalogId}/categories/new`}
+              href={`/brands/${brandSlug}/catalogs/${catalogId}/categories/new`}
               className={button()}
             >
               Create Your First Category
@@ -90,7 +90,7 @@ interface CategoriesTableProps {
 }
 
 function CategoriesTable({ categories, catalogId }: CategoriesTableProps) {
-  const { brandId } = useBrand()
+  const { id: brandId, slug: brandSlug } = useBrand()
   const [expandedCategories, setExpandedCategories] = useState<Set<string>>(new Set())
 
   // Organize categories into hierarchy
@@ -206,7 +206,7 @@ function CategoryTableRow({
   level,
   catalogId,
 }: CategoryTableRowProps) {
-  const { brandId } = useBrand()
+  const { id: brandId, slug: brandSlug } = useBrand()
   const getStatusVariant = (status: boolean) => {
     return status
       ? { variant: 'success' as const, text: 'Active' }
@@ -259,7 +259,7 @@ function CategoryTableRow({
           {/* Category content */}
           <Stack gap={3} flex={1} py={3}>
             <Link
-              href={`/dashboard/brands/${brandId}/catalogs/${catalogId}/categories/${category.category_id}`}
+              href={`/brands/${brandSlug}/catalogs/${catalogId}/categories/${category.category_id}`}
             >
               <styled.p
                 fontSize="sm"

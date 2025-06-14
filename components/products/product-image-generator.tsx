@@ -10,8 +10,7 @@ import { storeGeneratedImageAction } from '@/actions/storage'
 import { useRouter } from 'next/navigation'
 import { getProductCatalogAction } from '@/actions/product-catalogs'
 import type { Tables } from '@/lib/supabase/generated-types'
-
-type ProductCatalog = Tables<'product_catalogs'>
+import { GeneratedImageResponse } from '@/lib/types'
 
 interface ImageGroupPrompt {
   groupName: string
@@ -36,9 +35,7 @@ export default function ProductImageGenerator({
   onEditComplete,
 }: ProductImageGeneratorProps) {
   const router = useRouter()
-  const [imageResponse, setImageResponse] = useState<OpenAI.Responses.Response | null>(
-    null,
-  )
+  const [imageResponse, setImageResponse] = useState<GeneratedImageResponse | null>(null)
   const [isGenerating, setIsGenerating] = useState(false)
   const [isSaving, setIsSaving] = useState(false)
   const [saveMessage, setSaveMessage] = useState<string | null>(null)
@@ -76,47 +73,50 @@ export default function ProductImageGenerator({
 
   const getImageObject = () => {
     if (!imageResponse) return
-    const imageData = imageResponse?.output.filter(
-      (output) => output.type === 'image_generation_call',
-    )[0]
-    return imageData as OpenAI.Responses.ResponseOutputItem.ImageGenerationCall & {
-      size: string
-    }
+    const imageData = imageResponse?.images[0]
+    return imageData
+    // const imageData = imageResponse?.output.filter(
+    //   (output) => output.type === 'image_generation_call',
+    // )[0]
+    // return imageData as OpenAI.Responses.ResponseOutputItem.ImageGenerationCall & {
+    //   size: string
+    // }
   }
 
   const getImageData = () => {
     const imageData = getImageObject()
     if (!imageData) return
-    const imageDataUrl = `data:image/webp;base64,${imageData.result}`
-    return imageDataUrl
+    return imageData.url
+    // const imageDataUrl = `data:image/webp;base64,${imageData.result}`
+    // return imageDataUrl
   }
 
-  // Load saved prompts from localStorage on mount
-  useEffect(() => {
-    if (typeof window !== 'undefined') {
-      const saved = localStorage.getItem(STORAGE_KEY)
-      if (saved) {
-        try {
-          const prompts = JSON.parse(saved) as string[]
-          setSavedPrompts(prompts)
-        } catch (error) {
-          console.error('Error loading saved prompts:', error)
-        }
-      }
-    }
-  }, [])
+  // // Load saved prompts from localStorage on mount
+  // useEffect(() => {
+  //   if (typeof window !== 'undefined') {
+  //     const saved = localStorage.getItem(STORAGE_KEY)
+  //     if (saved) {
+  //       try {
+  //         const prompts = JSON.parse(saved) as string[]
+  //         setSavedPrompts(prompts)
+  //       } catch (error) {
+  //         console.error('Error loading saved prompts:', error)
+  //       }
+  //     }
+  //   }
+  // }, [])
 
-  // Save prompt to localStorage
-  const savePromptToStorage = (prompt: string) => {
-    if (!prompt.trim() || typeof window === 'undefined') return
+  // // Save prompt to localStorage
+  // const savePromptToStorage = (prompt: string) => {
+  //   if (!prompt.trim() || typeof window === 'undefined') return
 
-    const updatedPrompts = [prompt, ...savedPrompts.filter((p) => p !== prompt)].slice(
-      0,
-      10,
-    ) // Keep max 10 prompts
-    setSavedPrompts(updatedPrompts)
-    localStorage.setItem(STORAGE_KEY, JSON.stringify(updatedPrompts))
-  }
+  //   const updatedPrompts = [prompt, ...savedPrompts.filter((p) => p !== prompt)].slice(
+  //     0,
+  //     10,
+  //   ) // Keep max 10 prompts
+  //   setSavedPrompts(updatedPrompts)
+  //   localStorage.setItem(STORAGE_KEY, JSON.stringify(updatedPrompts))
+  // }
 
   // Handle clicking on a saved prompt
   const handleSavedPromptClick = async (prompt: string) => {
@@ -172,7 +172,7 @@ export default function ProductImageGenerator({
 
   const generateImageWithPrompt = async (promptText: string) => {
     if (mode === 'edit' && promptText.trim()) {
-      savePromptToStorage(promptText.trim())
+      // savePromptToStorage(promptText.trim())
     }
 
     setIsGenerating(true)
@@ -198,8 +198,7 @@ export default function ProductImageGenerator({
         method: 'POST',
         body: JSON.stringify({ ...requestBody }),
       })
-      const data: OpenAI.Responses.Response = await response.json()
-
+      const { data }: { data: GeneratedImageResponse } = await response.json()
       setImageResponse(data)
     } catch (error) {
       console.error('Error generating image:', error)
@@ -222,9 +221,9 @@ export default function ProductImageGenerator({
     try {
       const result = await storeGeneratedImageAction(
         product.id,
-        getImageData()!,
+        imageResponse,
+        productInfo.attributes || {},
         'gallery',
-        `Generated image for ${product.name}`,
       )
 
       if (result.success) {
@@ -250,7 +249,7 @@ export default function ProductImageGenerator({
   return (
     <Stack gap={4}>
       {/* Edit Mode - Selected Image */}
-      {mode === 'edit' && selectedImage && (
+      {/* {mode === 'edit' && selectedImage && (
         <Box bg="white" border="1px solid" borderColor="gray.200" borderRadius="lg" p={6}>
           <Stack gap={4}>
             <styled.h3 fontSize="lg" fontWeight="medium" color="gray.900">
@@ -267,7 +266,7 @@ export default function ProductImageGenerator({
             </Box>
           </Stack>
         </Box>
-      )}
+      )} */}
 
       {/* Generated Image Display */}
       {image && (

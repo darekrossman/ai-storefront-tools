@@ -9,6 +9,9 @@ import { z } from 'zod'
 import { useRouter, useSearchParams } from 'next/navigation'
 import { fullProductSchema, productSchemaWithVariants } from '@/lib/products/schemas'
 import { createMultipleProducts } from '@/actions/products'
+import { ProductCatalog, Category } from '@/lib/supabase/database-types'
+import { getCategoriesAction } from '@/actions/categories'
+import { useBrand } from '@/components/brand-context'
 
 type FullProductSchemaType = z.infer<typeof fullProductSchema>
 
@@ -88,17 +91,14 @@ function ProductsDisplay({ products }: { products: FullProductSchemaType['produc
   )
 }
 
-export default function ProductsGeneration({
-  catalogId,
-  projectId,
-}: {
-  catalogId: string
-  projectId: number
-}) {
+export default function ProductsGeneration({ catalogs }: { catalogs: ProductCatalog[] }) {
   const router = useRouter()
-  const searchParams = useSearchParams()
-  const categoryId = searchParams.get('category')
+  const { id: brandId, slug: brandSlug } = useBrand()
   const [count, setCount] = useState(3)
+  const [catalogId, setCatalogId] = useState<string>('')
+  const [categories, setCategories] = useState<Category[]>([])
+  const [selectedCategoryIds, setSelectedCategoryIds] = useState<string[]>([])
+  const [loadingCategories, setLoadingCategories] = useState(false)
 
   const { object, submit, isLoading, stop } = useObject({
     api: '/api/agents/products',
@@ -107,10 +107,32 @@ export default function ProductsGeneration({
 
   const [isSaving, setIsSaving] = useState(false)
 
+  // Fetch categories when catalog is selected
+  useEffect(() => {
+    if (catalogId) {
+      setLoadingCategories(true)
+      getCategoriesAction(catalogId)
+        .then((fetchedCategories) => {
+          setCategories(fetchedCategories)
+          setSelectedCategoryIds([]) // Reset selected categories
+        })
+        .catch((error) => {
+          console.error('Error fetching categories:', error)
+          setCategories([])
+        })
+        .finally(() => {
+          setLoadingCategories(false)
+        })
+    } else {
+      setCategories([])
+      setSelectedCategoryIds([])
+    }
+  }, [catalogId])
+
   const handleSubmit = (e: React.FormEvent) => {
     submit({
       catalogId,
-      categoryId,
+      categoryIds: selectedCategoryIds,
       count,
     })
   }
@@ -124,7 +146,7 @@ export default function ProductsGeneration({
       const result = await createMultipleProducts(catalogId, fullProductSchemaData)
 
       if (result.success) {
-        router.push(`/dashboard/projects/${projectId}/catalogs/${catalogId}`)
+        router.push(`/brands/${brandSlug}/products`)
       } else {
         console.error('Error saving catalog:', result.error)
       }
@@ -135,7 +157,21 @@ export default function ProductsGeneration({
     }
   }
 
+  // Group categories by parent
+  const parentCategories = categories.filter((cat) => !cat.parent_category_id)
+  const getSubcategories = (parentId: string) =>
+    categories.filter((cat) => cat.parent_category_id === parentId)
+
+  const handleCategoryToggle = (categoryId: string) => {
+    setSelectedCategoryIds((prev) =>
+      prev.includes(categoryId)
+        ? prev.filter((id) => id !== categoryId)
+        : [...prev, categoryId],
+    )
+  }
+
   // Count completed products during streaming
+  const totalExpectedProducts = count * selectedCategoryIds.length
   const completedProductsCount = object?.products
     ? object.products.filter((p) => p && p.name && p.variants && p.variants.length > 0)
         .length
@@ -147,7 +183,7 @@ export default function ProductsGeneration({
       : []
 
     return (
-      <Box maxW="4xl" mx="auto" p={6}>
+      <Box maxW="4xl">
         <Stack gap={8} alignItems="center">
           {/* Loading Header */}
           <Box textAlign="center" w="full">
@@ -179,7 +215,7 @@ export default function ProductsGeneration({
                   Generating Products
                 </styled.h1>
                 <styled.p fontSize="lg" color="gray.600">
-                  AI is creating {count} products for your catalog
+                  AI is creating {totalExpectedProducts} products for your catalog
                 </styled.p>
               </Stack>
 
@@ -194,7 +230,8 @@ export default function ProductsGeneration({
                   maxW="md"
                 >
                   <styled.p fontSize="base" color="blue.900" fontWeight="semibold" mb={3}>
-                    Progress: {completedProductsCount} of {count} completed
+                    Progress: {completedProductsCount} of {totalExpectedProducts}{' '}
+                    completed
                   </styled.p>
                   <Box w="full" h="3" bg="blue.100" borderRadius="full" overflow="hidden">
                     <styled.div
@@ -202,7 +239,7 @@ export default function ProductsGeneration({
                       bg="blue.500"
                       borderRadius="full"
                       style={{
-                        width: `${(completedProductsCount / count) * 100}%`,
+                        width: `${(completedProductsCount / totalExpectedProducts) * 100}%`,
                         transition: 'width 0.3s ease-in-out',
                       }}
                     />
@@ -254,6 +291,175 @@ export default function ProductsGeneration({
           <Stack gap={6}>
             <Box>
               <styled.label
+                htmlFor="catalog-select"
+                fontSize="sm"
+                fontWeight="semibold"
+                color="gray.700"
+                display="block"
+                mb={2}
+              >
+                Select Catalog
+              </styled.label>
+              <styled.select
+                id="catalog-select"
+                value={catalogId}
+                onChange={(e) => setCatalogId(e.target.value)}
+                disabled={isLoading}
+                px={4}
+                py={3}
+                border="1px solid"
+                borderColor="gray.300"
+                borderRadius="lg"
+                fontSize="base"
+                w="full"
+                maxW="md"
+                bg="white"
+                _focus={{
+                  outline: 'none',
+                  borderColor: 'blue.500',
+                  boxShadow: '0 0 0 3px rgba(59, 130, 246, 0.1)',
+                }}
+                _disabled={{
+                  bg: 'gray.50',
+                  color: 'gray.500',
+                  cursor: 'not-allowed',
+                }}
+              >
+                <option value="">Choose a catalog...</option>
+                {catalogs.map((catalog) => (
+                  <option key={catalog.catalog_id} value={catalog.catalog_id}>
+                    {catalog.name}
+                  </option>
+                ))}
+              </styled.select>
+              <styled.p fontSize="sm" color="gray.500" mt={1}>
+                Products will be added to the selected catalog
+              </styled.p>
+            </Box>
+
+            {/* Categories Selection */}
+            {catalogId && (
+              <Box>
+                <styled.label
+                  fontSize="sm"
+                  fontWeight="semibold"
+                  color="gray.700"
+                  display="block"
+                  mb={2}
+                >
+                  Select Categories
+                </styled.label>
+                {loadingCategories ? (
+                  <Box p={4} textAlign="center">
+                    <styled.p fontSize="sm" color="gray.500">
+                      Loading categories...
+                    </styled.p>
+                  </Box>
+                ) : parentCategories.length === 0 ? (
+                  <Box p={4} textAlign="center">
+                    <styled.p fontSize="sm" color="gray.500">
+                      No categories found for this catalog.
+                    </styled.p>
+                  </Box>
+                ) : (
+                  <Box
+                    border="1px solid"
+                    borderColor="gray.300"
+                    borderRadius="lg"
+                    p={4}
+                    maxH="60"
+                    overflowY="auto"
+                    bg="white"
+                  >
+                    <Stack gap={4}>
+                      {parentCategories.map((parentCategory) => {
+                        const subcategories = getSubcategories(parentCategory.category_id)
+                        return (
+                          <Box key={parentCategory.category_id}>
+                            <styled.h4
+                              fontSize="sm"
+                              fontWeight="semibold"
+                              color="gray.800"
+                              mb={2}
+                            >
+                              {parentCategory.name}
+                            </styled.h4>
+                            {subcategories.length > 0 ? (
+                              <Stack gap={2} pl={4}>
+                                {subcategories.map((subcategory) => (
+                                  <Flex
+                                    key={subcategory.category_id}
+                                    align="center"
+                                    gap={2}
+                                  >
+                                    <styled.input
+                                      type="checkbox"
+                                      id={`category-${subcategory.category_id}`}
+                                      checked={selectedCategoryIds.includes(
+                                        subcategory.category_id,
+                                      )}
+                                      onChange={() =>
+                                        handleCategoryToggle(subcategory.category_id)
+                                      }
+                                      disabled={isLoading}
+                                      w={4}
+                                      h={4}
+                                      accentColor="blue.500"
+                                    />
+                                    <styled.label
+                                      htmlFor={`category-${subcategory.category_id}`}
+                                      fontSize="sm"
+                                      color="gray.700"
+                                      cursor="pointer"
+                                      flex="1"
+                                    >
+                                      {subcategory.name}
+                                    </styled.label>
+                                  </Flex>
+                                ))}
+                              </Stack>
+                            ) : (
+                              <Flex align="center" gap={2} pl={4}>
+                                <styled.input
+                                  type="checkbox"
+                                  id={`category-${parentCategory.category_id}`}
+                                  checked={selectedCategoryIds.includes(
+                                    parentCategory.category_id,
+                                  )}
+                                  onChange={() =>
+                                    handleCategoryToggle(parentCategory.category_id)
+                                  }
+                                  disabled={isLoading}
+                                  w={4}
+                                  h={4}
+                                  accentColor="blue.500"
+                                />
+                                <styled.label
+                                  htmlFor={`category-${parentCategory.category_id}`}
+                                  fontSize="sm"
+                                  color="gray.700"
+                                  cursor="pointer"
+                                  flex="1"
+                                >
+                                  No subcategories
+                                </styled.label>
+                              </Flex>
+                            )}
+                          </Box>
+                        )
+                      })}
+                    </Stack>
+                  </Box>
+                )}
+                <styled.p fontSize="sm" color="gray.500" mt={1}>
+                  Select categories to generate products for ({selectedCategoryIds.length}{' '}
+                  selected)
+                </styled.p>
+              </Box>
+            )}
+
+            <Box>
+              <styled.label
                 htmlFor="count-input"
                 fontSize="sm"
                 fontWeight="semibold"
@@ -261,7 +467,7 @@ export default function ProductsGeneration({
                 display="block"
                 mb={2}
               >
-                Number of products to generate
+                Products per category
               </styled.label>
               <styled.input
                 id="count-input"
@@ -293,12 +499,18 @@ export default function ProductsGeneration({
                 }}
               />
               <styled.p fontSize="sm" color="gray.500" mt={1}>
-                Choose between 1-20 products (recommended: 3-5)
+                {selectedCategoryIds.length > 0
+                  ? `Total: ${count * selectedCategoryIds.length} products (${count} per category × ${selectedCategoryIds.length} categories)`
+                  : `Choose between 1-20 products per category (recommended: 3-5)`}
               </styled.p>
             </Box>
 
             <Flex gap={4} alignItems="center">
-              <Button onClick={handleSubmit} disabled={isLoading} size="lg">
+              <Button
+                onClick={handleSubmit}
+                disabled={isLoading || !catalogId || selectedCategoryIds.length === 0}
+                size="lg"
+              >
                 {isLoading ? 'Generating...' : 'Generate Products'}
               </Button>
 

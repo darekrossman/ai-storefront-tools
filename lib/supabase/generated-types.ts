@@ -17,9 +17,9 @@ export type Database = {
     Functions: {
       graphql: {
         Args: {
+          query?: string
           extensions?: Json
           operationName?: string
-          query?: string
           variables?: Json
         }
         Returns: Json
@@ -57,6 +57,7 @@ export type Database = {
           name: string
           personality_traits: string[] | null
           price_point: Database["public"]["Enums"]["price_point"] | null
+          slug: string
           status: Database["public"]["Enums"]["brand_status"]
           tagline: string | null
           target_age_range: string | null
@@ -99,6 +100,7 @@ export type Database = {
           name: string
           personality_traits?: string[] | null
           price_point?: Database["public"]["Enums"]["price_point"] | null
+          slug: string
           status?: Database["public"]["Enums"]["brand_status"]
           tagline?: string | null
           target_age_range?: string | null
@@ -141,6 +143,7 @@ export type Database = {
           name?: string
           personality_traits?: string[] | null
           price_point?: Database["public"]["Enums"]["price_point"] | null
+          slug?: string
           status?: Database["public"]["Enums"]["brand_status"]
           tagline?: string | null
           target_age_range?: string | null
@@ -335,39 +338,54 @@ export type Database = {
       product_images: {
         Row: {
           alt_text: string | null
+          aspect_ratio: number | null
           attribute_filters: Json | null
           color_id: string | null
           created_at: string
+          height: number | null
           id: number
           product_id: number
+          prompt: string | null
+          seed: number | null
           sort_order: number
           type: string
           updated_at: string
           url: string
+          width: number | null
         }
         Insert: {
           alt_text?: string | null
+          aspect_ratio?: number | null
           attribute_filters?: Json | null
           color_id?: string | null
           created_at?: string
+          height?: number | null
           id?: never
           product_id: number
+          prompt?: string | null
+          seed?: number | null
           sort_order?: number
           type?: string
           updated_at?: string
           url: string
+          width?: number | null
         }
         Update: {
           alt_text?: string | null
+          aspect_ratio?: number | null
           attribute_filters?: Json | null
           color_id?: string | null
           created_at?: string
+          height?: number | null
           id?: never
           product_id?: number
+          prompt?: string | null
+          seed?: number | null
           sort_order?: number
           type?: string
           updated_at?: string
           url?: string
+          width?: number | null
         }
         Relationships: [
           {
@@ -593,8 +611,12 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
+      generate_brand_slug: {
+        Args: { brand_name: string; brand_id?: number }
+        Returns: string
+      }
       get_effective_attributes: {
-        Args: { p_product_id: number; p_variant_attributes?: Json }
+        Args: { p_variant_attributes?: Json; p_product_id: number }
         Returns: Json
       }
       get_product_attribute_schema: {
@@ -606,7 +628,7 @@ export type Database = {
         Returns: string
       }
       validate_attribute_values: {
-        Args: { p_attribute_values: Json; p_product_id: number }
+        Args: { p_product_id: number; p_attribute_values: Json }
         Returns: boolean
       }
     }

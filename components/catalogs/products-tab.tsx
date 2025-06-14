@@ -1,22 +1,27 @@
 import { Box, Flex, Stack, styled } from '@/styled-system/jsx'
 import Link from 'next/link'
-import { getProductsByCatalog } from '@/actions/products'
+import { getProductsByBrand, getProductsByCatalog } from '@/actions/products'
 import type { ProductWithRelations } from '@/actions/products'
 import { button } from '@/components/ui/button'
 import { getBrandIdByCatalog } from '@/actions'
+import { Brand } from '@/lib/supabase/database-types'
+import Image from 'next/image'
 
 interface ProductsTabProps {
-  catalogId: string
+  brand: Brand
+  catalogId?: string
 }
 
-export default async function ProductsTab({ catalogId }: ProductsTabProps) {
-  let brandId: number | null = null
+export default async function ProductsTab({ catalogId, brand }: ProductsTabProps) {
   let products: ProductWithRelations[] = []
   let error: string | null = null
 
+  const brandId = brand.id
+
   try {
-    brandId = await getBrandIdByCatalog(catalogId)
-    products = await getProductsByCatalog(catalogId)
+    products = !catalogId
+      ? await getProductsByBrand(brandId)
+      : await getProductsByCatalog(catalogId)
   } catch (err) {
     error = err instanceof Error ? err.message : 'Failed to load products'
   }
@@ -45,20 +50,6 @@ export default async function ProductsTab({ catalogId }: ProductsTabProps) {
 
   return (
     <Stack gap={6}>
-      <Flex justify="space-between" align="center">
-        <styled.h2 fontSize="xl" fontWeight="semibold" color="gray.900">
-          Products
-        </styled.h2>
-        {products.length > 0 && (
-          <Link
-            href={`/dashboard/brands/${brandId}/catalogs/${catalogId}/products/new`}
-            className={button()}
-          >
-            Add Product
-          </Link>
-        )}
-      </Flex>
-
       {/* Products Table */}
       {products.length === 0 ? (
         <Box
@@ -94,10 +85,7 @@ export default async function ProductsTab({ catalogId }: ProductsTabProps) {
               </styled.p>
             </Stack>
 
-            <Link
-              href={`/dashboard/brands/${brandId}/catalogs/${catalogId}/products/new`}
-              className={button()}
-            >
+            <Link href={`/brands/${brand?.slug}/products/create`} className={button()}>
               Add Your First Product
             </Link>
           </Stack>
@@ -160,62 +148,13 @@ export default async function ProductsTab({ catalogId }: ProductsTabProps) {
                   textTransform="uppercase"
                   letterSpacing="wide"
                 >
-                  Status
-                </styled.th>
-                <styled.th
-                  textAlign="left"
-                  px={6}
-                  py={3}
-                  fontSize="xs"
-                  fontWeight="medium"
-                  color="gray.500"
-                  textTransform="uppercase"
-                  letterSpacing="wide"
-                >
                   Variants
-                </styled.th>
-                <styled.th
-                  textAlign="left"
-                  px={6}
-                  py={3}
-                  fontSize="xs"
-                  fontWeight="medium"
-                  color="gray.500"
-                  textTransform="uppercase"
-                  letterSpacing="wide"
-                >
-                  Price Range
-                </styled.th>
-                <styled.th
-                  textAlign="left"
-                  px={6}
-                  py={3}
-                  fontSize="xs"
-                  fontWeight="medium"
-                  color="gray.500"
-                  textTransform="uppercase"
-                  letterSpacing="wide"
-                >
-                  Created
-                </styled.th>
-                <styled.th
-                  textAlign="right"
-                  px={6}
-                  py={3}
-                  fontSize="xs"
-                  fontWeight="medium"
-                  color="gray.500"
-                  textTransform="uppercase"
-                  letterSpacing="wide"
-                  w={24}
-                >
-                  Actions
                 </styled.th>
               </styled.tr>
             </styled.thead>
             <styled.tbody>
               {products.map((product) => (
-                <ProductTableRow key={product.id} product={product} brandId={brandId!} />
+                <ProductTableRow key={product.id} product={product} brand={brand!} />
               ))}
             </styled.tbody>
           </styled.table>
@@ -228,10 +167,10 @@ export default async function ProductsTab({ catalogId }: ProductsTabProps) {
 // Product Table Row Component
 interface ProductTableRowProps {
   product: ProductWithRelations
-  brandId: number
+  brand: Brand
 }
 
-function ProductTableRow({ product, brandId }: ProductTableRowProps) {
+function ProductTableRow({ product, brand }: ProductTableRowProps) {
   const getStatusColor = (status: string) => {
     switch (status) {
       case 'active':
@@ -247,7 +186,7 @@ function ProductTableRow({ product, brandId }: ProductTableRowProps) {
 
   const statusColor = getStatusColor(product.status)
   const variantCount = product.product_variants?.length || 0
-  const heroImage = product.product_images?.find((img) => img.type === 'hero')
+  const mainImage = product.product_images?.[0]
 
   return (
     <styled.tr
@@ -258,17 +197,17 @@ function ProductTableRow({ product, brandId }: ProductTableRowProps) {
     >
       {/* Product Image */}
       <styled.td px={6} py={4}>
-        <Box w={12} h={12} borderRadius="md" overflow="hidden" bg="gray.100">
-          {heroImage ? (
-            <styled.img
-              src={heroImage.url}
-              alt={heroImage.alt_text || product.name}
-              w="full"
-              h="full"
-              objectFit="cover"
+        <Box w={12} borderRadius="md" overflow="hidden" bg="gray.100">
+          {mainImage ? (
+            <Image
+              src={mainImage.url}
+              alt={mainImage.alt_text || product.name}
+              width={100}
+              height={100}
+              objectFit="contain"
             />
           ) : (
-            <Flex w="full" h="full" align="center" justify="center">
+            <Flex w="full" h={12} align="center" justify="center">
               <styled.div fontSize="lg" color="gray.400">
                 📦
               </styled.div>
@@ -279,8 +218,8 @@ function ProductTableRow({ product, brandId }: ProductTableRowProps) {
 
       {/* Product Name & Description */}
       <styled.td px={6} py={4}>
-        <Stack gap={1}>
-          <Link href={`/dashboard/brands/${brandId}/products/${product.id}`}>
+        <Stack gap={3} maxW="340px">
+          <Link href={`/brands/${brand?.slug}/products/${product.id}`}>
             <styled.span
               fontSize="sm"
               fontWeight="medium"
@@ -292,18 +231,9 @@ function ProductTableRow({ product, brandId }: ProductTableRowProps) {
               {product.name}
             </styled.span>
           </Link>
-          {product.description && (
-            <styled.p
-              fontSize="xs"
-              color="gray.500"
-              overflow="hidden"
-              style={{
-                display: '-webkit-box',
-                WebkitLineClamp: 1,
-                WebkitBoxOrient: 'vertical',
-              }}
-            >
-              {product.description}
+          {product.short_description && (
+            <styled.p fontSize="xs" color="gray.500">
+              {product.short_description}
             </styled.p>
           )}
         </Stack>
@@ -312,71 +242,19 @@ function ProductTableRow({ product, brandId }: ProductTableRowProps) {
       {/* Category */}
       <styled.td px={6} py={4}>
         {product.categories ? (
-          <styled.span fontSize="sm" color="blue.600" fontWeight="medium">
-            {product.categories.name}
-          </styled.span>
+          <styled.span fontSize="xs">{product.categories.name}</styled.span>
         ) : (
-          <styled.span fontSize="sm" color="gray.400">
+          <styled.span fontSize="xs" color="gray.400">
             —
           </styled.span>
         )}
-      </styled.td>
-
-      {/* Status */}
-      <styled.td px={6} py={4}>
-        <styled.span
-          fontSize="xs"
-          fontWeight="medium"
-          px={2}
-          py={1}
-          borderRadius="md"
-          bg={statusColor.bg}
-          color={statusColor.color}
-          textTransform="capitalize"
-        >
-          {product.status}
-        </styled.span>
       </styled.td>
 
       {/* Variants */}
       <styled.td px={6} py={4}>
-        <styled.span fontSize="sm" color="gray.900">
+        <styled.p fontSize="xs" color="gray.900">
           {variantCount}
-        </styled.span>
-      </styled.td>
-
-      {/* Price Range */}
-      <styled.td px={6} py={4}>
-        {product.min_price !== null ? (
-          <styled.span fontSize="sm" fontWeight="medium" color="gray.900">
-            {product.min_price === product.max_price
-              ? `$${product.min_price}`
-              : `$${product.min_price} - $${product.max_price}`}
-          </styled.span>
-        ) : (
-          <styled.span fontSize="sm" color="gray.400">
-            —
-          </styled.span>
-        )}
-      </styled.td>
-
-      {/* Created Date */}
-      <styled.td px={6} py={4}>
-        <styled.span fontSize="sm" color="gray.600">
-          {new Date(product.created_at).toLocaleDateString()}
-        </styled.span>
-      </styled.td>
-
-      {/* Actions */}
-      <styled.td px={6} py={4}>
-        <Flex gap={2} justify="end">
-          <Link
-            href={`/dashboard/brands/${brandId}/products/${product.id}`}
-            className={button({ variant: 'secondary', size: 'sm' })}
-          >
-            View
-          </Link>
-        </Flex>
+        </styled.p>
       </styled.td>
     </styled.tr>
   )

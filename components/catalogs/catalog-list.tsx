@@ -2,44 +2,21 @@ import { Box, Flex, Stack, styled } from '@/styled-system/jsx'
 import Link from 'next/link'
 import { getProductCatalogsAction } from '@/actions/product-catalogs'
 import type { ProductCatalog } from '@/lib/supabase/database-types'
+import { getBrandBySlugAction } from '@/actions/brands'
+import { notFound } from 'next/navigation'
 
 interface CatalogListProps {
-  projectId: number
-  brandId: number
+  brandSlug: string
 }
 
-export default async function CatalogList({ projectId, brandId }: CatalogListProps) {
-  let catalogs: ProductCatalog[] = []
-  let error: string | null = null
+export default async function CatalogList({ brandSlug }: CatalogListProps) {
+  const brand = await getBrandBySlugAction(brandSlug)
 
-  try {
-    catalogs = await getProductCatalogsAction(brandId)
-  } catch (err) {
-    error = err instanceof Error ? err.message : 'Failed to load catalogs'
-    catalogs = []
+  if (!brand) {
+    notFound()
   }
 
-  if (error) {
-    return (
-      <Box
-        bg="red.50"
-        border="1px solid"
-        borderColor="red.200"
-        borderRadius="lg"
-        p={6}
-        textAlign="center"
-      >
-        <Stack gap={2} align="center">
-          <styled.h3 fontSize="lg" fontWeight="medium" color="red.900">
-            Error Loading Catalogs
-          </styled.h3>
-          <styled.p fontSize="sm" color="red.700">
-            {error}
-          </styled.p>
-        </Stack>
-      </Box>
-    )
-  }
+  const catalogs = await getProductCatalogsAction(brand.id)
 
   // Empty State
   if (catalogs.length === 0) {
@@ -49,7 +26,7 @@ export default async function CatalogList({ projectId, brandId }: CatalogListPro
           <styled.h2 fontSize="xl" fontWeight="semibold" color="gray.900">
             Product Catalogs
           </styled.h2>
-          <Link href={`/dashboard/projects/${projectId}/brands/${brandId}/catalogs/new`}>
+          <Link href={`/brands/${brand.slug}/catalogs/create`}>
             <styled.button
               px={4}
               py={2}
@@ -104,9 +81,7 @@ export default async function CatalogList({ projectId, brandId }: CatalogListPro
               </styled.p>
             </Stack>
 
-            <Link
-              href={`/dashboard/projects/${projectId}/brands/${brandId}/catalogs/new`}
-            >
+            <Link href={`/brands/${brand.slug}/catalogs/create`}>
               <styled.button
                 px={6}
                 py={3}
@@ -144,7 +119,7 @@ export default async function CatalogList({ projectId, brandId }: CatalogListPro
           </styled.p>
         </Stack>
 
-        <Link href={`/dashboard/projects/${projectId}/brands/${brandId}/catalogs/new`}>
+        <Link href={`/brands/${brand.slug}/catalogs/create`}>
           <styled.button
             px={4}
             py={2}
@@ -174,12 +149,7 @@ export default async function CatalogList({ projectId, brandId }: CatalogListPro
         gap={6}
       >
         {catalogs.map((catalog) => (
-          <CatalogCard
-            key={catalog.id}
-            catalog={catalog}
-            projectId={projectId}
-            brandId={brandId}
-          />
+          <CatalogCard key={catalog.id} catalog={catalog} brandSlug={brand.slug} />
         ))}
       </Box>
     </Box>
@@ -189,8 +159,7 @@ export default async function CatalogList({ projectId, brandId }: CatalogListPro
 // Catalog Card Component
 interface CatalogCardProps {
   catalog: ProductCatalog
-  projectId: number
-  brandId: number
+  brandSlug: string
 }
 
 function getStatusColor(status: string) {
@@ -206,7 +175,7 @@ function getStatusColor(status: string) {
   }
 }
 
-function CatalogCard({ catalog, projectId, brandId }: CatalogCardProps) {
+function CatalogCard({ catalog, brandSlug }: CatalogCardProps) {
   const statusColor = getStatusColor(catalog.status)
 
   return (
@@ -251,9 +220,7 @@ function CatalogCard({ catalog, projectId, brandId }: CatalogCardProps) {
 
           {/* Actions */}
           <Flex gap={1} flexShrink={0}>
-            <Link
-              href={`/dashboard/projects/${projectId}/catalogs/${catalog.catalog_id}/edit`}
-            >
+            <Link href={`/brands/${brandSlug}/catalogs/${catalog.slug}/edit`}>
               <styled.button
                 px={2}
                 py={1}
@@ -270,7 +237,7 @@ function CatalogCard({ catalog, projectId, brandId }: CatalogCardProps) {
                 }}
                 transition="all 0.2s"
               >
-                Edit
+                Settings
               </styled.button>
             </Link>
           </Flex>
@@ -278,7 +245,7 @@ function CatalogCard({ catalog, projectId, brandId }: CatalogCardProps) {
       </Box>
 
       {/* Content */}
-      <Link href={`/dashboard/projects/${projectId}/catalogs/${catalog.catalog_id}`}>
+      <Link href={`/brands/${brandSlug}/catalogs/${catalog.slug}`}>
         <Box p={4} cursor="pointer">
           <Stack gap={3}>
             {/* Description */}

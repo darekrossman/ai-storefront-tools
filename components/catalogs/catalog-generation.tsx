@@ -15,7 +15,7 @@ import { useBrand } from '../brand-context'
 
 export default function CatalogGeneration() {
   const router = useRouter()
-  const { brandId } = useBrand()
+  const { id: brandId, slug: brandSlug } = useBrand()
   const [formData, setFormData] = useState({
     parentCategoryCount: 5,
     subcategoryCount: 3,
@@ -54,7 +54,7 @@ export default function CatalogGeneration() {
         categories.filter((c) => c.parent_category_id).map(createCategoryAction),
       )
 
-      router.push(`/dashboard/brands/${brandId}/catalogs/${createdCatalog.catalog_id}`)
+      router.push(`/brands/${brandSlug}/catalogs/${createdCatalog.slug}`)
     } catch (error) {
       console.error('Error saving catalog:', error)
     }

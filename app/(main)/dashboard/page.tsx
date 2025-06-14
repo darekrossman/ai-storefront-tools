@@ -3,29 +3,12 @@ import { redirect } from 'next/navigation'
 import { Box, Container, Flex, Stack, styled } from '@/styled-system/jsx'
 import Link from 'next/link'
 import { button } from '@/components/ui/button'
+import { getBrandsAction } from '@/actions/brands'
+import { getUser } from '@/actions/user'
 
 export default async function DashboardPage() {
-  const supabase = await createClient()
-
-  const {
-    data: { user },
-    error: userError,
-  } = await supabase.auth.getUser()
-
-  if (userError || !user) {
-    redirect('/login')
-  }
-
-  // Get user's brands
-  const { data: brands, error: brandsError } = await supabase
-    .from('brands')
-    .select('*')
-    .eq('user_id', user.id)
-    .order('created_at', { ascending: false })
-
-  if (brandsError) {
-    console.error('Error fetching brands:', brandsError)
-  }
+  const user = await getUser()
+  const brands = await getBrandsAction()
 
   const brandCount = brands?.length || 0
 
@@ -48,10 +31,7 @@ export default async function DashboardPage() {
 
         {/* Create New Brand Button */}
         <Flex justify="flex-start">
-          <Link
-            href="/dashboard/brands/new"
-            className={button({ variant: 'primary', size: 'lg' })}
-          >
+          <Link href="/brands/new" className={button({ variant: 'primary', size: 'lg' })}>
             Create New Brand
           </Link>
         </Flex>
@@ -106,10 +86,7 @@ export default async function DashboardPage() {
                   brand identities, product catalogs, and marketing assets with AI.
                 </styled.p>
               </Stack>
-              <Link
-                href="/dashboard/brands/new"
-                className={button({ variant: 'primary' })}
-              >
+              <Link href="/brands/new" className={button({ variant: 'primary' })}>
                 Create Your First Brand
               </Link>
             </Stack>
@@ -122,7 +99,7 @@ export default async function DashboardPage() {
             gap={6}
           >
             {brands?.map((brand) => (
-              <Link key={brand.id} href={`/dashboard/brands/${brand.id}`}>
+              <Link key={brand.id} href={`/brands/${brand.slug}`}>
                 <styled.div
                   bg="white"
                   border="1px solid"
