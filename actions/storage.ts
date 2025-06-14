@@ -1,6 +1,7 @@
 'use server'
 
 import { createClient } from '@/lib/supabase/server'
+import { revalidatePath } from 'next/cache'
 import type { ProductImageInsert } from '@/lib/supabase/database-types'
 import { GeneratedImageResponse } from '@/lib/types'
 
@@ -140,6 +141,114 @@ export async function storeGeneratedImageAction(
     }
   } catch (error) {
     console.error('Error in storeGeneratedImageAction:', error)
+    return {
+      success: false,
+      error: error instanceof Error ? error.message : 'Unknown error occurred',
+    }
+  }
+}
+
+/**
+ * Delete a product image from both database and storage
+ */
+export async function deleteProductImageAction(imageId: number): Promise<UploadResult> {
+  try {
+    const supabase = await createClient()
+
+    // Get the image record first to validate ownership and get storage path
+    const { data: image, error: fetchError } = await supabase
+      .from('product_images')
+      .select(`
+        id,
+        url,
+        product_id,
+        products (
+          id,
+          product_catalogs (
+            catalog_id,
+            brands (
+              id,
+              user_id
+            )
+          )
+        )
+      `)
+      .eq('id', imageId)
+      .single()
+
+    if (fetchError || !image) {
+      console.error('Error fetching image:', fetchError)
+      return {
+        success: false,
+        error: 'Image not found',
+      }
+    }
+
+    // Validate user ownership
+    const {
+      data: { user },
+    } = await supabase.auth.getUser()
+
+    const brandUserId = image.products?.product_catalogs?.brands?.user_id
+    if (!user || !brandUserId) {
+      return {
+        success: false,
+        error: 'Access denied',
+      }
+    }
+
+    if (brandUserId !== user.id) {
+      return {
+        success: false,
+        error: 'Unauthorized',
+      }
+    }
+
+    // Extract storage path from URL
+    // URL format: https://[project-id].supabase.co/storage/v1/object/public/product_images/[path]
+    const urlParts = image.url.split('/product_images/')
+    if (urlParts.length !== 2) {
+      console.error('Invalid image URL format:', image.url)
+      return {
+        success: false,
+        error: 'Invalid image URL format',
+      }
+    }
+    const storagePath = urlParts[1]!
+
+    // Delete from database first
+    const { error: dbError } = await supabase
+      .from('product_images')
+      .delete()
+      .eq('id', imageId)
+
+    if (dbError) {
+      console.error('Database delete error:', dbError)
+      return {
+        success: false,
+        error: `Failed to delete image record: ${dbError.message}`,
+      }
+    }
+
+    // Delete from storage
+    const { error: storageError } = await supabase.storage
+      .from('product_images')
+      .remove([storagePath])
+
+    if (storageError) {
+      console.error('Storage delete error:', storageError)
+      // Note: We continue even if storage deletion fails since DB record is already deleted
+      // This prevents orphaned database records
+    }
+
+    // Revalidate the page to reflect the changes
+    revalidatePath('/')
+
+    return {
+      success: true,
+    }
+  } catch (error) {
+    console.error('Error in deleteProductImageAction:', error)
     return {
       success: false,
       error: error instanceof Error ? error.message : 'Unknown error occurred',

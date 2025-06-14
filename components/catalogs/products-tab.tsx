@@ -10,6 +10,7 @@ import { getBrandIdByCatalog } from '@/actions'
 import { Brand } from '@/lib/supabase/database-types'
 import Image from 'next/image'
 import { useEffect, useState } from 'react'
+import BulkImageGeneratorModal from './bulk-image-generator-modal'
 
 interface ProductsTabProps {
   brand: Brand
@@ -21,6 +22,7 @@ export default function ProductsTab({ catalogId, brand }: ProductsTabProps) {
   const [error, setError] = useState<string | null>(null)
   const [loading, setLoading] = useState(true)
   const [selectedProductIds, setSelectedProductIds] = useState<number[]>([])
+  const [showBulkImageModal, setShowBulkImageModal] = useState(false)
 
   const brandId = brand.id
 
@@ -62,6 +64,23 @@ export default function ProductsTab({ catalogId, brand }: ProductsTabProps) {
     products.length > 0 && selectedProductIds.length === products.length
   const isIndeterminate =
     selectedProductIds.length > 0 && selectedProductIds.length < products.length
+
+  const selectedProducts = products.filter((product) =>
+    selectedProductIds.includes(product.id),
+  )
+
+  const handleBulkImageGeneration = () => {
+    setShowBulkImageModal(true)
+  }
+
+  const handleModalClose = () => {
+    setShowBulkImageModal(false)
+  }
+
+  const handleGenerationComplete = () => {
+    // Refresh products data and clear selection
+    setSelectedProductIds([])
+  }
 
   if (loading) {
     return (
@@ -167,6 +186,7 @@ export default function ProductsTab({ catalogId, brand }: ProductsTabProps) {
                 variant="secondary"
                 size="xs"
                 disabled={selectedProductIds.length === 0}
+                onClick={handleBulkImageGeneration}
               >
                 Generate Images
               </Button>
@@ -274,6 +294,14 @@ export default function ProductsTab({ catalogId, brand }: ProductsTabProps) {
           </Box>
         </Stack>
       )}
+
+      {/* Bulk Image Generation Modal */}
+      <BulkImageGeneratorModal
+        isOpen={showBulkImageModal}
+        onClose={handleModalClose}
+        selectedProducts={selectedProducts}
+        onComplete={handleGenerationComplete}
+      />
     </Stack>
   )
 }

@@ -9,6 +9,8 @@ import Modal from '@/components/ui/modal'
 import { useState } from 'react'
 import { useBrand } from '../brand-context'
 import Image from 'next/image'
+import { deleteProductImageAction } from '@/actions/storage'
+import { useRouter } from 'next/navigation'
 
 interface ProductDetailsProps {
   product: ProductWithRelations
@@ -22,8 +24,11 @@ type SelectedImageType = {
 
 export default function ProductDetails({ product }: ProductDetailsProps) {
   const { id: brandId, slug: brandSlug } = useBrand()
+  const router = useRouter()
   const [isModalOpen, setIsModalOpen] = useState(false)
+  const [isEditModalOpen, setIsEditModalOpen] = useState(false)
   const [selectedImage, setSelectedImage] = useState<SelectedImageType | null>(null)
+  const [deletingImageId, setDeletingImageId] = useState<number | null>(null)
 
   const handleImageClick = (image: SelectedImageType) => {
     setSelectedImage(image)
@@ -35,8 +40,44 @@ export default function ProductDetails({ product }: ProductDetailsProps) {
     setSelectedImage(null)
   }
 
+  const handleEditModalClose = () => {
+    setIsEditModalOpen(false)
+  }
+
   const handleEditComplete = () => {
+    setIsEditModalOpen(false)
     handleModalClose()
+  }
+
+  const handleEditImage = () => {
+    setIsModalOpen(false)
+    setIsEditModalOpen(true)
+  }
+
+  const handleDeleteImageFromModal = async () => {
+    if (!selectedImage) return
+    await handleDeleteImage(Number(selectedImage.id))
+    handleModalClose()
+  }
+
+  const handleDeleteImage = async (imageId: number) => {
+    if (deletingImageId) return // Prevent multiple simultaneous deletions
+
+    setDeletingImageId(imageId)
+    try {
+      const result = await deleteProductImageAction(imageId)
+      if (result.success) {
+        router.refresh() // Refresh to show updated image list
+      } else {
+        console.error('Failed to delete image:', result.error)
+        // You could add a toast notification here
+      }
+    } catch (error) {
+      console.error('Error deleting image:', error)
+      // You could add a toast notification here
+    } finally {
+      setDeletingImageId(null)
+    }
   }
 
   const getStatusColor = (status: string) => {
@@ -255,6 +296,7 @@ export default function ProductDetails({ product }: ProductDetailsProps) {
                     (image: NonNullable<ProductWithRelations['product_images']>[0]) => (
                       <Box
                         key={image.id}
+                        position="relative"
                         width="150px"
                         border="1px solid"
                         borderColor="gray.200"
@@ -263,6 +305,11 @@ export default function ProductDetails({ product }: ProductDetailsProps) {
                         cursor="pointer"
                         transition="all 0.2s"
                         _hover={{ borderColor: 'blue.500' }}
+                        css={{
+                          '&:hover .delete-button': {
+                            opacity: 1,
+                          },
+                        }}
                         onClick={() =>
                           handleImageClick({
                             id: String(image.id),
@@ -278,6 +325,36 @@ export default function ProductDetails({ product }: ProductDetailsProps) {
                           height={150}
                           objectFit="contain"
                         />
+
+                        {/* Delete Button */}
+                        <styled.button
+                          className="delete-button"
+                          position="absolute"
+                          top={2}
+                          right={2}
+                          width={6}
+                          height={6}
+                          bg="red.500"
+                          color="white"
+                          borderRadius="full"
+                          display="flex"
+                          alignItems="center"
+                          justifyContent="center"
+                          fontSize="xs"
+                          fontWeight="bold"
+                          opacity={0}
+                          transition="opacity 0.2s"
+                          cursor="pointer"
+                          border="none"
+                          _hover={{ bg: 'red.600' }}
+                          disabled={deletingImageId === image.id}
+                          onClick={(e) => {
+                            e.stopPropagation() // Prevent image modal from opening
+                            handleDeleteImage(image.id)
+                          }}
+                        >
+                          {deletingImageId === image.id ? '...' : '×'}
+                        </styled.button>
                       </Box>
                     ),
                   )}
@@ -530,10 +607,51 @@ export default function ProductDetails({ product }: ProductDetailsProps) {
         </Stack>
       </Box>
 
-      {/* Image Edit Modal */}
+      {/* Image View Modal */}
       <Modal
         isOpen={isModalOpen}
         onClose={handleModalClose}
+        title="Product Image"
+        size="xl"
+      >
+        {selectedImage && (
+          <Stack gap={6}>
+            {/* Large Image Display */}
+            <Box display="flex" justifyContent="center" alignItems="center">
+              <styled.img
+                src={selectedImage.url}
+                alt={selectedImage.alt_text || 'Product image'}
+                maxH="500px"
+                bg="white"
+                borderRadius="lg"
+                objectFit="contain"
+              />
+            </Box>
+
+            {/* Action Buttons */}
+            <Flex justify="center" gap={3}>
+              <Button variant="secondary" size="sm" onClick={handleEditImage}>
+                Edit Image
+              </Button>
+              <Button
+                variant="danger"
+                size="sm"
+                onClick={handleDeleteImageFromModal}
+                disabled={deletingImageId === Number(selectedImage.id)}
+              >
+                {deletingImageId === Number(selectedImage.id)
+                  ? 'Deleting...'
+                  : 'Delete Image'}
+              </Button>
+            </Flex>
+          </Stack>
+        )}
+      </Modal>
+
+      {/* Image Edit Modal */}
+      <Modal
+        isOpen={isEditModalOpen}
+        onClose={handleEditModalClose}
         title="Edit Product Image"
         size="xl"
       >
