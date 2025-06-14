@@ -395,7 +395,7 @@ function ProductTableRow({
       {/* Product Image */}
       <styled.td px={6} py={4}>
         <Box
-          w={12}
+          w="100px"
           borderRadius="md"
           overflow="hidden"
           bg="gray.100"
@@ -420,8 +420,8 @@ function ProductTableRow({
             <Image
               src={mainImage.url}
               alt={mainImage.alt_text || product.name}
-              width={100}
-              height={100}
+              width={200}
+              height={200}
               objectFit="contain"
             />
           ) : (

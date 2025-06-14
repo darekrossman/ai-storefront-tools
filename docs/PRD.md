@@ -2,7 +2,7 @@
 
 ## Executive Summary
 
-Storefront Tools is a comprehensive web application designed to generate complete ecommerce storefront catalogs for testing, development, and demo purposes. The application leverages AI agents to create cohesive brand identities, product catalogs, visual assets, and marketing materials that can be exported to various ecommerce platforms.
+Storefront Tools is a comprehensive web application designed to generate complete ecommerce storefront catalogs for testing, development, and demo purposes. The application leverages AI to create cohesive brand identities, product catalogs, visual assets, and marketing materials that can be exported to various ecommerce platforms.
 
 ## Problem Statement
 

@@ -1,6 +1,7 @@
 export default {
   devIndicators: false,
   experimental: {
+    useCache: true,
     serverActions: {
       bodySizeLimit: '3mb',
     },

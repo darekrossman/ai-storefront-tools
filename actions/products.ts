@@ -5,6 +5,9 @@ import { revalidatePath } from 'next/cache'
 import type { Database } from '@/lib/supabase/generated-types'
 import { convertToDBFormat, linkProductRelations } from '@/lib/products/helpers'
 import type { fullProductSchema } from '@/lib/products/schemas'
+import { unstable_cacheLife as cacheLife } from 'next/cache'
+import { unstable_cacheTag as cacheTag } from 'next/cache'
+import { revalidateTag } from 'next/cache'
 import type { z } from 'zod'
 
 type Product = Database['public']['Tables']['products']['Row']
@@ -143,7 +146,7 @@ export async function createProduct(data: CreateProductData) {
       throw new Error(error.message)
     }
 
-    revalidatePath('/')
+    revalidateTag('products')
     return { success: true, data: product }
   } catch (error) {
     console.error('Error in createProduct:', error)
@@ -292,7 +295,7 @@ export async function createMultipleProducts(
       throw error
     }
 
-    revalidatePath('/')
+    revalidateTag('products')
     return {
       success: true,
       data: {
@@ -358,7 +361,7 @@ export async function updateProduct(data: UpdateProductData) {
       throw new Error(error.message)
     }
 
-    revalidatePath('/')
+    revalidateTag('products')
     return { success: true, data: updatedProduct }
   } catch (error) {
     console.error('Error in updateProduct:', error)
@@ -411,7 +414,7 @@ export async function deleteProduct(productId: number) {
       throw new Error(error.message)
     }
 
-    revalidatePath('/')
+    revalidateTag('products')
     return { success: true }
   } catch (error) {
     console.error('Error in deleteProduct:', error)
@@ -635,7 +638,7 @@ export async function duplicateProduct(productId: number, newName: string) {
       await supabase.from('product_variants').insert(variantsData)
     }
 
-    revalidatePath('/')
+    revalidateTag('products')
     return { success: true, data: { id: newProductId } }
   } catch (error) {
     console.error('Error in duplicateProduct:', error)
@@ -718,7 +721,7 @@ export async function updateProductStatus(productId: number, status: BrandStatus
       throw new Error(error.message)
     }
 
-    revalidatePath('/')
+    revalidateTag('products')
     return { success: true, data: updatedProduct }
   } catch (error) {
     console.error('Error in updateProductStatus:', error)
