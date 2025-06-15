@@ -9,3 +9,4 @@ alwaysApply: true
 - do not create readme or doc files without being asked to do so
 - always use `pnpm` for any package manager scripts or dependencies
 - when working with supabase, always use `lib/supabase/database-types.ts` - which is a convenience file that exposes the generated-types from supabase
+- update the generated types with `pnpm generate:types:remote` after changing schemas or migrations

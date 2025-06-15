@@ -21,6 +21,10 @@ export async function POST(request: NextRequest) {
     }
 
     const jobData = jobs[0]
+    if (!jobData) {
+      return NextResponse.json({ message: 'No job data available' })
+    }
+
     const job: Partial<Job> = {
       id: jobData.job_id,
       job_type: jobData.job_type,
