@@ -5,6 +5,7 @@ import Link from 'next/link'
 import { button } from '@/components/ui/button'
 import { getBrandsAction } from '@/actions/brands'
 import { getUser } from '@/actions/user'
+import { AnalyticsDashboard } from '@/components/analytics/analytics-dashboard'
 
 export default async function DashboardPage() {
   const user = await getUser()
@@ -12,8 +13,15 @@ export default async function DashboardPage() {
 
   const brandCount = brands?.length || 0
 
+  // Mock job data for now - will be replaced with real data later
+  const mockJobStats = {
+    totalJobs: 147,
+    completedJobs: 98,
+    activeJobs: 12,
+  }
+
   return (
-    <Container py={8}>
+    <styled.div p={{ base: 6, lg: 8 }} maxWidth="7xl" mx="auto">
       {/* Welcome Section */}
       <Stack gap={6} mb={8}>
         <Stack gap={2}>
@@ -36,6 +44,24 @@ export default async function DashboardPage() {
           </Link>
         </Flex>
       </Stack>
+
+      {/* Analytics Dashboard */}
+      <styled.div mb={8}>
+        <styled.h2
+          fontSize={{ base: 'xl', md: '2xl' }}
+          fontWeight="semibold"
+          color="gray.900"
+          mb={6}
+        >
+          Analytics Overview
+        </styled.h2>
+        <AnalyticsDashboard
+          brandCount={brandCount}
+          totalJobs={mockJobStats.totalJobs}
+          completedJobs={mockJobStats.completedJobs}
+          activeJobs={mockJobStats.activeJobs}
+        />
+      </styled.div>
 
       {/* Brands Section */}
       <Stack gap={6}>
@@ -172,6 +198,6 @@ export default async function DashboardPage() {
           </styled.div>
         )}
       </Stack>
-    </Container>
+    </styled.div>
   )
 }

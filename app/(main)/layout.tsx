@@ -4,7 +4,6 @@ import { Box, Flex } from '@/styled-system/jsx'
 import DashboardNav from '@/components/navigation/dashboard-nav'
 import { PropsWithChildren } from 'react'
 import { UserContextProvider } from '@/components/user-context'
-import { css } from '@/styled-system/css'
 
 export default async function DashboardLayout({ children }: PropsWithChildren) {
   const supabase = await createClient()
@@ -19,15 +18,12 @@ export default async function DashboardLayout({ children }: PropsWithChildren) {
 
   return (
     <UserContextProvider userId={user.id}>
-      <Flex
-        flex="1"
-        flexDirection="column"
-        className={css({
-          '--header-height': '44px',
-        })}
-      >
+      <Flex height="100vh" overflow="hidden">
+        {/* Sidebar Navigation */}
         <DashboardNav />
-        <Flex flex="1" flexDirection="column" bg="stone.100">
+
+        {/* Main Content Area */}
+        <Flex flex="1" flexDirection="column" bg="stone.50" overflow="auto" minWidth="0">
           {children}
         </Flex>
       </Flex>
