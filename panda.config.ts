@@ -1,4 +1,5 @@
 import { defineConfig } from '@pandacss/dev'
+import theme from './panda.theme.extend.json'
 
 export default defineConfig({
   // Whether to use css reset
@@ -16,7 +17,7 @@ export default defineConfig({
 
   // Useful for theme customization
   theme: {
-    extend: {},
+    extend: theme,
   },
 
   globalCss: {
