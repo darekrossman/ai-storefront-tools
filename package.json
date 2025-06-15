@@ -12,7 +12,7 @@
     "prepare": "panda codegen",
     "checktypes": "tsc --noEmit",
     "generate:types": "supabase gen types --lang=typescript --local > lib/supabase/generated-types.ts",
-    "generate:types:remote": "supabase gen types --lang=typescript --project-id $SUPABASE_PROJECT_ID > lib/supabase/types.ts"
+    "generate:types:remote": "supabase gen types --lang=typescript --linked > lib/supabase/generated-types.ts"
   },
   "keywords": [],
   "author": "",

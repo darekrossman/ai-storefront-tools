@@ -17,10 +17,10 @@ export type Database = {
     Functions: {
       graphql: {
         Args: {
-          query?: string
-          extensions?: Json
           operationName?: string
+          query?: string
           variables?: Json
+          extensions?: Json
         }
         Returns: Json
       }
@@ -223,6 +223,124 @@ export type Database = {
             isOneToOne: false
             referencedRelation: "categories"
             referencedColumns: ["category_id"]
+          },
+        ]
+      }
+      job_progress: {
+        Row: {
+          completed_at: string | null
+          created_at: string
+          data: Json | null
+          id: string
+          job_id: string
+          message: string | null
+          progress_percent: number | null
+          started_at: string | null
+          status: string
+          step_name: string
+          step_order: number
+        }
+        Insert: {
+          completed_at?: string | null
+          created_at?: string
+          data?: Json | null
+          id?: string
+          job_id: string
+          message?: string | null
+          progress_percent?: number | null
+          started_at?: string | null
+          status?: string
+          step_name: string
+          step_order: number
+        }
+        Update: {
+          completed_at?: string | null
+          created_at?: string
+          data?: Json | null
+          id?: string
+          job_id?: string
+          message?: string | null
+          progress_percent?: number | null
+          started_at?: string | null
+          status?: string
+          step_name?: string
+          step_order?: number
+        }
+        Relationships: [
+          {
+            foreignKeyName: "job_progress_job_id_fkey"
+            columns: ["job_id"]
+            isOneToOne: false
+            referencedRelation: "job_queue"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      job_queue: {
+        Row: {
+          actual_duration_seconds: number | null
+          catalog_id: string | null
+          completed_at: string | null
+          created_at: string
+          error_data: Json | null
+          estimated_duration_seconds: number | null
+          id: string
+          input_data: Json
+          job_type: string
+          output_data: Json | null
+          priority: number
+          progress_message: string | null
+          progress_percent: number | null
+          started_at: string | null
+          status: string
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          actual_duration_seconds?: number | null
+          catalog_id?: string | null
+          completed_at?: string | null
+          created_at?: string
+          error_data?: Json | null
+          estimated_duration_seconds?: number | null
+          id?: string
+          input_data: Json
+          job_type: string
+          output_data?: Json | null
+          priority?: number
+          progress_message?: string | null
+          progress_percent?: number | null
+          started_at?: string | null
+          status?: string
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          actual_duration_seconds?: number | null
+          catalog_id?: string | null
+          completed_at?: string | null
+          created_at?: string
+          error_data?: Json | null
+          estimated_duration_seconds?: number | null
+          id?: string
+          input_data?: Json
+          job_type?: string
+          output_data?: Json | null
+          priority?: number
+          progress_message?: string | null
+          progress_percent?: number | null
+          started_at?: string | null
+          status?: string
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "job_queue_catalog_id_fkey"
+            columns: ["catalog_id"]
+            isOneToOne: false
+            referencedRelation: "product_catalogs"
+            referencedColumns: ["catalog_id"]
           },
         ]
       }
@@ -611,21 +729,62 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
+      add_job_progress_step: {
+        Args: {
+          p_job_id: string
+          p_step_name: string
+          p_step_order: number
+          p_status?: string
+          p_progress_percent?: number
+          p_message?: string
+          p_data?: Json
+        }
+        Returns: string
+      }
+      complete_job: {
+        Args: {
+          p_job_id: string
+          p_status: string
+          p_output_data?: Json
+          p_error_data?: Json
+        }
+        Returns: undefined
+      }
       generate_brand_slug: {
         Args: { brand_name: string; brand_id?: number }
         Returns: string
       }
       get_effective_attributes: {
-        Args: { p_variant_attributes?: Json; p_product_id: number }
+        Args: { p_product_id: number; p_variant_attributes?: Json }
         Returns: Json
+      }
+      get_next_job: {
+        Args: Record<PropertyKey, never>
+        Returns: {
+          job_id: string
+          job_type: string
+          input_data: Json
+          user_id: string
+          catalog_id: string
+        }[]
       }
       get_product_attribute_schema: {
         Args: { p_product_id: number }
         Returns: Json
       }
       get_variant_display_name: {
-        Args: { p_include_product_name?: boolean; p_variant_id: number }
+        Args: { p_variant_id: number; p_include_product_name?: boolean }
         Returns: string
+      }
+      update_job_progress_step: {
+        Args: {
+          p_step_id: string
+          p_status: string
+          p_progress_percent?: number
+          p_message?: string
+          p_data?: Json
+        }
+        Returns: undefined
       }
       validate_attribute_values: {
         Args: { p_product_id: number; p_attribute_values: Json }
@@ -758,4 +917,3 @@ export const Constants = {
     },
   },
 } as const
-
