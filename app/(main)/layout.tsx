@@ -1,32 +1,53 @@
 import { redirect } from 'next/navigation'
-import { createClient } from '@/lib/supabase/server'
 import { Box, Flex } from '@/styled-system/jsx'
-import DashboardNav from '@/components/navigation/dashboard-nav'
+import PrimaryNav from '@/components/navigation/primary-nav'
 import { PropsWithChildren } from 'react'
 import { UserContextProvider } from '@/components/user-context'
+import { getUser } from '@/actions/user'
+import { PageContainer } from '@/components/ui/page-container'
+import { css } from '@/styled-system/css'
 
 export default async function DashboardLayout({ children }: PropsWithChildren) {
-  const supabase = await createClient()
-  const {
-    data: { user },
-  } = await supabase.auth.getUser()
+  try {
+    const user = await getUser()
 
-  // Enforce authentication - redirect to login if not authenticated
-  if (!user) {
+    return (
+      <UserContextProvider user={user}>
+        <Flex
+          height="100dvh"
+          overflow="hidden"
+          bg="stone.100"
+          gap={3}
+          className={css({
+            '--header-height': '60px',
+            '--sidebar-width': '240px',
+          })}
+        >
+          <Box w="var(--sidebar-width)" h="full">
+            <PrimaryNav />
+          </Box>
+
+          <PageContainer overflow="auto" pr="3" py="3">
+            <Flex
+              alignItems="center"
+              justifyContent="space-between"
+              h="var(--header-height)"
+              flexShrink={0}
+              bg="stone.200"
+              borderRadius="xl"
+              position="sticky"
+              top={0}
+              zIndex={1}
+            >
+              header
+            </Flex>
+
+            <PageContainer>{children}</PageContainer>
+          </PageContainer>
+        </Flex>
+      </UserContextProvider>
+    )
+  } catch {
     redirect('/login')
   }
-
-  return (
-    <UserContextProvider userId={user.id}>
-      <Flex height="100vh" overflow="hidden">
-        {/* Sidebar Navigation */}
-        <DashboardNav />
-
-        {/* Main Content Area */}
-        <Flex flex="1" flexDirection="column" bg="stone.50" overflow="auto" minWidth="0">
-          {children}
-        </Flex>
-      </Flex>
-    </UserContextProvider>
-  )
 }

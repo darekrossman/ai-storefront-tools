@@ -1,18 +1,17 @@
 'use client'
 
+import { User } from '@supabase/supabase-js'
 import { createContext, PropsWithChildren, use } from 'react'
 
-export type UserContextType = {
-  userId: string
-} | null
+export type UserContextType = User | null
 
 export const UserContext = createContext<UserContextType>(null)
 
 export const UserContextProvider = ({
-  userId,
+  user,
   children,
-}: PropsWithChildren<UserContextType>) => {
-  return <UserContext.Provider value={{ userId }}>{children}</UserContext.Provider>
+}: PropsWithChildren<{ user: UserContextType }>) => {
+  return <UserContext.Provider value={user}>{children}</UserContext.Provider>
 }
 
 export const useUser = () => {

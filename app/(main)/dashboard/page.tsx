@@ -21,7 +21,7 @@ export default async function DashboardPage() {
   }
 
   return (
-    <styled.div p={{ base: 6, lg: 8 }} maxWidth="7xl" mx="auto">
+    <Box>
       {/* Welcome Section */}
       <Stack gap={6} mb={8}>
         <Stack gap={2}>
@@ -198,6 +198,6 @@ export default async function DashboardPage() {
           </styled.div>
         )}
       </Stack>
-    </styled.div>
+    </Box>
   )
 }
