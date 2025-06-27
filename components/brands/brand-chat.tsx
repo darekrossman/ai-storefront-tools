@@ -14,7 +14,7 @@ import {
   Phase5Strategy,
 } from './generation'
 import { PageContainer } from '../ui/page-container'
-import { PulseSpinner } from '../ui/spinner'
+import { PulseSpinner, Spinner } from '../ui/spinner'
 
 function BrandChatContent() {
   const {
@@ -125,22 +125,21 @@ function BrandChatContent() {
 
       {!object && isLoading && (
         <Stack alignItems="center" justifyContent="center" h="full">
-          <PulseSpinner size="lg" />
+          <Spinner size="lg" />
           <styled.p fontSize="sm" color="fg.muted">
             Generating the initial foundation...
           </styled.p>
         </Stack>
       )}
 
-      {/* Phase Components - Only show when not loading */}
       {!isLoading && (
-        <>
+        <Box p={8}>
           <Phase1Foundation />
           <Phase2Positioning />
           <Phase3Personality />
           <Phase4Visual />
           <Phase5Strategy />
-        </>
+        </Box>
       )}
     </PageContainer>
   )

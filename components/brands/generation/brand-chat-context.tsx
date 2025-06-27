@@ -6,8 +6,9 @@ import { convertToDBFormat } from '@/lib/brand/helpers'
 import { createBrandAction } from '@/actions/brands'
 import { useRouter } from 'next/navigation'
 import { useUser } from '../../user-context'
-import { createContext, useContext, useState, type ReactNode } from 'react'
+import { createContext, useContext, useState, useEffect, type ReactNode } from 'react'
 import { z } from 'zod'
+import { DeepPartial } from 'ai'
 
 const api = '/api/agents/brand'
 
@@ -23,12 +24,14 @@ type Message = {
   content: string
 }
 
+type BrandObject = DeepPartial<z.infer<typeof brandStructuredOutputSchemas>> | undefined
+
 interface BrandChatContextType {
   // State
   messages: Message[]
   selections: SelectionState
   isSaving: boolean
-  object: any // Using any to match useObject return type
+  object: BrandObject
   isLoading: boolean
   userId: string
 
@@ -48,11 +51,18 @@ export function BrandChatProvider({ children }: { children: ReactNode }) {
   const [messages, setMessages] = useState<Message[]>([])
   const [selections, setSelections] = useState<SelectionState>({})
   const [isSaving, setIsSaving] = useState(false)
-  const { object, submit, isLoading } = useObject({
+  const [object, setObject] = useState<
+    DeepPartial<z.infer<typeof brandStructuredOutputSchemas>> | undefined
+  >(undefined)
+  const router = useRouter()
+
+  const { submit, isLoading } = useObject({
     api,
     schema: brandStructuredOutputSchemas,
+    onFinish: ({ object }) => {
+      setObject((o) => ({ ...o, ...object }))
+    },
   })
-  const router = useRouter()
 
   const handleSelection = (phase: keyof SelectionState, index: number) => {
     setSelections((prev) => ({ ...prev, [phase]: index }))
@@ -107,6 +117,7 @@ export function BrandChatProvider({ children }: { children: ReactNode }) {
   const handleDiscard = () => {
     setMessages([])
     setSelections({})
+    setObject(undefined)
   }
 
   const value: BrandChatContextType = {

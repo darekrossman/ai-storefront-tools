@@ -1,7 +1,8 @@
 'use client'
 
-import { Box, Flex, Stack, styled } from '@/styled-system/jsx'
+import { Box, Grid, HStack, Stack, styled } from '@/styled-system/jsx'
 import { Button } from '@/components/ui/button'
+import { SelectableCard } from '@/components/ui/card'
 import { useBrandChat } from './brand-chat-context'
 
 export function Phase1Foundation() {
@@ -12,62 +13,61 @@ export function Phase1Foundation() {
   return (
     <Stack gap={6}>
       <Box>
-        <styled.h2 fontSize="xl" fontWeight="bold" color="gray.900" mb={2}>
+        <styled.h2 fontSize="xl" fontWeight="bold" color="gray.900">
           Phase 1: Brand Foundation Options
         </styled.h2>
-        <styled.p fontSize="sm" color="gray.600" mb={4}>
-          Industry: {object.phase1.industry}
-        </styled.p>
-        <styled.p fontSize="sm" color="gray.600" mb={6}>
-          {object.phase1.nextStep}
+        <styled.p fontSize="sm" color="gray.600">
+          Industry: {object.phase1.vertical}
         </styled.p>
       </Box>
 
-      <Stack gap={4}>
-        {object.phase1.brandOptions?.map((option: any, index: number) => (
-          <Box
-            key={index}
-            border="2px solid"
-            borderColor={selections.phase1Selection === index ? 'blue.500' : 'gray.200'}
-            borderRadius="lg"
-            p={4}
-            cursor="pointer"
-            transition="all 0.2s"
-            bg={selections.phase1Selection === index ? 'blue.50' : 'white'}
-            _hover={{
-              borderColor: selections.phase1Selection === index ? 'blue.600' : 'gray.300',
-              shadow: 'sm',
-            }}
-            onClick={() => handleSelection('phase1Selection', index)}
-          >
-            <Stack gap={3}>
-              <styled.h3 fontSize="lg" fontWeight="semibold" color="gray.900">
-                {option?.name}
-              </styled.h3>
-              <styled.p fontSize="sm" color="gray.600" fontStyle="italic">
-                "{option?.tagline}"
-              </styled.p>
-              <styled.p fontSize="sm" color="gray.700" lineHeight="relaxed">
-                {option?.concept}
-              </styled.p>
-              <styled.div>
-                <styled.label fontSize="xs" fontWeight="medium" color="gray.500">
-                  Target Audience
-                </styled.label>
-                <styled.p fontSize="sm" color="gray.600">
-                  {option?.targetAudience}
-                </styled.p>
-              </styled.div>
-            </Stack>
-          </Box>
-        )) ?? []}
-      </Stack>
+      <Grid gridTemplateColumns="repeat(3, 1fr)" gap={4}>
+        {object.phase1.brandOptions?.map((option: any, index: number) => {
+          const isSelected = selections.phase1Selection === index
 
-      {selections.phase1Selection !== undefined && (
-        <Button onClick={() => handlePhaseSubmit('phase1Selection')}>
-          Continue with Selected Brand
+          return (
+            <SelectableCard
+              key={index}
+              isSelected={isSelected}
+              onClick={() => handleSelection('phase1Selection', index)}
+            >
+              <Stack gap={4}>
+                <Stack gap={1}>
+                  <styled.h3
+                    fontSize="md"
+                    fontWeight="semibold"
+                    color="gray.900"
+                    textBox="trim-both"
+                    textWrap="balance"
+                  >
+                    {option?.name}
+                  </styled.h3>
+                  <styled.p fontSize="sm" fontStyle="italic">
+                    {option?.tagline}
+                  </styled.p>
+                </Stack>
+
+                <styled.p fontSize="sm" color="fg/80" flex="1">
+                  {option?.concept}
+                </styled.p>
+              </Stack>
+            </SelectableCard>
+          )
+        }) ?? []}
+      </Grid>
+
+      <HStack gap={4}>
+        <Button variant="secondary" w="max-content" onClick={() => alert('wip')}>
+          Regenerate
         </Button>
-      )}
+        <Button
+          onClick={() => handlePhaseSubmit('phase1Selection')}
+          w="max-content"
+          disabled={selections.phase1Selection === undefined}
+        >
+          Continue to Phase 2
+        </Button>
+      </HStack>
     </Stack>
   )
 }

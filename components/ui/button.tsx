@@ -13,6 +13,10 @@ export const button = cva({
     fontWeight: 'medium',
     lineHeight: '1',
     transition: 'all 0.2s',
+    _disabled: {
+      opacity: 0.5,
+      cursor: 'not-allowed',
+    },
   },
   variants: {
     variant: {

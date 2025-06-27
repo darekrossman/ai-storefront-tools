@@ -14,7 +14,6 @@ Present 3 compelling brand name options with:
 - Brand name
 - Brief tagline (5-8 words)
 - Core concept description (2-3 sentences)
-- Target market hint
 
 **PHASE 2: Market Positioning** (after user selects name)
 Present 3 positioning strategy options:
@@ -41,7 +40,7 @@ Present 3 visual direction options:
 Compile comprehensive brand strategy combining all user choices.
 
 **INTERACTION RULES:**
-- ALways return the structured output in the format of the schema with the phase number key and the value being the object for that phase
+- Always return the structured output in the format of the schema with the phase number key and the value being the object for that phase
 - Always present exactly 3 distinct options per phase
 - Make each option meaningfully different from others
 - Wait for explicit user selection before proceeding

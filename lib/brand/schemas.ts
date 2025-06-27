@@ -4,14 +4,13 @@ export const brandStructuredOutputSchemas = z.object({
   phase1: z
     .object({
       phase: z.literal(1),
-      industry: z.string().describe('Industry/product type context'),
+      vertical: z.string().describe('Business or industry classification taxonomy'),
       brandOptions: z
         .array(
           z.object({
             name: z.string().describe('The brand name'),
             tagline: z.string().describe('Brief tagline (5-8 words)'),
             concept: z.string().describe('Core concept description (2-3 sentences)'),
-            targetAudience: z.string().describe('Primary target market hint'),
           }),
         )
         .length(3)

@@ -27,7 +27,7 @@ const navigation = [
 ]
 
 export default function PrimaryNav() {
-  const [isCollapsed, setIsCollapsed] = useState(false)
+  const [isCollapsed, setIsCollapsed] = useState(true)
   const pathname = usePathname()
 
   const isActive = (href: string) => {
