@@ -161,6 +161,7 @@ export default function ProductsGeneration({ catalogs }: { catalogs: ProductCata
         return object?.[key]?.products
       }
     })
+    .filter(Boolean)
     .flat()
 
   console.log('productsInCategories', productsInCategories)
