@@ -27,13 +27,84 @@ function BrandChatContent() {
     submit,
     setMessages,
     messages,
+    currentPhase,
+    completedPhases,
+    canAdvanceToPhase,
   } = useBrandChat()
   const inputRef = useRef<HTMLTextAreaElement>(null)
 
-  console.log(object, selections, messages)
+  console.log(object, selections, messages, currentPhase, completedPhases)
+
+  const getPhaseTitle = (phase: typeof currentPhase) => {
+    switch (phase) {
+      case 'initial':
+        return 'Getting Started'
+      case 'phase1':
+        return 'Foundation'
+      case 'phase2':
+        return 'Positioning'
+      case 'phase3':
+        return 'Personality'
+      case 'phase4':
+        return 'Visual Identity'
+      case 'phase5':
+        return 'Strategy'
+      case 'complete':
+        return 'Complete'
+    }
+  }
 
   return (
     <PageContainer>
+      {/* Phase Progress Indicator */}
+      {currentPhase !== 'initial' && (
+        <Stack gap={4} borderBottom="1px solid" borderColor="gray.200" pb={6} mb={6}>
+          <styled.h2 fontSize="lg" fontWeight="semibold">
+            Brand Development: {getPhaseTitle(currentPhase)}
+          </styled.h2>
+
+          <Flex gap={2} alignItems="center">
+            {(['phase1', 'phase2', 'phase3', 'phase4', 'phase5'] as const).map(
+              (phase, index) => {
+                const isActive = currentPhase === phase
+                const isCompleted = completedPhases.has(phase)
+                const isAccessible = canAdvanceToPhase(phase)
+
+                return (
+                  <Flex key={phase} alignItems="center" gap={2}>
+                    <styled.div
+                      w={8}
+                      h={8}
+                      borderRadius="full"
+                      display="flex"
+                      alignItems="center"
+                      justifyContent="center"
+                      fontSize="sm"
+                      fontWeight="medium"
+                      bg={isCompleted ? 'green.500' : isActive ? 'blue.500' : 'gray.200'}
+                      color={isCompleted || isActive ? 'white' : 'gray.500'}
+                      cursor={isAccessible ? 'pointer' : 'default'}
+                    >
+                      {index + 1}
+                    </styled.div>
+                    <styled.span
+                      fontSize="sm"
+                      color={
+                        isActive ? 'blue.600' : isCompleted ? 'green.600' : 'gray.500'
+                      }
+                      fontWeight={isActive ? 'medium' : 'normal'}
+                    >
+                      {getPhaseTitle(phase)}
+                    </styled.span>
+                    {index < 4 && <styled.div w={4} h="1px" bg="gray.200" />}
+                  </Flex>
+                )
+              },
+            )}
+          </Flex>
+        </Stack>
+      )}
+
       {/* Save/Discard buttons - show when phase 5 is complete */}
       {object?.phase5?.comprehensiveStrategy && (
         <Flex
@@ -42,6 +113,7 @@ function BrandChatContent() {
           borderBottom="1px solid"
           borderColor="gray.200"
           pb={4}
+          mb={4}
         >
           <Button variant="secondary" onClick={handleDiscard} disabled={isSaving}>
             Discard
@@ -60,7 +132,7 @@ function BrandChatContent() {
       )}
 
       {/* Initial Input Form */}
-      {!object && !isLoading && (
+      {currentPhase === 'initial' && !isLoading && (
         <Center w="full" h="full" flexDirection="column">
           <Stack maxW="md" bg="white" p={8} shadow="xs" alignItems="center">
             <Stack alignItems="center" gap={1}>
@@ -123,22 +195,28 @@ function BrandChatContent() {
         </Center>
       )}
 
-      {!object && isLoading && (
+      {/* Loading State */}
+      {isLoading && (
         <Stack alignItems="center" justifyContent="center" h="full">
           <Spinner size="lg" />
           <styled.p fontSize="sm" color="fg.muted">
-            Generating the initial foundation...
+            {currentPhase === 'initial' && 'Generating the initial foundation...'}
+            {currentPhase === 'phase1' && 'Generating positioning options...'}
+            {currentPhase === 'phase2' && 'Generating personality options...'}
+            {currentPhase === 'phase3' && 'Generating visual options...'}
+            {currentPhase === 'phase4' && 'Generating comprehensive strategy...'}
           </styled.p>
         </Stack>
       )}
 
-      {!isLoading && (
+      {/* Phase Content */}
+      {!isLoading && currentPhase !== 'initial' && (
         <Box p={8}>
-          <Phase1Foundation />
-          <Phase2Positioning />
-          <Phase3Personality />
-          <Phase4Visual />
-          <Phase5Strategy />
+          {currentPhase === 'phase1' && <Phase1Foundation />}
+          {currentPhase === 'phase2' && <Phase2Positioning />}
+          {currentPhase === 'phase3' && <Phase3Personality />}
+          {currentPhase === 'phase4' && <Phase4Visual />}
+          {currentPhase === 'phase5' && <Phase5Strategy />}
         </Box>
       )}
     </PageContainer>
