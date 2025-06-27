@@ -13,51 +13,31 @@ import { ProductCatalog, Category } from '@/lib/supabase/database-types'
 import { getCategoriesAction } from '@/actions/categories'
 import { useBrand } from '@/components/brand-context'
 
-type FullProductSchemaType = z.infer<typeof fullProductSchema>
-
 function ProductCard({
   product,
   onInvalid,
   index,
 }: {
-  product: FullProductSchemaType['products'][0]
+  product: z.infer<typeof productSchemaWithVariants>
   onInvalid?: () => void
   index: number
 }) {
-  const isValid = productSchemaWithVariants.safeParse(product)
-
   return (
     <Box
       bg="white"
       border="1px solid"
       borderColor="gray.200"
       borderRadius="lg"
-      p={6}
+      p={4}
       shadow="sm"
       _hover={{ shadow: 'md', borderColor: 'gray.300' }}
       transition="all 0.2s"
     >
-      <Stack gap={4}>
+      <Stack gap={1}>
         <Flex justify="space-between" align="start">
-          <styled.h3
-            fontSize="lg"
-            fontWeight="semibold"
-            color="gray.900"
-            lineHeight="tight"
-          >
+          <styled.h3 fontSize="lg" fontWeight="semibold" color="gray.900" lineHeight="1">
             {product.name}
           </styled.h3>
-          <Box
-            px={2}
-            py={1}
-            bg={isValid.success ? 'green.50' : 'red.50'}
-            color={isValid.success ? 'green.700' : 'red.700'}
-            borderRadius="md"
-            fontSize="xs"
-            fontWeight="medium"
-          >
-            {isValid.success ? 'Valid' : 'Invalid'}
-          </Box>
         </Flex>
 
         <styled.p fontSize="sm" color="gray.600" lineHeight="relaxed">
@@ -73,16 +53,12 @@ function ProductCard({
   )
 }
 
-function ProductsDisplay({ products }: { products: FullProductSchemaType['products'] }) {
+function ProductsDisplay({
+  products,
+}: { products: z.infer<typeof productSchemaWithVariants>[] }) {
   return (
     <Box w="full">
-      <styled.h2 fontSize="2xl" fontWeight="bold" color="gray.900" mb={6}>
-        Generated Products
-        <styled.span fontSize="lg" fontWeight="normal" color="gray.500" ml={2}>
-          ({products.length})
-        </styled.span>
-      </styled.h2>
-      <Stack gap={4} w="full">
+      <Stack gap={2} w="full">
         {products.map((product, index) => (
           <ProductCard key={index} product={product} index={index} />
         ))}
@@ -93,7 +69,7 @@ function ProductsDisplay({ products }: { products: FullProductSchemaType['produc
 
 export default function ProductsGeneration({ catalogs }: { catalogs: ProductCatalog[] }) {
   const router = useRouter()
-  const { id: brandId, slug: brandSlug } = useBrand()
+  const { id, slug } = useBrand()
   const [count, setCount] = useState(3)
   const [catalogId, setCatalogId] = useState<string>('')
   const [categories, setCategories] = useState<Category[]>([])
@@ -139,14 +115,20 @@ export default function ProductsGeneration({ catalogs }: { catalogs: ProductCata
 
   const handleSave = async () => {
     if (!object || !catalogId || isSaving) return
-    const fullProductSchemaData = object as z.infer<typeof fullProductSchema>
 
     setIsSaving(true)
+    const productsInCategories = Object.keys(object || {})
+      .map((key) => {
+        if (selectedCategoryIds.includes(key)) {
+          return object?.[key]?.products
+        }
+      })
+      .flat() as z.infer<typeof productSchemaWithVariants>[]
     try {
-      const result = await createMultipleProducts(catalogId, fullProductSchemaData)
+      const result = await createMultipleProducts(catalogId, productsInCategories)
 
       if (result.success) {
-        router.push(`/brands/${brandSlug}/products`)
+        router.push(`/brands/${slug}/products`)
       } else {
         console.error('Error saving catalog:', result.error)
       }
@@ -172,370 +154,371 @@ export default function ProductsGeneration({ catalogs }: { catalogs: ProductCata
 
   // Count completed products during streaming
   const totalExpectedProducts = count * selectedCategoryIds.length
-  const completedProductsCount = object?.products
-    ? object.products.filter((p) => p && p.name && p.variants && p.variants.length > 0)
-        .length
+
+  const productsInCategories = Object.keys(object || {})
+    .map((key) => {
+      if (selectedCategoryIds.includes(key)) {
+        return object?.[key]?.products
+      }
+    })
+    .flat()
+
+  console.log('productsInCategories', productsInCategories)
+
+  const completedProductsCount = productsInCategories
+    ? productsInCategories.filter(
+        (p) => p && p.name && p.variants && p.variants.length > 0,
+      ).length
     : 0
 
   if (isLoading) {
-    const completedProducts = object?.products
-      ? object.products.filter((p) => p && p.name && p.variants && p.variants.length > 0)
+    const completedProducts = productsInCategories
+      ? productsInCategories.filter(
+          (p) => p && p.name && p.variants && p.variants.length > 0,
+        )
       : []
 
     return (
-      <Box maxW="4xl">
-        <Stack gap={8} alignItems="center">
-          {/* Loading Header */}
-          <Box textAlign="center" w="full">
-            <Stack gap={6} alignItems="center">
-              <Box
-                w={16}
-                h={16}
-                bg="blue.50"
-                border="2px solid"
-                borderColor="blue.200"
+      <Stack gap={8} alignItems="center">
+        {/* Loading Header */}
+        <Box textAlign="center" w="full">
+          <Stack gap={6} alignItems="center">
+            <Box
+              w={16}
+              h={16}
+              bg="blue.50"
+              border="2px solid"
+              borderColor="blue.200"
+              borderRadius="full"
+              display="flex"
+              alignItems="center"
+              justifyContent="center"
+            >
+              <styled.div
+                w={6}
+                h={6}
+                bg="blue.500"
                 borderRadius="full"
-                display="flex"
-                alignItems="center"
-                justifyContent="center"
-              >
-                <styled.div
-                  w={6}
-                  h={6}
-                  bg="blue.500"
-                  borderRadius="full"
-                  style={{
-                    animation: 'pulse 1.5s ease-in-out infinite',
-                  }}
-                />
-              </Box>
-
-              <Stack gap={2} alignItems="center">
-                <styled.h1 fontSize="2xl" fontWeight="bold" color="gray.900">
-                  Generating Products
-                </styled.h1>
-                <styled.p fontSize="lg" color="gray.600">
-                  AI is creating {totalExpectedProducts} products for your catalog
-                </styled.p>
-              </Stack>
-
-              {completedProductsCount > 0 && (
-                <Box
-                  bg="blue.50"
-                  border="1px solid"
-                  borderColor="blue.200"
-                  borderRadius="lg"
-                  p={6}
-                  w="full"
-                  maxW="md"
-                >
-                  <styled.p fontSize="base" color="blue.900" fontWeight="semibold" mb={3}>
-                    Progress: {completedProductsCount} of {totalExpectedProducts}{' '}
-                    completed
-                  </styled.p>
-                  <Box w="full" h="3" bg="blue.100" borderRadius="full" overflow="hidden">
-                    <styled.div
-                      h="full"
-                      bg="blue.500"
-                      borderRadius="full"
-                      style={{
-                        width: `${(completedProductsCount / totalExpectedProducts) * 100}%`,
-                        transition: 'width 0.3s ease-in-out',
-                      }}
-                    />
-                  </Box>
-                </Box>
-              )}
-
-              <Button onClick={stop} variant="secondary" size="lg">
-                Stop Generation
-              </Button>
-            </Stack>
-          </Box>
-
-          {/* Show completed products as they stream in */}
-          {completedProducts.length > 0 && (
-            <Box w="full" maxW="4xl">
-              <ProductsDisplay
-                products={completedProducts as FullProductSchemaType['products']}
+                style={{
+                  animation: 'pulse 1.5s ease-in-out infinite',
+                }}
               />
             </Box>
-          )}
-        </Stack>
-      </Box>
+
+            <Stack gap={2} alignItems="center">
+              <styled.h1 fontSize="xl" fontWeight="bold" color="gray.900">
+                Generating Products
+              </styled.h1>
+              <styled.p fontSize="md" color="gray.600">
+                AI is creating {totalExpectedProducts} products for your catalog
+              </styled.p>
+            </Stack>
+
+            {completedProductsCount > 0 && (
+              <Box
+                bg="blue.50"
+                border="1px solid"
+                borderColor="blue.200"
+                borderRadius="lg"
+                p={6}
+                w="full"
+                maxW="md"
+              >
+                <styled.p fontSize="base" color="blue.900" fontWeight="semibold" mb={3}>
+                  Progress: {completedProductsCount} of {totalExpectedProducts} completed
+                </styled.p>
+                <Box w="full" h="3" bg="blue.100" borderRadius="full" overflow="hidden">
+                  <styled.div
+                    h="full"
+                    bg="blue.500"
+                    borderRadius="full"
+                    style={{
+                      width: `${(completedProductsCount / totalExpectedProducts) * 100}%`,
+                      transition: 'width 0.3s ease-in-out',
+                    }}
+                  />
+                </Box>
+              </Box>
+            )}
+
+            <Button onClick={stop} variant="secondary" size="lg">
+              Stop Generation
+            </Button>
+          </Stack>
+        </Box>
+
+        {/* Show completed products as they stream in */}
+        {completedProducts.length > 0 && (
+          <Box w="full">
+            <ProductsDisplay
+              products={completedProducts as z.infer<typeof productSchemaWithVariants>[]}
+            />
+          </Box>
+        )}
+      </Stack>
     )
   }
 
   return (
-    <Box maxW="4xl" mx="auto" p={6}>
-      <Stack gap={8}>
-        {/* Header */}
-        <Box>
-          <styled.h1 fontSize="3xl" fontWeight="bold" color="gray.900" mb={2}>
-            Generate Products
-          </styled.h1>
-          <styled.p fontSize="lg" color="gray.600">
-            Use AI to automatically generate products for your catalog
-          </styled.p>
-        </Box>
+    <Stack gap={6} pb="12">
+      {/* Form Controls */}
+      <Box
+        bg="white"
+        border="1px solid"
+        borderColor="gray.200"
+        borderRadius="lg"
+        p={6}
+        shadow="sm"
+      >
+        <Stack gap={6}>
+          <Box>
+            <styled.label
+              htmlFor="catalog-select"
+              fontSize="sm"
+              fontWeight="semibold"
+              color="gray.700"
+              display="block"
+              mb={2}
+            >
+              Select Catalog
+            </styled.label>
+            <styled.select
+              id="catalog-select"
+              value={catalogId}
+              onChange={(e) => setCatalogId(e.target.value)}
+              disabled={isLoading}
+              px={2}
+              py={1}
+              border="1px solid"
+              borderColor="gray.300"
+              borderRadius="xs"
+              fontSize="sm"
+              w="full"
+              maxW="md"
+              bg="white"
+              _focus={{
+                outline: 'none',
+                borderColor: 'blue.500',
+                boxShadow: '0 0 0 3px rgba(59, 130, 246, 0.1)',
+              }}
+              _disabled={{
+                bg: 'gray.50',
+                color: 'gray.500',
+                cursor: 'not-allowed',
+              }}
+            >
+              <option value="">Choose a catalog...</option>
+              {catalogs.map((catalog) => (
+                <option key={catalog.catalog_id} value={catalog.catalog_id}>
+                  {catalog.name}
+                </option>
+              ))}
+            </styled.select>
+            <styled.p fontSize="sm" color="gray.500" mt={1}>
+              Products will be added to the selected catalog
+            </styled.p>
+          </Box>
 
-        {/* Form Controls */}
-        <Box
-          bg="white"
-          border="1px solid"
-          borderColor="gray.200"
-          borderRadius="lg"
-          p={6}
-          shadow="sm"
-        >
-          <Stack gap={6}>
+          {/* Categories Selection */}
+          {catalogId && (
             <Box>
               <styled.label
-                htmlFor="catalog-select"
                 fontSize="sm"
                 fontWeight="semibold"
                 color="gray.700"
                 display="block"
-                mb={2}
+                mb={1}
               >
-                Select Catalog
+                Select Categories
               </styled.label>
-              <styled.select
-                id="catalog-select"
-                value={catalogId}
-                onChange={(e) => setCatalogId(e.target.value)}
-                disabled={isLoading}
-                px={4}
-                py={3}
-                border="1px solid"
-                borderColor="gray.300"
-                borderRadius="lg"
-                fontSize="base"
-                w="full"
-                maxW="md"
-                bg="white"
-                _focus={{
-                  outline: 'none',
-                  borderColor: 'blue.500',
-                  boxShadow: '0 0 0 3px rgba(59, 130, 246, 0.1)',
-                }}
-                _disabled={{
-                  bg: 'gray.50',
-                  color: 'gray.500',
-                  cursor: 'not-allowed',
-                }}
-              >
-                <option value="">Choose a catalog...</option>
-                {catalogs.map((catalog) => (
-                  <option key={catalog.catalog_id} value={catalog.catalog_id}>
-                    {catalog.name}
-                  </option>
-                ))}
-              </styled.select>
-              <styled.p fontSize="sm" color="gray.500" mt={1}>
-                Products will be added to the selected catalog
-              </styled.p>
-            </Box>
-
-            {/* Categories Selection */}
-            {catalogId && (
-              <Box>
-                <styled.label
-                  fontSize="sm"
-                  fontWeight="semibold"
-                  color="gray.700"
-                  display="block"
-                  mb={2}
+              {loadingCategories ? (
+                <Box p={4} textAlign="center">
+                  <styled.p fontSize="sm" color="gray.500">
+                    Loading categories...
+                  </styled.p>
+                </Box>
+              ) : parentCategories.length === 0 ? (
+                <Box p={4} textAlign="center">
+                  <styled.p fontSize="sm" color="gray.500">
+                    No categories found for this catalog.
+                  </styled.p>
+                </Box>
+              ) : (
+                <Box
+                  border="1px solid"
+                  borderColor="gray.300"
+                  borderRadius="xs"
+                  p={2}
+                  h="360px"
+                  overflowY="auto"
+                  bg="white"
                 >
-                  Select Categories
-                </styled.label>
-                {loadingCategories ? (
-                  <Box p={4} textAlign="center">
-                    <styled.p fontSize="sm" color="gray.500">
-                      Loading categories...
-                    </styled.p>
-                  </Box>
-                ) : parentCategories.length === 0 ? (
-                  <Box p={4} textAlign="center">
-                    <styled.p fontSize="sm" color="gray.500">
-                      No categories found for this catalog.
-                    </styled.p>
-                  </Box>
-                ) : (
-                  <Box
-                    border="1px solid"
-                    borderColor="gray.300"
-                    borderRadius="lg"
-                    p={4}
-                    maxH="60"
-                    overflowY="auto"
-                    bg="white"
-                  >
-                    <Stack gap={4}>
-                      {parentCategories.map((parentCategory) => {
-                        const subcategories = getSubcategories(parentCategory.category_id)
-                        return (
-                          <Box key={parentCategory.category_id}>
-                            <styled.h4
-                              fontSize="sm"
-                              fontWeight="semibold"
-                              color="gray.800"
-                              mb={2}
-                            >
-                              {parentCategory.name}
-                            </styled.h4>
-                            {subcategories.length > 0 ? (
-                              <Stack gap={2} pl={4}>
-                                {subcategories.map((subcategory) => (
-                                  <Flex
-                                    key={subcategory.category_id}
-                                    align="center"
-                                    gap={2}
-                                  >
-                                    <styled.input
-                                      type="checkbox"
-                                      id={`category-${subcategory.category_id}`}
-                                      checked={selectedCategoryIds.includes(
-                                        subcategory.category_id,
-                                      )}
-                                      onChange={() =>
-                                        handleCategoryToggle(subcategory.category_id)
-                                      }
-                                      disabled={isLoading}
-                                      w={4}
-                                      h={4}
-                                      accentColor="blue.500"
-                                    />
-                                    <styled.label
-                                      htmlFor={`category-${subcategory.category_id}`}
-                                      fontSize="sm"
-                                      color="gray.700"
-                                      cursor="pointer"
-                                      flex="1"
-                                    >
-                                      {subcategory.name}
-                                    </styled.label>
-                                  </Flex>
-                                ))}
-                              </Stack>
-                            ) : (
-                              <Flex align="center" gap={2} pl={4}>
-                                <styled.input
-                                  type="checkbox"
-                                  id={`category-${parentCategory.category_id}`}
-                                  checked={selectedCategoryIds.includes(
-                                    parentCategory.category_id,
-                                  )}
-                                  onChange={() =>
-                                    handleCategoryToggle(parentCategory.category_id)
-                                  }
-                                  disabled={isLoading}
-                                  w={4}
-                                  h={4}
-                                  accentColor="blue.500"
-                                />
-                                <styled.label
-                                  htmlFor={`category-${parentCategory.category_id}`}
-                                  fontSize="sm"
-                                  color="gray.700"
-                                  cursor="pointer"
-                                  flex="1"
+                  <Stack gap={4}>
+                    {parentCategories.map((parentCategory) => {
+                      const subcategories = getSubcategories(parentCategory.category_id)
+                      return (
+                        <Box key={parentCategory.category_id}>
+                          <styled.h4
+                            fontSize="sm"
+                            fontWeight="semibold"
+                            color="gray.800"
+                            mb={2}
+                          >
+                            {parentCategory.name}
+                          </styled.h4>
+                          {subcategories.length > 0 ? (
+                            <Stack gap={2} pl={4}>
+                              {subcategories.map((subcategory) => (
+                                <Flex
+                                  key={subcategory.category_id}
+                                  align="center"
+                                  gap={2}
                                 >
-                                  No subcategories
-                                </styled.label>
-                              </Flex>
-                            )}
-                          </Box>
-                        )
-                      })}
-                    </Stack>
-                  </Box>
-                )}
-                <styled.p fontSize="sm" color="gray.500" mt={1}>
-                  Select categories to generate products for ({selectedCategoryIds.length}{' '}
-                  selected)
-                </styled.p>
-              </Box>
-            )}
-
-            <Box>
-              <styled.label
-                htmlFor="count-input"
-                fontSize="sm"
-                fontWeight="semibold"
-                color="gray.700"
-                display="block"
-                mb={2}
-              >
-                Products per category
-              </styled.label>
-              <styled.input
-                id="count-input"
-                type="number"
-                value={count}
-                onChange={(e) =>
-                  setCount(Math.max(1, Math.min(20, parseInt(e.target.value) || 1)))
-                }
-                min="1"
-                max="20"
-                disabled={isLoading}
-                px={4}
-                py={3}
-                border="1px solid"
-                borderColor="gray.300"
-                borderRadius="lg"
-                fontSize="base"
-                w="32"
-                bg="white"
-                _focus={{
-                  outline: 'none',
-                  borderColor: 'blue.500',
-                  boxShadow: '0 0 0 3px rgba(59, 130, 246, 0.1)',
-                }}
-                _disabled={{
-                  bg: 'gray.50',
-                  color: 'gray.500',
-                  cursor: 'not-allowed',
-                }}
-              />
+                                  <styled.input
+                                    type="checkbox"
+                                    id={`category-${subcategory.category_id}`}
+                                    checked={selectedCategoryIds.includes(
+                                      subcategory.category_id,
+                                    )}
+                                    onChange={() =>
+                                      handleCategoryToggle(subcategory.category_id)
+                                    }
+                                    disabled={isLoading}
+                                    w={4}
+                                    h={4}
+                                    accentColor="blue.500"
+                                  />
+                                  <styled.label
+                                    htmlFor={`category-${subcategory.category_id}`}
+                                    fontSize="sm"
+                                    color="gray.700"
+                                    cursor="pointer"
+                                    flex="1"
+                                  >
+                                    {subcategory.name}
+                                  </styled.label>
+                                </Flex>
+                              ))}
+                            </Stack>
+                          ) : (
+                            <Flex align="center" gap={2} pl={4}>
+                              <styled.input
+                                type="checkbox"
+                                id={`category-${parentCategory.category_id}`}
+                                checked={selectedCategoryIds.includes(
+                                  parentCategory.category_id,
+                                )}
+                                onChange={() =>
+                                  handleCategoryToggle(parentCategory.category_id)
+                                }
+                                disabled={isLoading}
+                                w={4}
+                                h={4}
+                                accentColor="blue.500"
+                              />
+                              <styled.label
+                                htmlFor={`category-${parentCategory.category_id}`}
+                                fontSize="sm"
+                                color="gray.700"
+                                cursor="pointer"
+                                flex="1"
+                              >
+                                No subcategories
+                              </styled.label>
+                            </Flex>
+                          )}
+                        </Box>
+                      )
+                    })}
+                  </Stack>
+                </Box>
+              )}
               <styled.p fontSize="sm" color="gray.500" mt={1}>
-                {selectedCategoryIds.length > 0
-                  ? `Total: ${count * selectedCategoryIds.length} products (${count} per category × ${selectedCategoryIds.length} categories)`
-                  : `Choose between 1-20 products per category (recommended: 3-5)`}
+                Select categories to generate products for ({selectedCategoryIds.length}{' '}
+                selected)
               </styled.p>
             </Box>
+          )}
 
-            <Flex gap={4} alignItems="center">
-              <Button
-                onClick={handleSubmit}
-                disabled={isLoading || !catalogId || selectedCategoryIds.length === 0}
-                size="lg"
-              >
-                {isLoading ? 'Generating...' : 'Generate Products'}
-              </Button>
+          <Box>
+            <styled.label
+              htmlFor="count-input"
+              fontSize="sm"
+              fontWeight="semibold"
+              color="gray.700"
+              display="block"
+              mb={2}
+            >
+              Products per category
+            </styled.label>
+            <styled.input
+              id="count-input"
+              type="number"
+              value={count}
+              onChange={(e) =>
+                setCount(Math.max(1, Math.min(20, parseInt(e.target.value) || 1)))
+              }
+              min="1"
+              max="20"
+              disabled={isLoading}
+              pl={2}
+              py={1}
+              border="1px solid"
+              borderColor="gray.300"
+              borderRadius="xs"
+              fontSize="base"
+              w="60px"
+              bg="white"
+              _focus={{
+                outline: 'none',
+                borderColor: 'blue.500',
+                boxShadow: '0 0 0 3px rgba(59, 130, 246, 0.1)',
+              }}
+              _disabled={{
+                bg: 'gray.50',
+                color: 'gray.500',
+                cursor: 'not-allowed',
+              }}
+            />
+            <styled.p fontSize="sm" color="gray.500" mt={1}>
+              {selectedCategoryIds.length > 0
+                ? `Total: ${count * selectedCategoryIds.length} products (${count} per category × ${selectedCategoryIds.length} categories)`
+                : `Choose between 1-20 products per category (recommended: 3-5)`}
+            </styled.p>
+          </Box>
 
-              {object?.products &&
-                object.products.every((p) => p && p.name && p.variants) && (
-                  <Button
-                    onClick={handleSave}
-                    disabled={isSaving}
-                    variant="primary"
-                    size="lg"
-                  >
-                    {isSaving ? 'Saving...' : 'Save Products'}
-                  </Button>
-                )}
-            </Flex>
-          </Stack>
-        </Box>
+          <Flex gap={4} alignItems="center">
+            <Button
+              onClick={handleSubmit}
+              disabled={isLoading || !catalogId || selectedCategoryIds.length === 0}
+              size="sm"
+            >
+              {isLoading ? 'Generating...' : 'Generate Products'}
+            </Button>
 
-        {/* Results */}
-        {object?.products && object.products.every((p) => p && p.name && p.variants) && (
+            {productsInCategories.length > 0 &&
+              !isLoading &&
+              productsInCategories.every((p) => p && p.name && p.variants) && (
+                <Button
+                  onClick={handleSave}
+                  disabled={isSaving}
+                  variant="primary"
+                  size="sm"
+                >
+                  {isSaving ? 'Saving...' : 'Save Products'}
+                </Button>
+              )}
+          </Flex>
+        </Stack>
+      </Box>
+
+      {/* Results */}
+      {productsInCategories &&
+        productsInCategories.every((p) => p && p.name && p.variants) && (
           <ProductsDisplay
-            products={object.products as FullProductSchemaType['products']}
+            products={productsInCategories as z.infer<typeof productSchemaWithVariants>[]}
           />
         )}
-      </Stack>
-    </Box>
+    </Stack>
   )
 }

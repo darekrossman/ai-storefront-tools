@@ -4,7 +4,7 @@ import { createClient } from '@/lib/supabase/server'
 import { revalidatePath } from 'next/cache'
 import type { Database } from '@/lib/supabase/generated-types'
 import { convertToDBFormat, linkProductRelations } from '@/lib/products/helpers'
-import type { fullProductSchema } from '@/lib/products/schemas'
+import type { fullProductSchema, productSchemaWithVariants } from '@/lib/products/schemas'
 import { unstable_cacheLife as cacheLife } from 'next/cache'
 import { unstable_cacheTag as cacheTag } from 'next/cache'
 import { revalidateTag } from 'next/cache'
@@ -30,7 +30,7 @@ export type CreateProductData = Omit<
   | 'active_variant_count'
 >
 
-export type CreateMultipleProductsData = z.infer<typeof fullProductSchema>
+export type CreateMultipleProductsData = z.infer<typeof productSchemaWithVariants>[]
 
 export type UpdateProductData = {
   id: number

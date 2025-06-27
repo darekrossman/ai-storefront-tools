@@ -1,7 +1,16 @@
-import { Box, Container, Stack, styled } from '@/styled-system/jsx'
 import { notFound } from 'next/navigation'
 import { getProductById } from '@/actions/products'
 import ProductDetails from '@/components/products/product-details'
+import {
+  PageHeader,
+  PageHeaderActions,
+  PageHeaderSubtitle,
+  PageHeaderTitle,
+} from '@/components/brands/page-header'
+import { PageContainer } from '@/components/ui/page-container'
+import { ContentContainer } from '@/components/brands/content-container'
+import Link from 'next/link'
+import { button } from '@/components/ui/button'
 
 interface ProductDetailsPageProps {
   params: Promise<{
@@ -11,7 +20,7 @@ interface ProductDetailsPageProps {
 }
 
 export default async function ProductDetailsPage({ params }: ProductDetailsPageProps) {
-  const { productId } = await params
+  const { brandSlug, productId } = await params
 
   const product = await getProductById(parseInt(productId))
 
@@ -19,5 +28,24 @@ export default async function ProductDetailsPage({ params }: ProductDetailsPageP
     notFound()
   }
 
-  return <ProductDetails product={product} />
+  return (
+    <PageContainer>
+      <PageHeader>
+        <PageHeaderTitle>{product.name}</PageHeaderTitle>
+        <PageHeaderSubtitle>{product.short_description}</PageHeaderSubtitle>
+        <PageHeaderActions>
+          <Link
+            href={`/brands/${brandSlug}/products/${product.id}/edit`}
+            className={button({ variant: 'secondary', size: 'sm' })}
+          >
+            Edit Product
+          </Link>
+        </PageHeaderActions>
+      </PageHeader>
+
+      <ContentContainer>
+        <ProductDetails product={product} />
+      </ContentContainer>
+    </PageContainer>
+  )
 }

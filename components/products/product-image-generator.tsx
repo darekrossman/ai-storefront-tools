@@ -47,29 +47,30 @@ export default function ProductImageGenerator({
 
   const STORAGE_KEY = 'product-image-edit-prompts'
 
+  /** @todo - move catalog settings to context higher up */
   // Load catalog settings on mount
-  useEffect(() => {
-    if (product.catalog_id) {
-      loadCatalogSettings()
-    }
-  }, [product.catalog_id])
+  // useEffect(() => {
+  //   if (product.catalog_id) {
+  //     loadCatalogSettings()
+  //   }
+  // }, [product.catalog_id])
 
-  const loadCatalogSettings = async () => {
-    setIsLoadingCatalog(true)
-    try {
-      const catalog = await getProductCatalogAction(product.catalog_id)
-      if (catalog?.settings && typeof catalog.settings === 'object') {
-        const settings = catalog.settings as any
-        if (settings.imageGroupPrompts && Array.isArray(settings.imageGroupPrompts)) {
-          setCatalogPrompts(settings.imageGroupPrompts)
-        }
-      }
-    } catch (error) {
-      console.error('Error loading catalog settings:', error)
-    } finally {
-      setIsLoadingCatalog(false)
-    }
-  }
+  // const loadCatalogSettings = async () => {
+  //   setIsLoadingCatalog(true)
+  //   try {
+  //     const catalog = await getProductCatalogAction(product.catalog_id)
+  //     if (catalog?.settings && typeof catalog.settings === 'object') {
+  //       const settings = catalog.settings as any
+  //       if (settings.imageGroupPrompts && Array.isArray(settings.imageGroupPrompts)) {
+  //         setCatalogPrompts(settings.imageGroupPrompts)
+  //       }
+  //     }
+  //   } catch (error) {
+  //     console.error('Error loading catalog settings:', error)
+  //   } finally {
+  //     setIsLoadingCatalog(false)
+  //   }
+  // }
 
   const getImageObject = () => {
     if (!imageResponse) return

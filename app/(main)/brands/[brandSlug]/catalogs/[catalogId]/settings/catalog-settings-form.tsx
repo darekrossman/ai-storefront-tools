@@ -9,12 +9,12 @@ import {
   type UpdateProductCatalogData,
 } from '@/actions/product-catalogs'
 import type { Tables } from '@/lib/supabase/generated-types'
+import { useBrand } from '@/components/brand-context'
 
 type ProductCatalog = Tables<'product_catalogs'>
 
 interface CatalogSettingsFormProps {
   catalog: ProductCatalog
-  brandId: number
 }
 
 interface ImageGroupPrompt {
@@ -111,10 +111,8 @@ async function updateCatalogSettings(
   }
 }
 
-export default function CatalogSettingsForm({
-  catalog,
-  brandId,
-}: CatalogSettingsFormProps) {
+export default function CatalogSettingsForm({ catalog }: CatalogSettingsFormProps) {
+  const brand = useBrand()
   const router = useRouter()
   const [state, formAction, isPending] = useActionState(
     updateCatalogSettings.bind(null, catalog.catalog_id),
@@ -195,7 +193,7 @@ export default function CatalogSettingsForm({
   }
 
   return (
-    <Box maxW="4xl" mx="auto">
+    <Box>
       <form action={formAction}>
         <Stack gap={8}>
           {/* Error/Success Messages */}

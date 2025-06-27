@@ -10,7 +10,7 @@ import { getBrandIdByCatalog } from '@/actions'
 import { Brand } from '@/lib/supabase/database-types'
 import Image from 'next/image'
 import { useEffect, useState } from 'react'
-import BulkImageGeneratorModal from './bulk-image-generator-modal'
+import BulkImageGeneratorModal from '../products/bulk-image-generator-modal'
 import ImageModal from '@/components/ui/image-modal'
 
 interface ProductsTabProps {

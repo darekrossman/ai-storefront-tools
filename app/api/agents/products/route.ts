@@ -2,6 +2,7 @@ import { openai } from '@ai-sdk/openai'
 import { streamObject } from 'ai'
 import { createFullProductSchema } from '@/lib/products/schemas'
 import { getContextForCatalog } from '@/actions/generation/context-utils'
+import { z } from 'zod'
 
 const systemPrompt = `You are an expert product creation specialist tasked with generating authentic, compelling products for a specific brand catalog. Your role is to create products that seamlessly align with the brand's identity, voice, tone, and positioning while fitting perfectly within the provided catalog structure and category definitions.
 
@@ -168,6 +169,9 @@ Before finalizing your response:
 2. Verify the count matches the exact number requested
 3. If counts don't match, adjust by adding or removing products as needed
 4. Double-check that each product is assigned to the correct parent_category_id
+5. productsToGeneratePerCategory should be equal to the amount to length of categoriesToGenerateProductsFor
+
+The length of the 'products' array must be equal to the totalProductsToGenerate
 
 **REMEMBER**: Generating fewer or more products than requested is considered a failure to follow instructions.`
 
@@ -200,14 +204,14 @@ ${categoryIds.map((id: string) => `□ ${count} products assigned to ${id}`).joi
 ## Catalog Data
 ${JSON.stringify(contextData)}`
 
-  console.log('User message:', content)
+  const schema = createFullProductSchema(count, totalExpectedProducts, categoryIds)
 
   const result = streamObject({
     model: openai('gpt-4.1'),
-    schema: createFullProductSchema(count * categoryIds.length),
+    schema,
     system: systemPrompt,
     maxTokens: 32768,
-    temperature: 0.4,
+    temperature: 0.3,
     messages: [
       {
         role: 'user',

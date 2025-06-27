@@ -4,9 +4,9 @@ import type {
   ProductAttributeSchemaInsert,
   ProductVariantInsert,
 } from '@/lib/supabase/database-types'
-import type { fullProductSchema } from './schemas'
+import type { productSchemaWithVariants } from './schemas'
 
-type FullProductSchemaType = z.infer<typeof fullProductSchema>
+type FullProductSchemaType = z.infer<typeof productSchemaWithVariants>[]
 
 export interface ConvertedProductData {
   products: ProductInsert[]
@@ -25,7 +25,7 @@ export function convertToDBFormat(
   const attributeSchemas: ProductAttributeSchemaInsert[] = []
   const variants: ProductVariantInsert[] = []
 
-  data.products.forEach((product, productIndex) => {
+  data.forEach((product, productIndex) => {
     // Create product insert object
     const productInsert: ProductInsert = {
       catalog_id: catalogId,

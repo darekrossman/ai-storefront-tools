@@ -1,6 +1,6 @@
 import { createClient } from '@/lib/supabase/server'
 import { Box, Flex, Stack, styled, Grid, GridItem } from '@/styled-system/jsx'
-import GuestHeader from '@/components/navigation/guest-header'
+import GuestHeader from '@/components/layout/guest-header'
 import WaitlistForm from '@/components/waitlist-form'
 
 export default async function Page() {

@@ -2,45 +2,43 @@ import { redirect } from 'next/navigation'
 import { Container, Stack, styled } from '@/styled-system/jsx'
 import { getProductCatalogAction } from '@/actions/product-catalogs'
 import CatalogSettingsForm from './catalog-settings-form'
+import { ContentContainer } from '@/components/brands/content-container'
+import {
+  PageHeader,
+  PageHeaderSubtitle,
+  PageHeaderTitle,
+} from '@/components/brands/page-header'
+import { PageContainer } from '@/components/ui/page-container'
 
 interface CatalogSettingsPageProps {
-  params: {
-    id: string
+  params: Promise<{
+    brandSlug: string
     catalogId: string
-  }
+  }>
 }
 
 export default async function CatalogSettingsPage({ params }: CatalogSettingsPageProps) {
-  const brandId = parseInt(params.id)
-  const catalogId = params.catalogId
-
-  if (isNaN(brandId)) {
-    redirect('/dashboard')
-  }
+  const { brandSlug, catalogId } = await params
 
   // Fetch catalog data
   const catalog = await getProductCatalogAction(catalogId)
 
   if (!catalog) {
-    redirect(`/dashboard/brands/${brandId}/catalogs`)
+    redirect(`/dashboard/brands/${brandSlug}/catalogs`)
   }
 
   return (
-    <Container py={8}>
-      <Stack gap={8}>
-        {/* Header */}
-        <Stack gap={2}>
-          <styled.h1 fontSize="2xl" fontWeight="bold" color="gray.900">
-            Catalog Settings
-          </styled.h1>
-          <styled.p fontSize="sm" color="gray.600">
-            Manage your catalog configuration and details
-          </styled.p>
-        </Stack>
+    <PageContainer>
+      <PageHeader>
+        <PageHeaderTitle>Catalog Settings</PageHeaderTitle>
+        <PageHeaderSubtitle>
+          Manage your catalog configuration and details
+        </PageHeaderSubtitle>
+      </PageHeader>
 
-        {/* Settings Form */}
-        <CatalogSettingsForm catalog={catalog} brandId={brandId} />
-      </Stack>
-    </Container>
+      <ContentContainer>
+        <CatalogSettingsForm catalog={catalog} />
+      </ContentContainer>
+    </PageContainer>
   )
 }

@@ -1,4 +1,6 @@
 import { defineConfig } from '@pandacss/dev'
+import { semanticTokens } from './lib/theme'
+import { keyframes } from './lib/theme/keyframes'
 
 export default defineConfig({
   // Whether to use css reset
@@ -9,6 +11,7 @@ export default defineConfig({
     './app/**/*.{ts,tsx,js,jsx}',
     './components/**/*.{ts,tsx,js,jsx}',
     './ui/**/*.{ts,tsx,js,jsx}',
+    './lib/theme/**/*.{ts,tsx,js,jsx}',
   ],
 
   // Files to exclude
@@ -16,13 +19,22 @@ export default defineConfig({
 
   // Useful for theme customization
   theme: {
-    extend: {},
+    extend: {
+      tokens: {
+        sizes: {
+          headerHeight: { value: '60px' },
+          sidebarWidth: { value: '212px' },
+        },
+      },
+      semanticTokens,
+      keyframes,
+    },
   },
 
   globalCss: {
     '*': {
-      textBoxEdge: 'cap alphabetic',
-      textBoxTrim: 'trim-both',
+      // textBoxEdge: 'cap alphabetic',
+      // textBoxTrim: 'trim-both',
       textWrap: 'pretty',
     },
     input: {

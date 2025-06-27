@@ -414,6 +414,7 @@ export type Database = {
           settings: Json | null
           slug: string
           status: Database["public"]["Enums"]["brand_status"]
+          total_categories: number
           total_products: number
           updated_at: string
         }
@@ -427,6 +428,7 @@ export type Database = {
           settings?: Json | null
           slug: string
           status?: Database["public"]["Enums"]["brand_status"]
+          total_categories?: number
           total_products?: number
           updated_at?: string
         }
@@ -440,6 +442,7 @@ export type Database = {
           settings?: Json | null
           slug?: string
           status?: Database["public"]["Enums"]["brand_status"]
+          total_categories?: number
           total_products?: number
           updated_at?: string
         }

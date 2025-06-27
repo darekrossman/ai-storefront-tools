@@ -1,5 +1,6 @@
 import { Box, Container, Flex, styled } from '@/styled-system/jsx'
 import Link from 'next/link'
+import { SiteLogo } from '@/components/site-logo'
 
 export default function GuestHeader() {
   return (
@@ -8,15 +9,7 @@ export default function GuestHeader() {
         <Flex justify="space-between" align="center">
           {/* App Name/Logo */}
           <Link href="/">
-            <styled.h1
-              fontSize="xl"
-              fontWeight="bold"
-              color="gray.900"
-              _hover={{ color: 'gray.700' }}
-              cursor="pointer"
-            >
-              Storefront Tools
-            </styled.h1>
+            <SiteLogo />
           </Link>
 
           {/* Status Badge */}

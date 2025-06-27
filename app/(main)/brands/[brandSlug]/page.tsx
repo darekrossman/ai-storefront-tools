@@ -1,10 +1,18 @@
-import { notFound, redirect } from 'next/navigation'
-import { Box, Container, Flex, Stack, styled } from '@/styled-system/jsx'
+import { notFound } from 'next/navigation'
+import { Box, Flex, Grid, Stack, styled } from '@/styled-system/jsx'
 import Link from 'next/link'
 import { button } from '@/components/ui/button'
 import { getBrandBySlugAction } from '@/actions/brands'
 import { getProductCatalogsAction, getProductsByBrand } from '@/actions'
 import BrandDetails from '@/components/brands/brand-details'
+import { PageContainer } from '@/components/ui/page-container'
+import {
+  PageHeader,
+  PageHeaderActions,
+  PageHeaderSubtitle,
+  PageHeaderTitle,
+} from '@/components/brands/page-header'
+import { ContentContainer } from '@/components/brands/content-container'
 
 interface BrandPageProps {
   params: Promise<{
@@ -29,97 +37,80 @@ export default async function BrandPage({ params }: BrandPageProps) {
   }
 
   return (
-    <Stack gap={8}>
-      {/* Brand Header */}
-      <Flex justify="space-between" align="start" gap={4}>
-        <Stack gap={4}>
-          <styled.h1 fontSize="3xl" fontWeight="bold" color="gray.900">
-            {brand.name}
-          </styled.h1>
-          {brand.tagline && (
-            <styled.p fontSize="lg" color="gray.600" lineHeight="relaxed">
-              {brand.tagline}
-            </styled.p>
-          )}
-        </Stack>
-
-        <Flex gap={2}>
+    <PageContainer>
+      <PageHeader>
+        <PageHeaderTitle>{brand.name}</PageHeaderTitle>
+        <PageHeaderSubtitle>{brand.tagline}</PageHeaderSubtitle>
+        <PageHeaderActions>
           <Link
             href={`/brands/${brand.slug}/settings`}
             className={button({ variant: 'secondary', size: 'sm' })}
           >
             Settings
           </Link>
-        </Flex>
-      </Flex>
+        </PageHeaderActions>
+      </PageHeader>
 
-      {/* Main Content Grid */}
-      <Box
-        display="grid"
-        gridTemplateColumns={{ base: '1fr', lg: '2fr 1fr' }}
-        gap={8}
-        alignItems="start"
-      >
-        {/* Brand Details */}
-        <Box bg="white" border="1px solid" borderColor="gray.200" borderRadius="lg" p={6}>
-          <BrandDetails brand={brand} />
-        </Box>
+      <ContentContainer>
+        <Grid
+          gridTemplateColumns={{ base: '1fr', lg: '2fr 1fr' }}
+          gap={8}
+          alignItems="start"
+        >
+          {/* Brand Details */}
+          <Box bg="white" boxShadow="xs" p={6}>
+            <BrandDetails brand={brand} />
+          </Box>
 
-        {/* Quick Stats Cards */}
-        <Stack gap={4}>
-          <Link href={`/brands/${brand.slug}/catalogs`}>
-            <Box
-              bg="white"
-              border="1px solid"
-              borderColor="gray.200"
-              borderRadius="lg"
-              p={6}
-              cursor="pointer"
-              transition="all 0.2s"
-              _hover={{
-                borderColor: 'green.300',
-                shadow: 'sm',
-              }}
-            >
-              <Flex gap={4} align="center">
-                <styled.div fontSize="lg" fontWeight="bold" color="blue.600">
-                  {stats.catalogsCount}
+          <Box bg="white" boxShadow="xs" p={6}>
+            <Stack gap={4}>
+              <styled.h3 fontSize="md" fontWeight="semibold" color="fg">
+                Brand Metadata
+              </styled.h3>
+              <Grid gridTemplateColumns="max-content 1fr" gap={4}>
+                <styled.p fontSize="xs" fontWeight="semibold" color="fg.muted">
+                  ID:
+                </styled.p>
+
+                <styled.p fontSize="xs">{brand.id}</styled.p>
+                <styled.p fontSize="xs" fontWeight="semibold" color="fg.muted">
+                  Slug:
+                </styled.p>
+                <styled.p fontSize="xs">{brand.slug}</styled.p>
+
+                <styled.p fontSize="xs" fontWeight="semibold" color="fg.muted">
+                  Created:
+                </styled.p>
+                <styled.p fontSize="xs">
+                  {new Date(brand.created_at).toLocaleString()}
+                </styled.p>
+
+                <styled.p fontSize="xs" fontWeight="semibold" color="fg.muted">
+                  Updated:
+                </styled.p>
+                <styled.p fontSize="xs">
+                  {new Date(brand.updated_at).toLocaleString()}
+                </styled.p>
+
+                <styled.p fontSize="xs" fontWeight="semibold" color="fg.muted">
+                  Status:
+                </styled.p>
+                <styled.p fontSize="xs">{brand.status}</styled.p>
+
+                <styled.div fontSize="xs" fontWeight="semibold" color="fg.muted">
+                  Catalogs:
                 </styled.div>
+                <styled.p fontSize="xs">{stats.catalogsCount}</styled.p>
 
-                <styled.div fontSize="md" fontWeight="medium" color="gray.900">
-                  Catalogs
+                <styled.div fontSize="xs" fontWeight="semibold" color="fg.muted">
+                  Products:
                 </styled.div>
-              </Flex>
-            </Box>
-          </Link>
-
-          <Link href={`/brands/${brand.slug}/products`}>
-            <Box
-              bg="white"
-              border="1px solid"
-              borderColor="gray.200"
-              borderRadius="lg"
-              p={6}
-              cursor="pointer"
-              transition="all 0.2s"
-              _hover={{
-                borderColor: 'purple.300',
-                shadow: 'sm',
-              }}
-            >
-              <Flex gap={4} align="center">
-                <styled.div fontSize="lg" fontWeight="bold" color="green.600">
-                  {stats.productsCount}
-                </styled.div>
-
-                <styled.div fontSize="md" fontWeight="medium" color="gray.900">
-                  Products
-                </styled.div>
-              </Flex>
-            </Box>
-          </Link>
-        </Stack>
-      </Box>
-    </Stack>
+                <styled.p fontSize="xs">{stats.productsCount}</styled.p>
+              </Grid>
+            </Stack>
+          </Box>
+        </Grid>
+      </ContentContainer>
+    </PageContainer>
   )
 }

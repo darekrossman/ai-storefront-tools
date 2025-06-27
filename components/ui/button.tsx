@@ -17,10 +17,10 @@ export const button = cva({
   variants: {
     variant: {
       primary: {
-        bg: 'blue.500',
+        bg: 'accent',
         color: 'white',
         _hover: {
-          bg: 'blue.600',
+          bg: 'accent.hover',
         },
       },
       secondary: {
@@ -40,6 +40,10 @@ export const button = cva({
           bg: 'red.600',
         },
       },
+      icon: {
+        bg: 'transparent',
+        color: 'fg',
+      },
     },
     size: {
       lg: { h: '11', px: '4', fontSize: 'sm' },
@@ -48,6 +52,19 @@ export const button = cva({
       xs: { h: '6', px: '2', fontSize: 'xs' },
     },
   },
+
+  compoundVariants: [
+    {
+      variant: 'icon',
+      size: ['xs', 'sm', 'md', 'lg'],
+      css: {
+        px: 0,
+        width: '24px',
+        height: '24px',
+      },
+    },
+  ],
+
   defaultVariants: {
     variant: 'primary',
     size: 'md',

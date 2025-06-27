@@ -71,7 +71,11 @@ export async function storeGeneratedImageAction(
 
     // Generate unique filename
     const timestamp = Date.now()
-    const attributesString = Object.values(attributes).join('_')
+    const attributesString = Object.values(attributes)
+      .join('_')
+      .replace(/[^a-zA-Z0-9_-]/g, '_') // Replace invalid filename characters with underscores
+      .replace(/_+/g, '_') // Replace multiple consecutive underscores with single underscore
+      .replace(/^_|_$/g, '') // Remove leading/trailing underscores
     const filename = `${timestamp}_${attributesString}.${image.content_type.split('/')[1]}`
     const storagePath = `${productId}/${filename}`
 

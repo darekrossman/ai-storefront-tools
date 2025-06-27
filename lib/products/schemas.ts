@@ -87,17 +87,33 @@ export const productSchemaWithVariants = productSchema.extend({
     .describe('Variants of the product for each attribute option combination'),
 })
 
-export const fullProductSchema = z.object({
-  products: z.array(productSchemaWithVariants).describe('The products of the catalog'),
-})
+export const fullProductSchema = z.record(
+  z.string(),
+  z.object({
+    products: z.array(productSchemaWithVariants).describe('The products of the catalog'),
+  }),
+)
 
-export const createFullProductSchema = (count: number) => {
+export const createFullProductSchema = (
+  count: number,
+  totalCount: number,
+  categories: string[],
+) => {
   return z.object({
-    products: z
-      .array(productSchemaWithVariants)
-      .min(count)
-      .max(count)
-      .length(count)
-      .describe('The products of the catalog'),
+    ...categories.reduce((acc: any, category) => {
+      acc[category] = z.object({
+        products: z
+          .array(productSchemaWithVariants)
+          .min(count)
+          .max(count)
+          .length(count)
+          .describe('The products of the catalog'),
+      })
+      return acc
+    }, {}),
+
+    totalProductsToGenerate: z
+      .literal(totalCount)
+      .describe('The total number of products to generate'),
   })
 }

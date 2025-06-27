@@ -99,78 +99,16 @@ export default function ProductDetails({ product }: ProductDetailsProps) {
 
   return (
     <Box>
-      {/* Header */}
-      <Stack gap={4} mb={8}>
-        <Flex justify="space-between" align="start" gap={4}>
-          <Stack gap={2} flex={1}>
-            <styled.h1 fontSize="2xl" fontWeight="bold" color="gray.900">
-              {product.name}
-            </styled.h1>
-            <Flex gap={2} align="center" wrap="wrap">
-              <styled.span
-                fontSize="sm"
-                fontWeight="medium"
-                px={3}
-                py={1}
-                borderRadius="md"
-                bg={statusColor.bg}
-                color={statusColor.color}
-              >
-                {product.status}
-              </styled.span>
-
-              {product.categories && (
-                <styled.span
-                  fontSize="sm"
-                  px={3}
-                  py={1}
-                  bg="blue.50"
-                  color="blue.700"
-                  borderRadius="md"
-                >
-                  {product.categories.name}
-                </styled.span>
-              )}
-
-              <styled.span fontSize="sm" color="gray.500">
-                •
-              </styled.span>
-              <styled.span fontSize="sm" color="gray.600">
-                {variants.length} {variants.length === 1 ? 'variant' : 'variants'}
-              </styled.span>
-              <styled.span fontSize="sm" color="gray.600">
-                • {images.length} {images.length === 1 ? 'image' : 'images'}
-              </styled.span>
-            </Flex>
-          </Stack>
-
-          <Flex gap={2}>
-            <Link
-              href={`/brands/${brandSlug}/products/${product.id}/variants`}
-              className={button({ variant: 'primary', size: 'sm' })}
-            >
-              Manage Variants
-            </Link>
-            <Link
-              href={`/brands/${brandSlug}/products/${product.id}/edit`}
-              className={button({ variant: 'secondary', size: 'sm' })}
-            >
-              Edit Product
-            </Link>
-          </Flex>
-        </Flex>
-
-        {/* Price Range */}
-        {product.min_price !== null && (
-          <Box>
-            <styled.div fontSize="xl" fontWeight="semibold" color="gray.900">
-              {product.min_price === product.max_price
-                ? `$${product.min_price}`
-                : `$${product.min_price} - $${product.max_price}`}
-            </styled.div>
-          </Box>
-        )}
-      </Stack>
+      {/* Price Range */}
+      {product.min_price !== null && (
+        <Box>
+          <styled.div fontSize="xl" fontWeight="semibold" color="gray.900">
+            {product.min_price === product.max_price
+              ? `$${product.min_price}`
+              : `$${product.min_price} - $${product.max_price}`}
+          </styled.div>
+        </Box>
+      )}
 
       {/* Main Content Grid */}
       <Box

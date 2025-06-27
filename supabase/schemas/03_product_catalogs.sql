@@ -16,6 +16,7 @@ create table public.product_catalogs (
   description text,
   slug text not null,
   total_products integer not null default 0,
+  total_categories integer not null default 0,
   settings jsonb default '{}',
   status public.brand_status not null default 'draft',
   created_at timestamptz not null default now(),
@@ -27,6 +28,7 @@ comment on table public.product_catalogs is 'Product catalogs containing organiz
 -- Add column comments for clarity
 comment on column public.product_catalogs.catalog_id is 'Unique text identifier for the catalog';
 comment on column public.product_catalogs.total_products is 'Automatically calculated count of products in this catalog';
+comment on column public.product_catalogs.total_categories is 'Automatically calculated count of categories in this catalog';
 comment on column public.product_catalogs.settings is 'JSONB: Catalog-specific configuration and metadata';
 comment on column public.product_catalogs.slug is 'URL-friendly identifier for the catalog within the brand';
 
