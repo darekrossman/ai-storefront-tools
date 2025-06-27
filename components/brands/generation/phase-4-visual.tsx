@@ -1,7 +1,8 @@
 'use client'
 
-import { Box, Flex, Stack, styled } from '@/styled-system/jsx'
+import { Box, Flex, Grid, HStack, Stack, styled } from '@/styled-system/jsx'
 import { Button } from '@/components/ui/button'
+import { SelectableCard } from '@/components/ui/card'
 import { useBrandChat } from './brand-chat-context'
 
 export function Phase4Visual() {
@@ -12,92 +13,82 @@ export function Phase4Visual() {
   return (
     <Stack gap={6}>
       <Box>
-        <styled.h2 fontSize="xl" fontWeight="bold" color="gray.900" mb={2}>
+        <styled.h2 fontSize="xl" fontWeight="bold" color="gray.900">
           Phase 4: Visual Identity
         </styled.h2>
-        <styled.p fontSize="sm" color="gray.600" mb={4}>
+        <styled.p fontSize="sm" color="gray.600">
           Selected Personality: {object.phase4.selectedPersonality}
-        </styled.p>
-        <styled.p fontSize="sm" color="gray.600" mb={6}>
-          {object.phase4.nextStep}
         </styled.p>
       </Box>
 
-      <Stack gap={4}>
-        {object.phase4.visualOptions?.map((option: any, index: number) => (
-          <Box
-            key={index}
-            border="2px solid"
-            borderColor={selections.phase4Selection === index ? 'blue.500' : 'gray.200'}
-            borderRadius="lg"
-            p={4}
-            cursor="pointer"
-            transition="all 0.2s"
-            bg={selections.phase4Selection === index ? 'blue.50' : 'white'}
-            _hover={{
-              borderColor: selections.phase4Selection === index ? 'blue.600' : 'gray.300',
-              shadow: 'sm',
-            }}
-            onClick={() => handleSelection('phase4Selection', index)}
-          >
-            <Stack gap={3}>
-              <styled.div>
-                <styled.label fontSize="xs" fontWeight="medium" color="gray.500">
-                  Color Approach
-                </styled.label>
-                <styled.p fontSize="sm" color="gray.700" fontWeight="medium">
-                  {option?.colorApproach}
-                </styled.p>
-              </styled.div>
+      <Grid gridTemplateColumns="repeat(3, 1fr)" gap={4}>
+        {object.phase4.visualOptions?.map((option: any, index: number) => {
+          const isSelected = selections.phase4Selection === index
 
-              <styled.div>
-                <styled.label fontSize="xs" fontWeight="medium" color="gray.500">
-                  Typography Style
-                </styled.label>
-                <styled.p fontSize="sm" color="gray.700">
-                  {option?.typography}
-                </styled.p>
-              </styled.div>
+          return (
+            <SelectableCard
+              key={index}
+              isSelected={isSelected}
+              onClick={() => handleSelection('phase4Selection', index)}
+            >
+              <Stack gap={4}>
+                <Stack gap={1}>
+                  <styled.h3
+                    fontSize="md"
+                    fontWeight="semibold"
+                    color="gray.900"
+                    textBox="trim-both"
+                    textWrap="balance"
+                  >
+                    {option?.colorApproach}
+                  </styled.h3>
+                  <styled.p fontSize="sm" fontStyle="italic">
+                    {option?.typography}
+                  </styled.p>
+                </Stack>
 
-              <styled.div>
-                <styled.label fontSize="xs" fontWeight="medium" color="gray.500">
-                  Visual Style
-                </styled.label>
-                <styled.p fontSize="sm" color="gray.700" lineHeight="relaxed">
+                <styled.p fontSize="sm" color="fg/80" flex="1">
                   {option?.visualStyle}
                 </styled.p>
-              </styled.div>
 
-              <Box>
-                <styled.label fontSize="xs" fontWeight="medium" color="gray.500" mb={1}>
-                  Design Principles
-                </styled.label>
-                <Flex gap={1} wrap="wrap">
-                  {option?.designPrinciples?.map((principle: string, i: number) => (
-                    <styled.span
-                      key={i}
-                      fontSize="xs"
-                      px={2}
-                      py={0.5}
-                      bg="indigo.100"
-                      color="indigo.700"
-                      borderRadius="sm"
-                    >
-                      {principle}
-                    </styled.span>
-                  )) ?? []}
-                </Flex>
-              </Box>
-            </Stack>
-          </Box>
-        )) ?? []}
-      </Stack>
+                <Box>
+                  <styled.label fontSize="xs" fontWeight="medium" color="gray.500" mb={1}>
+                    Design Principles
+                  </styled.label>
+                  <Flex gap={1} wrap="wrap">
+                    {option?.designPrinciples?.map((principle: string, i: number) => (
+                      <styled.span
+                        key={i}
+                        fontSize="xs"
+                        px={2}
+                        py={0.5}
+                        bg="indigo.100"
+                        color="indigo.700"
+                        borderRadius="sm"
+                      >
+                        {principle}
+                      </styled.span>
+                    )) ?? []}
+                  </Flex>
+                </Box>
+              </Stack>
+            </SelectableCard>
+          )
+        }) ?? []}
+      </Grid>
 
-      {selections.phase4Selection !== undefined && (
-        <Button onClick={() => handlePhaseSubmit('phase4Selection')}>
-          Generate Comprehensive Strategy
+      <HStack gap={4}>
+        <Button variant="secondary" w="max-content" onClick={() => alert('wip')}>
+          Regenerate
         </Button>
-      )}
+        <Button
+          onClick={() => handlePhaseSubmit('phase4Selection')}
+          w="max-content"
+          disabled={selections.phase4Selection === undefined}
+        >
+          Generate Strategy
+        </Button>
+      </HStack>
     </Stack>
   )
 }
