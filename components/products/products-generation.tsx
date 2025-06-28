@@ -12,6 +12,7 @@ import { createMultipleProducts } from '@/actions/products'
 import { ProductCatalog, Category } from '@/lib/supabase/database-types'
 import { getCategoriesAction } from '@/actions/categories'
 import { useBrand } from '@/components/brand-context'
+import { Card } from '../ui/card'
 
 function ProductCard({
   product,
@@ -23,33 +24,24 @@ function ProductCard({
   index: number
 }) {
   return (
-    <Box
-      bg="white"
-      border="1px solid"
-      borderColor="gray.200"
-      borderRadius="lg"
-      p={4}
-      shadow="sm"
-      _hover={{ shadow: 'md', borderColor: 'gray.300' }}
-      transition="all 0.2s"
-    >
-      <Stack gap={1}>
+    <Card>
+      <Stack gap={2}>
         <Flex justify="space-between" align="start">
-          <styled.h3 fontSize="lg" fontWeight="semibold" color="gray.900" lineHeight="1">
+          <styled.h3 fontSize="md" fontWeight="medium" lineHeight="1.3">
             {product.name}
           </styled.h3>
         </Flex>
 
-        <styled.p fontSize="sm" color="gray.600" lineHeight="relaxed">
+        <styled.p fontSize="xs" color="gray.600" lineHeight="1.4">
           {product.short_description}
         </styled.p>
 
-        <Flex gap={4} fontSize="xs" color="gray.500">
+        {/* <Flex gap={4} fontSize="xs" color="gray.500">
           <styled.span>Category: {product.parent_category_id}</styled.span>
           <styled.span>Variants: {product.variants?.length || 0}</styled.span>
-        </Flex>
+        </Flex> */}
       </Stack>
-    </Box>
+    </Card>
   )
 }
 
@@ -58,11 +50,11 @@ function ProductsDisplay({
 }: { products: z.infer<typeof productSchemaWithVariants>[] }) {
   return (
     <Box w="full">
-      <Stack gap={2} w="full">
+      <Grid gridTemplateColumns="repeat(4, minmax(200px, 1fr))" gap={4}>
         {products.map((product, index) => (
           <ProductCard key={index} product={product} index={index} />
         ))}
-      </Stack>
+      </Grid>
     </Box>
   )
 }
@@ -80,6 +72,8 @@ export default function ProductsGeneration({ catalogs }: { catalogs: ProductCata
     api: '/api/agents/products',
     schema: fullProductSchema,
   })
+
+  console.log('object', object)
 
   const [isSaving, setIsSaving] = useState(false)
 
@@ -166,19 +160,15 @@ export default function ProductsGeneration({ catalogs }: { catalogs: ProductCata
 
   console.log('productsInCategories', productsInCategories)
 
-  const completedProductsCount = productsInCategories
+  const completedProducts = productsInCategories
     ? productsInCategories.filter(
         (p) => p && p.name && p.variants && p.variants.length > 0,
-      ).length
-    : 0
+      )
+    : []
+
+  const completedProductsCount = completedProducts.length
 
   if (isLoading) {
-    const completedProducts = productsInCategories
-      ? productsInCategories.filter(
-          (p) => p && p.name && p.variants && p.variants.length > 0,
-        )
-      : []
-
     return (
       <Stack gap={8} alignItems="center">
         {/* Loading Header */}
@@ -248,13 +238,11 @@ export default function ProductsGeneration({ catalogs }: { catalogs: ProductCata
           </Stack>
         </Box>
 
-        {/* Show completed products as they stream in */}
-        {completedProducts.length > 0 && (
-          <Box w="full">
-            <ProductsDisplay
-              products={completedProducts as z.infer<typeof productSchemaWithVariants>[]}
-            />
-          </Box>
+        {/* Results */}
+        {productsInCategories && (
+          <ProductsDisplay
+            products={productsInCategories as z.infer<typeof productSchemaWithVariants>[]}
+          />
         )}
       </Stack>
     )
@@ -514,12 +502,11 @@ export default function ProductsGeneration({ catalogs }: { catalogs: ProductCata
       </Box>
 
       {/* Results */}
-      {productsInCategories &&
-        productsInCategories.every((p) => p && p.name && p.variants) && (
-          <ProductsDisplay
-            products={productsInCategories as z.infer<typeof productSchemaWithVariants>[]}
-          />
-        )}
+      {productsInCategories && (
+        <ProductsDisplay
+          products={productsInCategories as z.infer<typeof productSchemaWithVariants>[]}
+        />
+      )}
     </Stack>
   )
 }

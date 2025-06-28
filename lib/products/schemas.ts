@@ -1,7 +1,12 @@
 import { z } from 'zod'
 
-export const productSchema = z.object({
+export const baseProductSchema = z.object({
   name: z.string().min(1).max(255).describe('The name of the product'),
+  slug: z
+    .string()
+    .describe(
+      'The slug of the product in url-friendly form, lowercase, hyphenated, no special chars, no spaces, etc',
+    ),
   description: z.string().min(1).max(1000).describe('The description of the product'),
   parent_category_id: z.string().describe('The parent category_id of the product'),
   short_description: z
@@ -9,6 +14,9 @@ export const productSchema = z.object({
     .min(1)
     .max(155)
     .describe('The short description of the product'),
+})
+
+export const extendedBaseProductFieldsSchema = z.object({
   specifications: z
     .array(
       z.object({
@@ -30,12 +38,22 @@ export const productSchema = z.object({
       'Basic attributes of the product like brand, artist, collection, etc. Not related to variation attributes.',
     ),
   tags: z.array(z.string()).min(1).max(5).describe('The tags of the product'),
-  meta_title: z.string().min(1).max(70).describe('The SEO meta title of the product'),
+  meta_title: z
+    .string()
+    .min(1)
+    .max(80)
+    .describe(
+      'The SEO meta title of the product, typically just the product name, shortened to meet length requirements.',
+    ),
   meta_description: z
     .string()
     .min(1)
-    .max(160)
+    .max(175)
     .describe('The SEO meta description of the product'),
+})
+
+export const productSchema = baseProductSchema.extend({
+  ...extendedBaseProductFieldsSchema.shape,
 })
 
 export const productAttributeSchema = z.object({
@@ -75,6 +93,18 @@ export const productVariantSchema = z.object({
   ),
 })
 
+export const enhancedProductFieldsSchema = extendedBaseProductFieldsSchema.extend({
+  variation_attributes: z
+    .array(productAttributeSchema)
+    .min(0)
+    .max(3)
+    .describe('The variation attributes of the product'),
+  variants: z
+    .array(productVariantSchema)
+    .min(1)
+    .describe('Variants of the product for each attribute option combination'),
+})
+
 export const productSchemaWithVariants = productSchema.extend({
   variation_attributes: z
     .array(productAttributeSchema)
@@ -94,11 +124,7 @@ export const fullProductSchema = z.record(
   }),
 )
 
-export const createFullProductSchema = (
-  count: number,
-  totalCount: number,
-  categories: string[],
-) => {
+export const createFullProductSchema = (count: number, categories: string[]) => {
   return z.object({
     ...categories.reduce((acc: any, category) => {
       acc[category] = z.object({
@@ -111,9 +137,21 @@ export const createFullProductSchema = (
       })
       return acc
     }, {}),
+  })
+}
 
-    totalProductsToGenerate: z
-      .literal(totalCount)
-      .describe('The total number of products to generate'),
+export const createBaseProductSchema = (count: number, categories: string[]) => {
+  return z.object({
+    ...categories.reduce((acc: any, category) => {
+      acc[category] = z.object({
+        products: z
+          .array(baseProductSchema)
+          .min(count)
+          .max(count)
+          .length(count)
+          .describe('The products of the catalog'),
+      })
+      return acc
+    }, {}),
   })
 }
