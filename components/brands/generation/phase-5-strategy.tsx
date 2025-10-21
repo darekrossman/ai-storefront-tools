@@ -67,19 +67,21 @@ export function Phase5Strategy() {
                     Core Values
                   </styled.label>
                   <Flex gap={1} wrap="wrap">
-                    {strategy.brandFoundation.values.map((value: string, i: number) => (
-                      <styled.span
-                        key={i}
-                        fontSize="xs"
-                        px={2}
-                        py={0.5}
-                        bg="emerald.100"
-                        color="emerald.700"
-                        borderRadius="sm"
-                      >
-                        {value}
-                      </styled.span>
-                    ))}
+                    {strategy.brandFoundation.values
+                      .filter((value): value is string => value !== undefined)
+                      .map((value, i) => (
+                        <styled.span
+                          key={i}
+                          fontSize="xs"
+                          px={2}
+                          py={0.5}
+                          bg="emerald.100"
+                          color="emerald.700"
+                          borderRadius="sm"
+                        >
+                          {value}
+                        </styled.span>
+                      ))}
                   </Flex>
                 </Box>
               )}
@@ -173,8 +175,11 @@ export function Phase5Strategy() {
                             Interests
                           </styled.label>
                           <Flex gap={1} wrap="wrap">
-                            {strategy.targetMarket.psychographics.interests.map(
-                              (interest: string, i: number) => (
+                            {strategy.targetMarket.psychographics.interests
+                              .filter(
+                                (interest): interest is string => interest !== undefined,
+                              )
+                              .map((interest, i) => (
                                 <styled.span
                                   key={i}
                                   fontSize="xs"
@@ -186,8 +191,7 @@ export function Phase5Strategy() {
                                 >
                                   {interest}
                                 </styled.span>
-                              ),
-                            )}
+                              ))}
                           </Flex>
                         </Box>
                       )}
@@ -203,8 +207,9 @@ export function Phase5Strategy() {
                             Values
                           </styled.label>
                           <Flex gap={1} wrap="wrap">
-                            {strategy.targetMarket.psychographics.values.map(
-                              (value: string, i: number) => (
+                            {strategy.targetMarket.psychographics.values
+                              .filter((value): value is string => value !== undefined)
+                              .map((value, i) => (
                                 <styled.span
                                   key={i}
                                   fontSize="xs"
@@ -216,8 +221,7 @@ export function Phase5Strategy() {
                                 >
                                   {value}
                                 </styled.span>
-                              ),
-                            )}
+                              ))}
                           </Flex>
                         </Box>
                       )}
@@ -234,8 +238,9 @@ export function Phase5Strategy() {
                             Personality Traits
                           </styled.label>
                           <Flex gap={1} wrap="wrap">
-                            {strategy.targetMarket.psychographics.personalityTraits.map(
-                              (trait: string, i: number) => (
+                            {strategy.targetMarket.psychographics.personalityTraits
+                              .filter((trait): trait is string => trait !== undefined)
+                              .map((trait, i) => (
                                 <styled.span
                                   key={i}
                                   fontSize="xs"
@@ -247,8 +252,7 @@ export function Phase5Strategy() {
                                 >
                                   {trait}
                                 </styled.span>
-                              ),
-                            )}
+                              ))}
                           </Flex>
                         </Box>
                       )}
@@ -269,19 +273,21 @@ export function Phase5Strategy() {
                       Pain Points
                     </styled.label>
                     <Flex gap={1} wrap="wrap">
-                      {strategy.targetMarket.painPoints.map((pain: string, i: number) => (
-                        <styled.span
-                          key={i}
-                          fontSize="xs"
-                          px={2}
-                          py={0.5}
-                          bg="red.100"
-                          color="red.700"
-                          borderRadius="sm"
-                        >
-                          {pain}
-                        </styled.span>
-                      ))}
+                      {strategy.targetMarket.painPoints
+                        .filter((pain): pain is string => pain !== undefined)
+                        .map((pain, i) => (
+                          <styled.span
+                            key={i}
+                            fontSize="xs"
+                            px={2}
+                            py={0.5}
+                            bg="red.100"
+                            color="red.700"
+                            borderRadius="sm"
+                          >
+                            {pain}
+                          </styled.span>
+                        ))}
                     </Flex>
                   </Box>
                 )}
@@ -293,19 +299,21 @@ export function Phase5Strategy() {
                     Needs
                   </styled.label>
                   <Flex gap={1} wrap="wrap">
-                    {strategy.targetMarket.needs.map((need: string, i: number) => (
-                      <styled.span
-                        key={i}
-                        fontSize="xs"
-                        px={2}
-                        py={0.5}
-                        bg="blue.100"
-                        color="blue.700"
-                        borderRadius="sm"
-                      >
-                        {need}
-                      </styled.span>
-                    ))}
+                    {strategy.targetMarket.needs
+                      .filter((need): need is string => need !== undefined)
+                      .map((need, i) => (
+                        <styled.span
+                          key={i}
+                          fontSize="xs"
+                          px={2}
+                          py={0.5}
+                          bg="blue.100"
+                          color="blue.700"
+                          borderRadius="sm"
+                        >
+                          {need}
+                        </styled.span>
+                      ))}
                   </Flex>
                 </Box>
               )}
@@ -372,8 +380,9 @@ export function Phase5Strategy() {
                       Personality Traits
                     </styled.label>
                     <Flex gap={1} wrap="wrap">
-                      {strategy.brandPersonality.personality.map(
-                        (trait: string, i: number) => (
+                      {strategy.brandPersonality.personality
+                        .filter((trait): trait is string => trait !== undefined)
+                        .map((trait, i) => (
                           <styled.span
                             key={i}
                             fontSize="xs"
@@ -385,8 +394,7 @@ export function Phase5Strategy() {
                           >
                             {trait}
                           </styled.span>
-                        ),
-                      )}
+                        ))}
                     </Flex>
                   </Box>
                 )}
@@ -451,8 +459,11 @@ export function Phase5Strategy() {
                       Competitive Advantages
                     </styled.label>
                     <Flex gap={1} wrap="wrap">
-                      {strategy.positioning.competitiveAdvantages.map(
-                        (advantage: string, i: number) => (
+                      {strategy.positioning.competitiveAdvantages
+                        .filter(
+                          (advantage): advantage is string => advantage !== undefined,
+                        )
+                        .map((advantage, i) => (
                           <styled.span
                             key={i}
                             fontSize="xs"
@@ -464,8 +475,7 @@ export function Phase5Strategy() {
                           >
                             {advantage}
                           </styled.span>
-                        ),
-                      )}
+                        ))}
                     </Flex>
                   </Box>
                 )}
@@ -506,8 +516,9 @@ export function Phase5Strategy() {
                       Color Scheme
                     </styled.label>
                     <Flex gap={1} wrap="wrap">
-                      {strategy.visualIdentity.colorScheme.map(
-                        (color: string, i: number) => (
+                      {strategy.visualIdentity.colorScheme
+                        .filter((color): color is string => color !== undefined)
+                        .map((color, i) => (
                           <styled.span
                             key={i}
                             fontSize="xs"
@@ -519,8 +530,7 @@ export function Phase5Strategy() {
                           >
                             {color}
                           </styled.span>
-                        ),
-                      )}
+                        ))}
                     </Flex>
                   </Box>
                 )}
@@ -567,8 +577,12 @@ export function Phase5Strategy() {
                             Guidelines
                           </styled.label>
                           <Flex gap={1} wrap="wrap">
-                            {strategy.visualIdentity.imagery.guidelines.map(
-                              (guideline: string, i: number) => (
+                            {strategy.visualIdentity.imagery.guidelines
+                              .filter(
+                                (guideline): guideline is string =>
+                                  guideline !== undefined,
+                              )
+                              .map((guideline, i) => (
                                 <styled.span
                                   key={i}
                                   fontSize="xs"
@@ -580,8 +594,7 @@ export function Phase5Strategy() {
                                 >
                                   {guideline}
                                 </styled.span>
-                              ),
-                            )}
+                              ))}
                           </Flex>
                         </Box>
                       )}
@@ -600,8 +613,11 @@ export function Phase5Strategy() {
                       Design Principles
                     </styled.label>
                     <Flex gap={1} wrap="wrap">
-                      {strategy.visualIdentity.designPrinciples.map(
-                        (principle: string, i: number) => (
+                      {strategy.visualIdentity.designPrinciples
+                        .filter(
+                          (principle): principle is string => principle !== undefined,
+                        )
+                        .map((principle, i) => (
                           <styled.span
                             key={i}
                             fontSize="xs"
@@ -613,8 +629,7 @@ export function Phase5Strategy() {
                           >
                             {principle}
                           </styled.span>
-                        ),
-                      )}
+                        ))}
                     </Flex>
                   </Box>
                 )}
