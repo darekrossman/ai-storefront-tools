@@ -7,10 +7,10 @@ export async function middleware(request: NextRequest) {
     const { pathname } = request.nextUrl
 
     // Allow only the homepage ("/") in production
-    if (pathname !== '/') {
-      // Redirect all other routes to the homepage
-      return NextResponse.redirect(new URL('/', request.url))
-    }
+    // if (pathname !== '/') {
+    //   // Redirect all other routes to the homepage
+    //   return NextResponse.redirect(new URL('/', request.url))
+    // }
   }
 
   // Continue with session handling
