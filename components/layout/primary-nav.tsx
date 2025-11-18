@@ -6,7 +6,6 @@ import Link from 'next/link'
 import { usePathname } from 'next/navigation'
 import {
   Blocks,
-  House,
   PanelLeftClose,
   PanelLeftOpen,
   Settings,
@@ -19,7 +18,6 @@ import { css } from '@/styled-system/css'
 import { hstack } from '@/styled-system/patterns'
 
 const navigation = [
-  { name: 'Dashboard', href: '/dashboard', icon: <House size={20} /> },
   { name: 'Brands', href: '/brands', icon: <Blocks size={20} /> },
   { name: 'Jobs', href: '/dashboard/jobs', icon: <Wrench size={20} /> },
   { name: 'Profile', href: '/profile', icon: <User size={20} /> },
@@ -31,9 +29,6 @@ export default function PrimaryNav() {
   const pathname = usePathname()
 
   const isActive = (href: string) => {
-    if (href === '/dashboard') {
-      return pathname === href
-    }
     return pathname.startsWith(href)
   }
 
@@ -48,7 +43,7 @@ export default function PrimaryNav() {
           borderBottom="base"
         >
           {/* Logo/Brand */}
-          <Link href="/dashboard" className={hstack({})}>
+          <Link href="/brands" className={hstack({})}>
             <LogoIcon w="32px" h="32px" />
             <Box
               visibility={isCollapsed ? 'hidden' : 'visible'}

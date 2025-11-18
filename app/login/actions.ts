@@ -49,52 +49,5 @@ export async function login(
   }
 
   revalidatePath('/', 'layout')
-  redirect('/dashboard')
-}
-
-export async function signup(
-  prevState: AuthState,
-  formData: FormData,
-): Promise<AuthState> {
-  const supabase = await createClient()
-
-  const email = formData.get('email') as string
-  const password = formData.get('password') as string
-
-  // Basic validation
-  if (!email || !password) {
-    return { error: 'Please fill in all fields' }
-  }
-
-  if (!email.includes('@')) {
-    return { error: 'Please enter a valid email address' }
-  }
-
-  if (password.length < 6) {
-    return { error: 'Password must be at least 6 characters' }
-  }
-
-  const { error } = await supabase.auth.signUp({
-    email,
-    password,
-  })
-
-  if (error) {
-    // Handle specific error cases
-    if (error.message.includes('User already registered')) {
-      return {
-        error: 'An account with this email already exists. Try logging in instead.',
-      }
-    } else if (error.message.includes('Password should be')) {
-      return { error: 'Password must be at least 6 characters' }
-    } else {
-      return { error: error.message }
-    }
-  }
-
-  // Show success message for signup
-  return {
-    message: 'Check your email to confirm your account before logging in',
-    success: true,
-  }
+  redirect('/brands')
 }
